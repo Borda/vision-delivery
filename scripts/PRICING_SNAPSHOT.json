@@ -1,0 +1,31 @@
+{
+  "as_of": "2026-06-25",
+  "note": "Committed snapshot — cold-start floor. Live fetch attempted on each cost_model.py run.",
+  "sources": {
+    "aws_gpu": {
+      "source_url": "https://instances.vantage.sh/aws/ec2/g4dn.xlarge",
+      "instance": "g4dn.xlarge",
+      "region": "us-east-1",
+      "os": "Linux",
+      "ondemand_usd_hr": 0.526,
+      "spot_usd_hr": 0.274,
+      "vcpu": 4,
+      "memory_gib": 16,
+      "gpu": "NVIDIA T4"
+    },
+    "roboflow_managed": {
+      "source_url": "https://roboflow.com/pricing",
+      "note": "Roboflow uses a credits-based model. No public per-stream or per-inference price is listed. Dedicated deployment and managed GPU clusters are Enterprise add-ons with custom (sales) pricing. Core plan: $79/mo (annual) includes 15 credits/mo base. Additional credits: $4+ prepaid or $6 flex per credit.",
+      "per_stream_usd_mo": null,
+      "pricing_model": "credits",
+      "raw_pricing_text": "Public: Free ($60/month free credits). Core: $99/month or $79/month (annual), 50 credits/month (monthly) or 15 credits/month base (annual). Additional credits available at $4+ per credit (prepaid) or $6 per credit (flex). Enterprise: Custom pricing. Dedicated Deployment: Core and Enterprise only. Managed CPU/GPU Cluster: Enterprise add-on only, custom pricing."
+    },
+    "engineer_hourly": {
+      "source_url": "https://www.payscale.com/research/US/Job=Machine_Learning_Engineer/Salary",
+      "role": "ML/DevOps Engineer (US, blended)",
+      "annual_usd": 125201,
+      "hourly_usd": 60.19,
+      "basis": "PayScale survey, Machine Learning Engineer, US, base salary median, 1127 salary profiles, last updated April 25 2026. Hourly = annual / 2080."
+    }
+  }
+}

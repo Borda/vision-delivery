@@ -1,0 +1,5 @@
+{
+  "description": "1 stream, nano model, business hours, no GPU, no managed override → Core plan floor ($79/mo) beats fully-loaded DIY (~$280/mo)",
+  "args": ["--streams", "1", "--model-size", "nano", "--uptime", "business"],
+  "expect_recommendation": "managed"
+}

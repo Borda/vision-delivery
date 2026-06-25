@@ -1,0 +1,5 @@
+{
+  "description": "1 stream, nano model, business hours, existing GPU, managed quote $500/mo → DIY clearly wins",
+  "args": ["--streams", "1", "--model-size", "nano", "--uptime", "business", "--existing-gpu", "--managed-usd-mo", "500"],
+  "expect_recommendation": "diy"
+}
