@@ -1,0 +1,23 @@
+/* Roboflow brand palette — primary #6706CE, accent #A855F7 */
+
+[data-md-color-primary="custom"] {
+  --md-primary-fg-color: #6706CE;
+  --md-primary-fg-color--light: #9333EA;
+  --md-primary-fg-color--dark: #5200A3;
+  --md-primary-bg-color: #FFFFFF;
+  --md-primary-bg-color--light: rgba(255, 255, 255, 0.7);
+}
+
+[data-md-color-accent="custom"] {
+  --md-accent-fg-color: #A855F7;
+  --md-accent-fg-color--transparent: rgba(168, 85, 247, 0.1);
+  --md-accent-bg-color: #FFFFFF;
+  --md-accent-bg-color--light: rgba(255, 255, 255, 0.7);
+}
+
+/* dark scheme — lighten primary so it reads on slate bg */
+[data-md-color-scheme="slate"][data-md-color-primary="custom"] {
+  --md-primary-fg-color: #9333EA;
+  --md-primary-fg-color--light: #A855F7;
+  --md-primary-fg-color--dark: #7C3AED;
+}

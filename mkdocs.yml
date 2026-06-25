@@ -1,0 +1,54 @@
+site_name: vision-delivery
+site_description: Claude Code plugin — CV problem solver + honest deployment consultant
+site_url: https://borda.github.io/vision-delivery/
+repo_url: https://github.com/Borda/vision-delivery
+repo_name: Borda/vision-delivery
+docs_dir: docs
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Dark mode
+    - scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Light mode
+  features:
+    - navigation.instant
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+
+extra_css:
+  - stylesheets/roboflow.css
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - tables
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - Benchmarks:
+    - Overview: benchmarks/index.md
+    - B1 — Conveyor detect: benchmarks/b1-conveyor-detect.md
+    - B2 — PPE compliance: benchmarks/b2-classify-or-flag.md
+    - B3 — Shopper tracking: benchmarks/b3-track-in-video.md
+    - B4 — OCR extraction: benchmarks/b4-read-text-ocr.md
+    - B5 — Measurement: benchmarks/b5-measure-in-image.md
