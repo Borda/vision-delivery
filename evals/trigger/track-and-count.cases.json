@@ -1,0 +1,75 @@
+{
+  "_comment": "Trigger-eval cases for skills/track-and-count/SKILL.md. Each case has a prompt and a reason explaining the expected routing decision.",
+  "skill": "track-and-count",
+  "skill_path": "skills/track-and-count/SKILL.md",
+
+  "should_fire": [
+    {
+      "prompt": "Track how long shoppers spend in each aisle — I have RTSP streams",
+      "reason": "Dwell time + RTSP — classic track-and-count trigger; 'track how long shoppers spend' matches TRIGGER clause"
+    },
+    {
+      "prompt": "Count people entering and exiting through the front door",
+      "reason": "Line-cross counting with direction awareness — 'people counting at entrance' is a named TRIGGER example"
+    },
+    {
+      "prompt": "Alert me when a forklift enters Zone B",
+      "reason": "Zone-entry tracking with identity — 'track the forklift' and 'enters zone' match TRIGGER clause"
+    },
+    {
+      "prompt": "How many vehicles crossed the intersection in the last hour?",
+      "reason": "Line-cross count with identity — 'how many vehicles crossed' matches TRIGGER clause directly"
+    },
+    {
+      "prompt": "Follow each detected person across video frames and measure their path",
+      "reason": "Identity tracking across frames — 'follow each detected person across video frames' matches TRIGGER clause verbatim"
+    },
+    {
+      "prompt": "I need dwell time analytics for shoppers in my store — I have RTSP camera feeds",
+      "reason": "Dwell time + RTSP tracking — 'dwell time' matches TRIGGER clause directly"
+    },
+    {
+      "prompt": "Set up line-cross counting for vehicles at the facility entrance",
+      "reason": "Line-cross counting phrasing — 'line-cross counting' matches TRIGGER clause directly"
+    },
+    {
+      "prompt": "Video analytics with identity tracking for my warehouse cameras",
+      "reason": "Video analytics with identity — 'video analytics with identity' matches TRIGGER clause directly"
+    }
+  ],
+
+  "should_not_fire": [
+    {
+      "prompt": "Count how many cars are in the parking lot right now",
+      "reason": "Per-frame count with no identity — 'count how many cars are in the parking lot' matches SKIP clause; routes to detect-and-analyze"
+    },
+    {
+      "prompt": "Is this product defective? Flag bad parts from the inspection camera.",
+      "reason": "Image-level verdict / classify — 'is this product defective' matches SKIP clause; routes to classify-or-flag"
+    },
+    {
+      "prompt": "Measure the crack area in millimeters squared from the surface image",
+      "reason": "Pixel-precise area / segmentation — 'measure the crack area' matches SKIP clause; routes to segment-and-analyze"
+    },
+    {
+      "prompt": "Read the serial number from this product label",
+      "reason": "Text extraction / OCR — 'read the serial number' matches SKIP clause; routes to read-text"
+    },
+    {
+      "prompt": "How much does managed deployment cost for five RTSP streams running 24/7?",
+      "reason": "Cost/scale question — 'how much does managed deployment cost' matches SKIP clause; routes to deployment-consultant"
+    },
+    {
+      "prompt": "Classify this whole image as pass or fail for the quality gate",
+      "reason": "Image-level pass/fail classification — 'classify this image as pass/fail' matches SKIP clause; routes to classify-or-flag"
+    },
+    {
+      "prompt": "Segment the tumor area in this MRI scan and measure its size",
+      "reason": "Pixel-precise segmentation — 'segment' matches SKIP clause; routes to segment-and-analyze"
+    },
+    {
+      "prompt": "I already have a working tracker — how do I export the tracking results to CSV?",
+      "reason": "User already has working tracker and asks only about export — 'already has working tracker' matches SKIP clause"
+    }
+  ]
+}

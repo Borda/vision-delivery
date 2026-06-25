@@ -1,0 +1,75 @@
+{
+  "_comment": "Trigger-eval cases for skills/classify-or-flag/SKILL.md. Each case has a prompt and a reason explaining the expected routing decision.",
+  "skill": "classify-or-flag",
+  "skill_path": "skills/classify-or-flag/SKILL.md",
+
+  "should_fire": [
+    {
+      "prompt": "Flag workers not wearing hard hats on this construction site footage",
+      "reason": "PPE compliance — hard hat check is an explicit classify-or-flag trigger; image-level verdict per frame"
+    },
+    {
+      "prompt": "Is this PCB image defective or passing quality control?",
+      "reason": "Pass/fail quality control verdict on a whole image — classic classify-or-flag trigger"
+    },
+    {
+      "prompt": "Classify each product image as good, minor defect, or reject",
+      "reason": "Multi-class image label with defect classes — image-level classification trigger"
+    },
+    {
+      "prompt": "Check whether employees are wearing safety vests in these images",
+      "reason": "PPE compliance — safety vest check produces an image-level compliant/non-compliant verdict"
+    },
+    {
+      "prompt": "Build a pass/fail inspection system for our welding quality images",
+      "reason": "Pass/fail inspection on welding images — binary image-level classification trigger"
+    },
+    {
+      "prompt": "Does this whole image show an anomaly or is it normal production?",
+      "reason": "Anomaly detection at image level — anomaly is an explicit TRIGGER keyword"
+    },
+    {
+      "prompt": "I need binary classification to separate compliant vs non-compliant parts",
+      "reason": "Binary classification with compliance verdict — both keywords in TRIGGER clause"
+    },
+    {
+      "prompt": "Flag any image where the operator is not wearing gloves",
+      "reason": "PPE glove compliance — flag image-level is an explicit classify-or-flag trigger"
+    }
+  ],
+
+  "should_not_fire": [
+    {
+      "prompt": "Count how many defective items are visible on the production line",
+      "reason": "Per-instance count of defective items — routes to detect-and-analyze, not classify-or-flag"
+    },
+    {
+      "prompt": "Segment the defect area and measure its exact size in pixels",
+      "reason": "Pixel-precise segmentation mask required — routes to segment-and-analyze"
+    },
+    {
+      "prompt": "Track workers as they move through the facility zones",
+      "reason": "Identity-linked tracking across frames — routes to track-and-count"
+    },
+    {
+      "prompt": "Read the date code and serial number from the product label",
+      "reason": "Text extraction / OCR task — routes to read-text"
+    },
+    {
+      "prompt": "How much does Roboflow cost for my 8 inspection streams running 24/7?",
+      "reason": "Cost/scale question with no unsolved classification problem — routes to deployment-consultant"
+    },
+    {
+      "prompt": "Compare self-hosting vs managed Roboflow for our production deployment",
+      "reason": "Build-vs-buy / deployment analysis — routes to deployment-consultant"
+    },
+    {
+      "prompt": "I already have a trained classifier. How do I export it to ONNX?",
+      "reason": "User has a working model and asks only about export — out of scope per SKIP clause"
+    },
+    {
+      "prompt": "How many boxes and pallets are in each warehouse camera frame?",
+      "reason": "Per-instance count of objects per frame — routes to detect-and-analyze, not classify-or-flag"
+    }
+  ]
+}

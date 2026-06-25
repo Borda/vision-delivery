@@ -1,0 +1,75 @@
+{
+  "_comment": "Trigger-eval cases for skills/segment-and-analyze/SKILL.md. Each case has a prompt and a reason explaining the expected routing decision.",
+  "skill": "segment-and-analyze",
+  "skill_path": "skills/segment-and-analyze/SKILL.md",
+
+  "should_fire": [
+    {
+      "prompt": "Measure crack width in these bridge inspection photos for our maintenance report",
+      "reason": "Crack width measurement requires pixel-precise mask + skeleton cross-section — core segment-and-analyze capability"
+    },
+    {
+      "prompt": "Segment tumor regions in these MRI scans and measure their area in mm²",
+      "reason": "Tumor area measurement in physical units — instance segmentation + calibrated area output"
+    },
+    {
+      "prompt": "I need pixel-precise outlines of corrosion patches on ship hull images",
+      "reason": "Pixel-precise outline = instance mask — explicit segmentation trigger phrase"
+    },
+    {
+      "prompt": "Measure the exact area of each defect found in solar panel images",
+      "reason": "Exact area measurement per defect instance — requires mask, not bbox; segment-and-analyze"
+    },
+    {
+      "prompt": "Detect and outline each part on the assembly line, then measure their dimensions",
+      "reason": "Outline + measure dimensions — contour and area measurement from masks; not a simple count"
+    },
+    {
+      "prompt": "I want to quantify corrosion area on steel beams from inspection photos",
+      "reason": "Corrosion area quantification — defect area measurement from mask; segment-and-analyze scope"
+    },
+    {
+      "prompt": "Get the contour of every lesion in these dermoscopy images and compute their shape",
+      "reason": "Contour extraction + shape analysis (lesion boundary) — instance segmentation trigger"
+    },
+    {
+      "prompt": "Count pixels belonging to each crack and give me area measurements in mm squared",
+      "reason": "Count pixels = pixel mask area measurement — explicit pixel counting + mm² output"
+    }
+  ],
+
+  "should_not_fire": [
+    {
+      "prompt": "Count how many defects appear on each board",
+      "reason": "Per-instance count without area measurement — routes to detect-and-analyze, not segment-and-analyze"
+    },
+    {
+      "prompt": "Is this solar panel defective? Flag the fail images",
+      "reason": "Image-level verdict (defective yes/no for whole image) — routes to classify-or-flag; no masks needed"
+    },
+    {
+      "prompt": "Read the serial number stamped on this industrial part",
+      "reason": "Text extraction / OCR task — routes to read-text; no segmentation involved"
+    },
+    {
+      "prompt": "Track workers as they move through the factory floor",
+      "reason": "Identity-linked tracking across frames — routes to track-and-count, not segment-and-analyze"
+    },
+    {
+      "prompt": "What does managed deployment cost for 3 camera streams running 24/7?",
+      "reason": "Cost/scale question with no unsolved segmentation problem — routes to deployment-consultant"
+    },
+    {
+      "prompt": "I already have masks from my annotation tool — how do I post-process them to count objects?",
+      "reason": "User already has masks and asks only about post-processing — explicitly out of scope for this skill"
+    },
+    {
+      "prompt": "Classify each whole image as pass or fail for our QA line",
+      "reason": "Image-level classification (pass/fail verdict on the whole image) — routes to classify-or-flag; no per-instance masks"
+    },
+    {
+      "prompt": "Extract and OCR all the text labels visible on these product packages",
+      "reason": "OCR / text extraction task — routes to read-text; not a segmentation problem"
+    }
+  ]
+}

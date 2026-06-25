@@ -1,0 +1,75 @@
+{
+  "_comment": "Trigger-eval cases for skills/recognize-pose-or-gesture/SKILL.md. Each case has a prompt and a reason explaining the expected routing decision.",
+  "skill": "recognize-pose-or-gesture",
+  "skill_path": "skills/recognize-pose-or-gesture/SKILL.md",
+
+  "should_fire": [
+    {
+      "prompt": "Detect when workers are bending incorrectly at the assembly station",
+      "reason": "Bending detection is listed explicitly in TRIGGER ('is the worker bending', 'bend detection') — keypoint-based body pose analysis"
+    },
+    {
+      "prompt": "Recognize hand gestures to control my smart home system",
+      "reason": "Gesture recognition is a primary TRIGGER keyword — routes here, not classify-or-flag"
+    },
+    {
+      "prompt": "Alert me if someone falls in the elderly care facility footage",
+      "reason": "'falls in footage' is in TRIGGER clause — fall detection is a named capability"
+    },
+    {
+      "prompt": "Analyze worker posture for ergonomics compliance",
+      "reason": "'posture' and 'ergonomics' both appear in TRIGGER — joint-angle ergonomics analysis"
+    },
+    {
+      "prompt": "Detect whether someone is raising their hand in classroom video",
+      "reason": "'raising hand' / 'raise their hand' in TRIGGER — hand-raise gesture classification from keypoints"
+    },
+    {
+      "prompt": "I want to build a sign language recognition system from webcam footage",
+      "reason": "'sign language' is explicitly listed in TRIGGER clause"
+    },
+    {
+      "prompt": "Check if gym members are performing squats with correct form",
+      "reason": "'squat' is in TRIGGER ('squat detection', 'squat form') — rule-based squat angle classifier on YOLO-pose keypoints"
+    },
+    {
+      "prompt": "Track the skeleton and joint angles of patients doing physical therapy exercises",
+      "reason": "'skeleton' and 'joint angles' / 'joint angle' both appear in TRIGGER — full COCO body skeleton + ergonomics angle computation"
+    }
+  ],
+
+  "should_not_fire": [
+    {
+      "prompt": "Classify whether a worker is wearing a hard hat on the construction site",
+      "reason": "Image-level PPE classification without keypoints — 'wearing' + 'hard hat' → classify-or-flag (in SKIP: 'detecting whether a person is wearing PPE or hard hat')"
+    },
+    {
+      "prompt": "Measure the exact body contour area in these medical images",
+      "reason": "Pixel-precise body contour area requires segmentation masks — 'contour' maps to SKIP ('pixel-precise segmentation or body contour area measurement → segment-and-analyze')"
+    },
+    {
+      "prompt": "Track each person's path through the store and count how long they stay in each aisle",
+      "reason": "Identity path tracking across frames without pose analysis — 'path tracking' maps to SKIP ('identity tracking or path tracking across frames → track-and-count')"
+    },
+    {
+      "prompt": "Read the text on the safety sign above the exit door",
+      "reason": "Text extraction — 'text' and 'safety sign reading' both in SKIP clause ('text or label extraction from images, e.g. safety sign reading → read-text')"
+    },
+    {
+      "prompt": "How much does it cost to run pose detection on 5 cameras 24/7?",
+      "reason": "Cost/scale question with no unsolved pose problem — 'cost' maps to SKIP ('cost, scale, or self-hosting vs managed deployment question → deployment-consultant')"
+    },
+    {
+      "prompt": "I already have a trained pose model. How do I integrate it into my Python app?",
+      "reason": "User already has a working model and asks only about integration — explicitly in SKIP ('already has a working pose model and asks only about export, optimization, active learning, or integration')"
+    },
+    {
+      "prompt": "Set up active learning for my existing keypoint detection model",
+      "reason": "Active learning on an existing model — 'active learning' is in SKIP ('user already has a working pose model and asks only about export, optimization, active learning, or integration')"
+    },
+    {
+      "prompt": "Compare cloud-hosted vs self-hosted deployment for my fall detection system",
+      "reason": "Self-hosting vs managed deployment comparison — 'self-hosting vs managed deployment' is in SKIP ('cost, scale, or self-hosting vs managed deployment question → deployment-consultant')"
+    }
+  ]
+}

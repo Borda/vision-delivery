@@ -1,0 +1,75 @@
+{
+  "_comment": "Trigger-eval cases for skills/read-text/SKILL.md. Each case has a prompt and a reason explaining the expected routing decision.",
+  "skill": "read-text",
+  "skill_path": "skills/read-text/SKILL.md",
+
+  "should_fire": [
+    {
+      "prompt": "Read serial numbers off circuit boards in my manufacturing line",
+      "reason": "Serial number extraction from manufacturing images — core read-text use case; 'serial' keyword in TRIGGER clause"
+    },
+    {
+      "prompt": "Extract the expiry date and lot number from product labels",
+      "reason": "Date code and lot number extraction from labels — 'expiry', 'lot', 'number', 'labels' in TRIGGER clause"
+    },
+    {
+      "prompt": "I need to OCR meter readings from utility meter images",
+      "reason": "Meter digit OCR — 'ocr', 'meter', 'readings' all appear in TRIGGER clause"
+    },
+    {
+      "prompt": "Read license plates from parking lot camera images",
+      "reason": "License plate reading — 'license', 'plate' in TRIGGER clause"
+    },
+    {
+      "prompt": "Extract text fields from scanned invoices for document digitization",
+      "reason": "Form field extraction and document digitization — 'extract', 'text', 'fields', 'document', 'digitization' in TRIGGER clause"
+    },
+    {
+      "prompt": "Scan QR codes and barcodes on warehouse packages automatically",
+      "reason": "Barcode and QR code reading — 'scan', 'barcodes', 'codes' in TRIGGER clause"
+    },
+    {
+      "prompt": "Pull the part number from every component image coming off the conveyor",
+      "reason": "Part number extraction from manufacturing images — 'part', 'number' in TRIGGER clause"
+    },
+    {
+      "prompt": "Recognize digits on 7-segment LED displays for meter readings",
+      "reason": "Digit recognition on meter displays — 'digit', 'meter', 'readings' in TRIGGER clause"
+    }
+  ],
+
+  "should_not_fire": [
+    {
+      "prompt": "Count how many items are on the shelf right now",
+      "reason": "Per-instance count with no text extraction — 'count', 'items', 'shelf' route to detect-and-analyze; 'count' appears in SKIP clause"
+    },
+    {
+      "prompt": "Is this label correctly positioned? Flag misaligned ones",
+      "reason": "Image-level pass/fail verdict with no text; 'flag', 'misaligned' route to classify-or-flag; 'flag misaligned label' in SKIP clause"
+    },
+    {
+      "prompt": "Measure the crack width in bridge inspection photos",
+      "reason": "Pixel-level measurement requiring segmentation — 'crack', 'width', 'segment' keywords in SKIP clause"
+    },
+    {
+      "prompt": "Track pallets moving through the warehouse and alert on zone entry",
+      "reason": "Object tracking across frames — 'track', 'pallets' route to track-and-count; 'track pallets' in SKIP clause"
+    },
+    {
+      "prompt": "How much would it cost to deploy this to 10 cameras at a factory?",
+      "reason": "Cost/scale question with no unsolved OCR problem — 'cost', 'deploy', 'cameras' route to deployment-consultant; appears in SKIP clause"
+    },
+    {
+      "prompt": "Classify images as defective or pass for our quality line",
+      "reason": "Image-level classification pass/fail — 'classify', 'image', 'defective' route to classify-or-flag; 'classify image' in SKIP clause"
+    },
+    {
+      "prompt": "Tally the number of boxes on the conveyor belt per frame",
+      "reason": "Per-instance object count — 'tally', 'objects' route to detect-and-analyze; 'tally objects' in SKIP clause"
+    },
+    {
+      "prompt": "I have working OCR already — how do I wire up the integration to my backend?",
+      "reason": "User already has working OCR, asks only about integration — 'integration', 'ocr' keywords in SKIP clause"
+    }
+  ]
+}
