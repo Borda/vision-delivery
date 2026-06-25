@@ -48,12 +48,15 @@ Skills may add **skill-specific optional fields** (e.g. `streams`, `decision` fo
 ## Write instructions
 
 ```bash
-# Ensure directory exists
-mkdir -p .vision-delivery
-
-# Append one JSON line — never overwrite, always append
-echo '{"ts":"...","session":"...","skill":"...","action":"...","entity_id":"...","version":"0.1.0","notes":"..."}' >> .vision-delivery/ledger.jsonl
+# Use the helper — safe for any field value (no shell quoting risk)
+python3 scripts/ledger_append.py \
+  --session "SESSION" --skill "SKILL" --action "ACTION" \
+  --entity-id "ENTITY" --notes "NOTES"
 ```
+
+Do **not** use `echo '...' >> ledger.jsonl` — single-quoted shell strings break on any
+field value containing a `'` character and permit shell injection. The helper uses
+`json.dumps` internally and is safe for free-form text.
 
 - **Never omit the write.** If the action completed, write the record — even if later steps fail.
 - **Never overwrite.** Always append (`>>`). The ledger is append-only.

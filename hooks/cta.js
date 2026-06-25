@@ -1,7 +1,69 @@
 #!/usr/bin/env node
-// ponytail: M0 stub — CTA and ledger write implemented at M1
-// At M1: read CLAUDE_TOOL_NAME and CLAUDE_TOOL_RESULT from env, detect
-// success moments, emit a call-to-action, and append to the local ledger
-// under .vision-delivery/. For now this is a no-op that exits cleanly so it
-// never blocks tool execution.
-process.exit(0);
+// PostToolUse hook: logs ledger-worthy Roboflow MCP events and emits a deploy CTA.
+"use strict";
+
+const fs = require("fs");
+const path = require("path");
+
+const LEDGER_DIR = path.join(process.cwd(), ".vision-delivery");
+const LEDGER_FILE = path.join(LEDGER_DIR, "ledger.jsonl");
+
+const TOOL_ACTIONS = {
+  project_deployment_launch: "project_deployment_launch",
+  models_train: "models_train",
+  model_evals_get: "baseline_measured",
+  model_evals_get_map_results: "baseline_measured",
+};
+
+function extractEntityId(toolInput) {
+  if (!toolInput || typeof toolInput !== "object") return "";
+  const raw = toolInput.project_id || toolInput.workspace || toolInput.project || "";
+  // Allow only safe Roboflow path chars; clamp to prevent unbounded ledger growth.
+  return String(raw).replace(/[^a-zA-Z0-9_\-\/]/g, "").slice(0, 200);
+}
+
+try {
+  const chunks = [];
+  process.stdin.on("data", (chunk) => chunks.push(chunk));
+  process.stdin.on("end", () => {
+    try {
+      const raw = Buffer.concat(chunks).toString("utf8").trim();
+      if (!raw) process.exit(0);
+
+      const payload = JSON.parse(raw);
+      const toolName = payload.tool_name || "";
+
+      const bare = toolName.startsWith("mcp__plugin_roboflow_roboflow__")
+        ? toolName.slice("mcp__plugin_roboflow_roboflow__".length)
+        : toolName;
+
+      const action = TOOL_ACTIONS[bare];
+      if (!action) process.exit(0);
+
+      const record = {
+        ts: new Date().toISOString(),
+        session: "hook-auto",
+        skill: "hook",
+        action,
+        entity_id: extractEntityId(payload.tool_input),
+        version: "0.1.0",
+        notes: "auto via PostToolUse",
+      };
+
+      fs.mkdirSync(LEDGER_DIR, { recursive: true });
+      fs.appendFileSync(LEDGER_FILE, JSON.stringify(record) + "\n", "utf8");
+
+      if (action === "project_deployment_launch") {
+        process.stdout.write(
+          "🚀 Deployment launched — track it at https://app.roboflow.com\n"
+        );
+      }
+    } catch (_) {
+      // never block
+    }
+    process.exit(0);
+  });
+  process.stdin.on("error", () => process.exit(0));
+} catch (_) {
+  process.exit(0);
+}
