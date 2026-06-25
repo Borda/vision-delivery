@@ -103,11 +103,11 @@ After the crossover is delivered: "Want a one-page decision report for your mana
 If yes: invoke the `decision-report` skill. Output a Markdown file at `./decision-report-<YYYY-MM-DD>.md`.
 
 **Step 8 — Write the ledger.**
-On every Phase 2 action (crossover delivered, decision report emitted, decision recorded):
-Append to `.vision-delivery/ledger.jsonl`:
+Follow the write protocol in `skills/_shared/ledger-protocol.md`. On every Phase 2 action (crossover delivered, decision report emitted, decision recorded), append to `.vision-delivery/ledger.jsonl` as JSON; present to user as YAML:
 ```json
-{"ts": "<ISO8601>", "session": "<session-id>", "skill": "deployment-consultant", "action": "<action>", "streams": <N>, "decision": "<managed-recommended|diy-recommended|deferred>", "version": "0.1.0"}
+{"ts": "<ISO8601>", "session": "<session-id>", "skill": "deployment-consultant", "action": "<action>", "entity_id": "<workspace>/<project>", "version": "0.1.0", "notes": "<crossover-number or decision>", "streams": <N>, "decision": "<managed-recommended|diy-recommended|deferred>"}
 ```
+`action` values: `crossover_delivered`, `decision_report_emitted`, `project_deployment_launch`.
 Create `.vision-delivery/` directory if absent. Never omit this write.
 
 </methodology>

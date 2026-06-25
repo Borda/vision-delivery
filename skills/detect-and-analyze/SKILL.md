@@ -174,6 +174,23 @@ Follow the safe-action gates in `skills/_shared/fde-methodology.md` exactly. Qui
 
 </safe_actions>
 
+<ledger>
+
+Follow the write protocol in `skills/_shared/ledger-protocol.md`. Write one record per action, append-only to `.vision-delivery/ledger.jsonl`.
+
+Action triggers for this skill:
+
+| Trigger | `action` value | What to put in `notes` |
+|---------|---------------|------------------------|
+| `eval_definition.md` written and user confirmed | `eval_definition` | target classes, threshold |
+| First `models_infer` call returns mAP result | `baseline_measured` | `mAP@50=X%, MAE=Y` |
+| `models_train` MCP call submitted | `models_train` | model name, checkpoint, dataset version |
+| Deployment launched (via seam offer → deployment-consultant) | `project_deployment_launch` | deployment_id, endpoint URL |
+
+`entity_id` format: `<workspace>/<project>` for projects; `<workspace>/<project>/<version>` when version is known.
+
+</ledger>
+
 <voice>
 
 Follow voice rules from `skills/_shared/fde-methodology.md`. Short reference:

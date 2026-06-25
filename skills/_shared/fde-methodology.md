@@ -51,7 +51,7 @@ When eval passes, check `.vision-delivery/session-<session-id>.offered` before o
 If user picks (b): hand off to deployment-consultant. Do not re-engage as builder after this point.
 
 **Step 8 — Write the ledger.**
-On every solve action (eval defined, model tested, threshold tuned, PoC exported, seam offered), append to `.vision-delivery/ledger.jsonl`:
+On every solve action (eval defined, model tested, threshold tuned, PoC exported, seam offered), append to `.vision-delivery/ledger.jsonl` as JSON; present to user as YAML (see `skills/_shared/ledger-protocol.md`):
 ```json
 {"ts": "<ISO8601>", "session": "<session-id>", "skill": "<skill-name>", "action": "<action>", "entity_id": "<roboflow-entity-id-if-any>", "version": "0.1.0"}
 ```
