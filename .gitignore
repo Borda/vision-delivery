@@ -1,0 +1,15 @@
+# JetBrain IDE
+.idea/
+
+# AI tooling
+.claude/agent-memory/
+.claude/state/
+.claude/worktrees/
+.plans/
+.temp/
+
+# vision-delivery runtime
+.env
+.vision-delivery/*
+!.vision-delivery/.gitkeep
+dist/

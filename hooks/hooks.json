@@ -1,0 +1,15 @@
+{
+  "description": "vision-delivery hooks: success-moment CTA and local ledger write",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/cta.js\"",
+            "type": "command"
+          }
+        ]
+      }
+    ]
+  }
+}
