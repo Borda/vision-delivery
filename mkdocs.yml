@@ -46,9 +46,9 @@ plugins:
 nav:
   - Home: index.md
   - Benchmarks:
-    - Overview: benchmarks/index.md
-    - B1 — Conveyor detect: benchmarks/b1-conveyor-detect.md
-    - B2 — PPE compliance: benchmarks/b2-classify-or-flag.md
-    - B3 — Shopper tracking: benchmarks/b3-track-in-video.md
-    - B4 — OCR extraction: benchmarks/b4-read-text-ocr.md
-    - B5 — Measurement: benchmarks/b5-measure-in-image.md
+      - Overview: benchmarks/index.md
+      - B1 — Conveyor detect: benchmarks/b1-conveyor-detect.md
+      - B2 — PPE compliance: benchmarks/b2-classify-or-flag.md
+      - B3 — Shopper tracking: benchmarks/b3-track-in-video.md
+      - B4 — OCR extraction: benchmarks/b4-read-text-ocr.md
+      - B5 — Measurement: benchmarks/b5-measure-in-image.md

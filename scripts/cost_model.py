@@ -23,6 +23,7 @@ Examples:
     >>> hours_per_month("business")
     176
 """
+
 from __future__ import annotations
 
 import argparse
@@ -141,11 +142,13 @@ def _ordinal(n: int) -> str:
     if 10 <= n % 100 <= 20:
         suffix = "th"
     else:
-        suffix = {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+        suffix = {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")  # codespell:ignore nd
     return f"{n}{suffix}"
 
 
-def scaling_cliff_note(streams: int, model_size: str, gpu_rate: float, hours: int) -> str:
+def scaling_cliff_note(
+    streams: int, model_size: str, gpu_rate: float, hours: int
+) -> str:
     """Describe the cost step when the next GPU instance becomes necessary.
 
     Args:
@@ -208,7 +211,7 @@ def load_snapshot(path: Path = SNAPSHOT_PATH) -> dict[str, Any]:
 
 
 def snapshot_age_days(as_of: str, today: date | None = None) -> int | None:
-    """Return age of the snapshot in days, or ``None`` if ``as_of`` unparseable.
+    """Return age of the snapshot in days, or ``None`` if ``as_of`` unparsable.
 
     Args:
         as_of: ISO date string from the snapshot.
@@ -441,7 +444,9 @@ def render_json(result: dict[str, Any]) -> str:
     return json.dumps(payload, indent=2)
 
 
-def render_text(result: dict[str, Any], args: argparse.Namespace, stale_days: int | None) -> str:
+def render_text(
+    result: dict[str, Any], args: argparse.Namespace, stale_days: int | None
+) -> str:
     """Render the human-readable report with per-line source provenance."""
     diy = result["diy"]
     src = result["sources"]
@@ -489,7 +494,9 @@ def render_text(result: dict[str, Any], args: argparse.Namespace, stale_days: in
     lines.append("")
 
     managed = result["managed"]
-    managed_src_label = "user-provided" if managed["source"] == "user-provided" else managed["source"]
+    managed_src_label = (
+        "user-provided" if managed["source"] == "user-provided" else managed["source"]
+    )
     lines.append(
         f"Roboflow managed ({args.streams} streams):".ljust(42)
         + f"~${managed['total_mo']:,.0f}/mo  "
@@ -500,7 +507,9 @@ def render_text(result: dict[str, Any], args: argparse.Namespace, stale_days: in
             "  Note: No public per-stream price. Figure above is a user-provided enterprise quote."
         )
     else:
-        lines.append("  Note: No public per-stream price. Figure above is the Roboflow Core plan floor.")
+        lines.append(
+            "  Note: No public per-stream price. Figure above is the Roboflow Core plan floor."
+        )
     lines.append(
         "  Public info: https://roboflow.com/pricing — Core plan $79/mo (credits), "
         "dedicated GPU = Enterprise."
@@ -519,14 +528,18 @@ def render_text(result: dict[str, Any], args: argparse.Namespace, stale_days: in
 
     rec_label = "DIY" if result["recommendation"] == "diy" else "Managed"
     alt = "Managed" if rec_label == "DIY" else "DIY"
-    lines.append(f"Recommendation: {rec_label}  <- (or \"{alt}\" if the other is cheaper)")
+    lines.append(
+        f'Recommendation: {rec_label}  <- (or "{alt}" if the other is cheaper)'
+    )
     lines.append("")
     lines.append(f"Scaling cliff: {result['scaling_cliff']}")
     lines.append("")
     lines.append("Sources:")
     lines.append(f"  GPU rate:  {src['gpu_source_url']} (as_of: {src['gpu_as_of']})")
     lines.append(f"  Managed:   {managed_src_label}")
-    lines.append(f"  Engineer:  {src['engineer_source_url']} (as_of: {src['engineer_as_of']})")
+    lines.append(
+        f"  Engineer:  {src['engineer_source_url']} (as_of: {src['engineer_as_of']})"
+    )
     lines.append("")
     lines.append(
         "All inputs editable — pass --managed-usd-mo, --override-gpu-spot, "
@@ -543,39 +556,58 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         description="DIY self-hosting vs Roboflow managed cost crossover estimator.",
     )
-    p.add_argument("--streams", type=int, required=True, help="Number of camera streams.")
+    p.add_argument(
+        "--streams", type=int, required=True, help="Number of camera streams."
+    )
     p.add_argument("--fps", type=int, default=10, help="Frames per second per stream.")
     p.add_argument(
-        "--model-size", choices=["nano", "medium", "large"], default="medium",
+        "--model-size",
+        choices=["nano", "medium", "large"],
+        default="medium",
         help="Model size class.",
     )
     p.add_argument(
-        "--uptime", choices=["24x7", "business"], default="24x7",
+        "--uptime",
+        choices=["24x7", "business"],
+        default="24x7",
         help="Uptime profile (business = ~176h/mo).",
     )
-    p.add_argument("--region", default="us-east-1", help="Cloud region for GPU pricing.")
     p.add_argument(
-        "--existing-gpu", action="store_true",
+        "--region", default="us-east-1", help="Cloud region for GPU pricing."
+    )
+    p.add_argument(
+        "--existing-gpu",
+        action="store_true",
         help="Use existing hardware; GPU cloud cost = $0.",
     )
     p.add_argument(
-        "--use-spot", action="store_true", default=True,
+        "--use-spot",
+        action="store_true",
+        default=True,
         help="Use spot GPU pricing (default).",
     )
     p.add_argument(
-        "--on-demand", dest="use_spot", action="store_false",
+        "--on-demand",
+        dest="use_spot",
+        action="store_false",
         help="Use on-demand GPU pricing instead of spot.",
     )
     p.add_argument(
-        "--managed-usd-mo", type=float, default=None,
+        "--managed-usd-mo",
+        type=float,
+        default=None,
         help="Override managed cost per month (e.g. enterprise quote).",
     )
     p.add_argument(
-        "--override-gpu-spot", type=float, default=None,
+        "--override-gpu-spot",
+        type=float,
+        default=None,
         help="Override GPU $/hr for sensitivity runs.",
     )
     p.add_argument(
-        "--override-engineer", type=float, default=None,
+        "--override-engineer",
+        type=float,
+        default=None,
         help="Override engineer hourly rate.",
     )
     p.add_argument("--json", action="store_true", help="Emit machine-readable JSON.")

@@ -1,9 +1,8 @@
 # E2E Spec — segment-and-analyze vertical
 
-**Fixture:** `universe.roboflow.com` public concrete/bridge crack segmentation dataset with polygon mask annotations — search `crack segmentation masks>200 sort:stars` for a suitable public dataset; confirm license before use. Equivalent scope: any public segmentation dataset with mask annotations for defect-class objects (corrosion, lesion, crack).
-**Harness:** manual acceptance (executable runner = TODO(M-later))
+**Fixture:** `universe.roboflow.com` public concrete/bridge crack segmentation dataset with polygon mask annotations — search `crack segmentation masks>200 sort:stars` for a suitable public dataset; confirm license before use. Equivalent scope: any public segmentation dataset with mask annotations for defect-class objects (corrosion, lesion, crack). **Harness:** manual acceptance (executable runner = TODO(M-later))
 
----
+______________________________________________________________________
 
 ## Prerequisites
 
@@ -11,7 +10,7 @@
 - Claude Code launched with `claude --plugin-dir .` from this repo.
 - A public Universe segmentation dataset confirmed accessible via API (cross-workspace Universe datasets accessible read-only).
 
----
+______________________________________________________________________
 
 ## Sequence
 
@@ -21,16 +20,18 @@
 
 **Expected:** `segment-and-analyze` skill fires (description-match routing on "crack", "measure", "outline", "millimeters"). No `auth-setup` flow if key is present.
 
----
+______________________________________________________________________
 
 ### Step 2 — Eval definition (skill-led)
 
 Skill asks at most 3 targeted questions:
+
 1. What is the acceptable IoU threshold? (segmentation quality gate)
 2. Do you need physical measurements (mm) or pixel counts only? (calibration requirement)
 3. Target class(es) and batch vs real-time?
 
 **Expected response for this fixture:**
+
 - Target: crack
 - IoU threshold: ≥ 0.80
 - Area error ceiling: ≤ 15% (physical measurement goal)
@@ -41,7 +42,7 @@ Skill writes `eval_definition.md` to the working directory.
 
 **[Live step — no credits]**
 
----
+______________________________________________________________________
 
 ### Step 3 — Foundation-model-first: SAM zero-shot
 
@@ -55,21 +56,23 @@ crack is not in COCO 80 → skill does NOT use RF-DETR detection directly. Inste
 
 **[Live step — Workflows inference credits may apply; test on ≤20 images first]**
 
----
+______________________________________________________________________
 
 ### Step 4 — Measure against eval
 
 Skill reports exact numbers:
+
 - Mean IoU (from SAM zero-shot on sample set)
 - Area error % (if ground-truth mask areas available)
 - Compares against eval threshold (IoU ≥ 0.80)
 
 Example measurement (placeholder — actual values depend on fixture and SAM performance):
+
 > "SAM zero-shot on 20 crack images: mean IoU = 0.68, area error = 22%. Threshold is IoU ≥ 0.80 — missed by 12 points."
 
 **[Live step — inference credits may apply for large batches; test on ≤20 images first]**
 
----
+______________________________________________________________________
 
 ### Step 5 — Eval result branch
 
@@ -82,19 +85,21 @@ Skill proceeds directly to Step 6 (PoC artifact).
 Skill offers fastest lever first:
 
 **5b-i — SAM prompt tuning (zero label cost):**
+
 - Switch from center-point prompt to box-prompt or multi-point prompt.
 - Re-measure IoU on same 20 images after prompt change.
 - Expected IoU gain: 5–15 points. If passes → Step 6.
 
 **5b-ii — Fine-tune on labeled masks (credit-spending step):**
+
 - Requires labeled segmentation dataset. If user has none: offer annotation via Roboflow UI.
 - Show credit estimate for `models_train` before calling.
 - Wait for explicit "yes" in current turn before submitting training job.
 - After training: re-measure IoU. If passes → Step 6. If still fails → offer data collection guidance.
 
-**[Step 5b-ii is a credit-spending step — MUST show credit estimate and wait for explicit "yes" before calling `models_train`]**
+**\[Step 5b-ii is a credit-spending step — MUST show credit estimate and wait for explicit "yes" before calling `models_train`\]**
 
----
+______________________________________________________________________
 
 ### Step 6 — Calibration step (when physical units requested)
 
@@ -108,22 +113,23 @@ When user needs mm measurements (as in this fixture's eval):
 
 **[Live step — no credits; requires user to supply calibration measurement]**
 
----
+______________________________________________________________________
 
 ### Step 7 — PoC artifact delivery
 
 Skill produces:
+
 - `segment_measure.py` — runnable inference + measurement script with `PX_PER_MM` populated from calibration step; mask polygon → area_px, area_mm2, perimeter_px
 - `eval_definition.md` — IoU threshold, area error ceiling, calibration method, dataset source
 
 Both files must be runnable on a fresh machine with `requests`, `numpy`, and `opencv-python` installed.
 
----
+______________________________________________________________________
 
 ### Step 8 — Seam offer (once, declinable)
 
-Skill checks `.vision-delivery/session-<id>.offered`.
-If absent: fires offer once.
+Skill checks `.vision-delivery/session-<id>.offered`. If absent: fires offer once.
+
 ```
 "Model passes eval. Next step:
  (a) Export and run locally (ONNX/TensorRT, free, runs on your machine)
@@ -133,30 +139,28 @@ If absent: fires offer once.
 
 **Asserts:** offer fires exactly once across a session (sentinel written after first offer; not re-offered on second pass).
 
----
+______________________________________________________________________
 
 ### Step 9 — Ledger write
 
-After any solve action, `.vision-delivery/ledger.jsonl` is updated.
-Check: file exists, last line is valid JSON with `skill: "segment-and-analyze"` and `action` matching the completed step.
+After any solve action, `.vision-delivery/ledger.jsonl` is updated. Check: file exists, last line is valid JSON with `skill: "segment-and-analyze"` and `action` matching the completed step.
 
 Expected records in order:
+
 1. `eval_definition` — after eval_definition.md written and confirmed
 2. `baseline_measured` — after SAM zero-shot IoU measured
 3. `models_train` — if fine-tuning was required (credit-confirmed)
 4. `project_deployment_launch` — if user selected (b) in seam offer
 
----
+______________________________________________________________________
 
 ### Step 10 — [Acceptance — live deploy, not part of this automated spec]
 
-If user selected (b) in Step 8: deployment-consultant is invoked.
-`project_deployment_launch` NOT called without explicit credit confirmation.
-This step is a manual acceptance test only — a Roboflow deployment is created and the URL is returned.
+If user selected (b) in Step 8: deployment-consultant is invoked. `project_deployment_launch` NOT called without explicit credit confirmation. This step is a manual acceptance test only — a Roboflow deployment is created and the URL is returned.
 
 **[Credit-spending step — requires explicit user confirmation in session]**
 
----
+______________________________________________________________________
 
 ## Done When
 

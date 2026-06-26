@@ -1,15 +1,12 @@
 {
-  "name": "vision-delivery",
-  "version": "0.1.0",
-  "description": "Agent-ready computer vision skills: from problem to deployed model. Claude Code, Codex, Cursor.",
+  "agents": "./agents/",
   "author": {
     "name": "Roboflow",
     "url": "https://roboflow.com/"
   },
+  "description": "Agent-ready computer vision skills: from problem to deployed model. Claude Code, Codex, Cursor.",
   "homepage": "https://borda.github.io/vision-delivery/",
-  "repository": "https://github.com/Borda/vision-delivery",
-  "security": "./SECURITY.md",
-  "license": "Apache-2.0",
+  "hooks": "./hooks/hooks.json",
   "keywords": [
     "computer-vision",
     "claude-code",
@@ -18,8 +15,11 @@
     "roboflow",
     "deployment"
   ],
+  "license": "Apache-2.0",
+  "mcpServers": "./.mcp.json",
+  "name": "vision-delivery",
+  "repository": "https://github.com/Borda/vision-delivery",
+  "security": "./SECURITY.md",
   "skills": "./skills/",
-  "agents": "./agents/",
-  "hooks": "./hooks/hooks.json",
-  "mcpServers": "./.mcp.json"
+  "version": "0.1.0"
 }

@@ -1,20 +1,17 @@
 {
   "_comment": "Trigger-eval cases for skills/detect-and-analyze/SKILL.md. Each case has a prompt and a reason explaining the expected routing decision.",
-  "skill": "detect-and-analyze",
-  "skill_path": "skills/detect-and-analyze/SKILL.md",
-
   "should_fire": [
     {
       "prompt": "How many boxes are on the conveyor belt right now?",
-      "reason": "Direct per-instance count question — object-level, classic detect-and-analyze trigger"
+      "reason": "Direct per-instance count question \u2014 object-level, classic detect-and-analyze trigger"
     },
     {
       "prompt": "I need to count the number of people in each camera frame",
-      "reason": "Count people per frame — matches 'count people/vehicles/items in camera feeds'"
+      "reason": "Count people per frame \u2014 matches 'count people/vehicles/items in camera feeds'"
     },
     {
       "prompt": "Detect and count cars in this parking lot image",
-      "reason": "Literal 'detect and count' phrasing — object-level count"
+      "reason": "Literal 'detect and count' phrasing \u2014 object-level count"
     },
     {
       "prompt": "I want to tally the items on the assembly line automatically",
@@ -22,66 +19,67 @@
     },
     {
       "prompt": "Can you tell me the number of defects appearing in each product image?",
-      "reason": "Number of X per image — object-level count per instance, not an image-level verdict"
+      "reason": "Number of X per image \u2014 object-level count per instance, not an image-level verdict"
     },
     {
       "prompt": "Count the defective items on the production line",
-      "reason": "Boundary case — 'count the defective items' asks for per-instance count (object-level) not image-level pass/fail — routes here not to classify-or-flag"
+      "reason": "Boundary case \u2014 'count the defective items' asks for per-instance count (object-level) not image-level pass/fail \u2014 routes here not to classify-or-flag"
     },
     {
       "prompt": "How wide are the boxes on the conveyor? Estimate size from the camera feed",
-      "reason": "Size estimation from bbox geometry — measurement-from-boxes capability of detect-and-analyze"
+      "reason": "Size estimation from bbox geometry \u2014 measurement-from-boxes capability of detect-and-analyze"
     },
     {
       "prompt": "Extract a crop of each detected part from the inspection image",
-      "reason": "Per-object crop / ROI extraction — part of detect-and-analyze bbox output capabilities"
+      "reason": "Per-object crop / ROI extraction \u2014 part of detect-and-analyze bbox output capabilities"
     },
     {
-      "prompt": "Give me an object tally from warehouse camera images — boxes and pallets",
-      "reason": "Object tally phrasing + multi-class — per-instance count intent"
+      "prompt": "Give me an object tally from warehouse camera images \u2014 boxes and pallets",
+      "reason": "Object tally phrasing + multi-class \u2014 per-instance count intent"
     },
     {
       "prompt": "Build me a model that counts trucks entering the facility from RTSP footage",
-      "reason": "Count trucks per frame — object-level; line-cross counting is track-and-count, but per-frame count is detect-and-analyze"
+      "reason": "Count trucks per frame \u2014 object-level; line-cross counting is track-and-count, but per-frame count is detect-and-analyze"
     }
   ],
-
   "should_not_fire": [
     {
       "prompt": "Is this weld defective or not? Flag bad parts.",
-      "reason": "Image-level verdict (defective yes/no for the whole image) — routes to classify-or-flag (M4), not detect-and-analyze"
+      "reason": "Image-level verdict (defective yes/no for the whole image) \u2014 routes to classify-or-flag (M4), not detect-and-analyze"
     },
     {
       "prompt": "Flag this whole product image as defective or pass",
-      "reason": "Image-level pass/fail classification — classify-or-flag (M4); no per-instance count requested"
+      "reason": "Image-level pass/fail classification \u2014 classify-or-flag (M4); no per-instance count requested"
     },
     {
       "prompt": "Track the forklift as it moves through the warehouse and alert when it enters Zone B",
-      "reason": "Identity-linked tracking across frames + zone-entry — routes to track-and-count (M4)"
+      "reason": "Identity-linked tracking across frames + zone-entry \u2014 routes to track-and-count (M4)"
     },
     {
       "prompt": "Measure the exact area of corrosion in millimeters squared from the image",
-      "reason": "Pixel-precise area requires masks, not bboxes — routes to segment-and-analyze (M4)"
+      "reason": "Pixel-precise area requires masks, not bboxes \u2014 routes to segment-and-analyze (M4)"
     },
     {
       "prompt": "Read the serial number and expiry date from the product label",
-      "reason": "Text extraction / OCR — routes to read-text (M4)"
+      "reason": "Text extraction / OCR \u2014 routes to read-text (M4)"
     },
     {
       "prompt": "How much does Roboflow's managed deployment cost for 5 streams running 24/7?",
-      "reason": "Cost/scale question with no unsolved detection problem — routes to deployment-consultant"
+      "reason": "Cost/scale question with no unsolved detection problem \u2014 routes to deployment-consultant"
     },
     {
       "prompt": "I already have a trained YOLOv8 model. How do I export it to TensorRT?",
-      "reason": "User already has a working model and asks only about export — out of scope"
+      "reason": "User already has a working model and asks only about export \u2014 out of scope"
     },
     {
       "prompt": "Compare self-hosting vs managed Roboflow for my 10-stream production setup",
-      "reason": "Build-vs-buy analysis — routes to deployment-consultant"
+      "reason": "Build-vs-buy analysis \u2014 routes to deployment-consultant"
     },
     {
       "prompt": "Help me set up active learning on my existing defect detection model",
-      "reason": "Active learning on an existing model — not a new detection build problem"
+      "reason": "Active learning on an existing model \u2014 not a new detection build problem"
     }
-  ]
+  ],
+  "skill": "detect-and-analyze",
+  "skill_path": "skills/detect-and-analyze/SKILL.md"
 }

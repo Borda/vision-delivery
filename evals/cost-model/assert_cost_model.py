@@ -10,6 +10,7 @@ Usage:
     python3 evals/cost-model/assert_cost_model.py
     echo $?  # 0 = pass, 1 = fail
 """
+
 from __future__ import annotations
 
 import json
@@ -29,20 +30,26 @@ DOLLAR_LINE_PATTERN = re.compile(r"~\$[\d,]+")
 def run_json(args: list[str]) -> dict:
     result = subprocess.run(
         [sys.executable, str(SCRIPT)] + args + ["--json"],
-        capture_output=True, text=True,
+        capture_output=True,
+        text=True,
     )
     if result.returncode != 0:
-        raise AssertionError(f"cost_model.py exited {result.returncode}:\n{result.stderr}")
+        raise AssertionError(
+            f"cost_model.py exited {result.returncode}:\n{result.stderr}"
+        )
     return json.loads(result.stdout)
 
 
 def run_text(args: list[str]) -> str:
     result = subprocess.run(
         [sys.executable, str(SCRIPT)] + args,
-        capture_output=True, text=True,
+        capture_output=True,
+        text=True,
     )
     if result.returncode != 0:
-        raise AssertionError(f"cost_model.py exited {result.returncode}:\n{result.stderr}")
+        raise AssertionError(
+            f"cost_model.py exited {result.returncode}:\n{result.stderr}"
+        )
     return result.stdout
 
 

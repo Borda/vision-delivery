@@ -12,6 +12,7 @@ allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 Produce pixel-precise instance masks and area/shape measurements that pass the user's eval. The exit criterion is a segmentation model meeting the user's IoU threshold on their own images, plus a calibrated measurement pipeline if physical units (mm, cm²) are needed.
 
 **What this skill covers:**
+
 - **Instance segmentation** — one mask per object instance; polygon contour per detection
 - **Area measurement** — mask pixel count converted to physical area (requires calibration reference)
 - **Shape analysis** — perimeter, aspect ratio, compactness derived from mask contour
@@ -20,6 +21,7 @@ Produce pixel-precise instance masks and area/shape measurements that pass the u
 - **Calibration** — known-dimension reference object in frame → px/mm conversion factor
 
 **What this skill does NOT cover:**
+
 - Simple bounding-box count without area → `detect-and-analyze`
 - Image-level pass/fail verdict → `classify-or-flag` (M4)
 - Text or label extraction → `read-text` (M4)
@@ -36,23 +38,28 @@ Steps 1, 2, 5, 7, and 8 follow the generic sequence in `skills/_shared/fde-metho
 **Step 3 — Foundation-model-first (segmentation-specific).**
 
 Try SAM zero-shot before any labeling or fine-tuning:
+
 - **SAM (Segment Anything Model)** — zero-shot instance segmentation; available via Roboflow Workflows. No labeled masks required for initial evaluation.
 - Run SAM zero-shot on 20 user images → measure mean IoU against any available ground-truth masks (or user visual inspection for unlabeled sets).
 
 Universe search when SAM zero-shot IoU < threshold:
+
 ```
 universe_search: "<object> segmentation masks>200 sort:stars"
 ```
+
 Present 2–3 results with image count, license, a one-line relevance note. Let user pick before fetching.
 
 **Step 4 — Measure against the eval (segmentation metrics).**
 
 Report all applicable metrics:
+
 - **mAP@50 (mask)** — standard segmentation quality metric on validation set
 - **Mean IoU** — for single-class problems or when ground-truth masks are available
 - **Area error (%)** — when physical measurement is the goal: `|predicted_area - gt_area| / gt_area`
 
 Non-negotiable format:
+
 > "SAM zero-shot on 20 of your crack images: mean IoU = 0.71, area error = 18%. Your threshold is IoU ≥ 0.85 — missed by 14 points."
 
 Never soften. Numbers only.
@@ -73,35 +80,40 @@ After obtaining masks, compute area and shape measurements. Include this helper 
 import cv2
 import numpy as np
 
+
 def mask_measurements(mask_array: np.ndarray, px_per_mm: float | None = None) -> dict:
     """
     mask_array: binary uint8 array (H×W), 1 = object pixel.
     px_per_mm:  calibration factor (pixels per mm). None → report px only.
     """
     area_px = int(mask_array.sum())
-    contours, _ = cv2.findContours(mask_array, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(
+        mask_array, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+    )
     if not contours:
         return {"area_px": area_px, "area_mm2": None, "perimeter_px": None}
     c = max(contours, key=cv2.contourArea)
     perimeter_px = float(cv2.arcLength(c, closed=True))
     x, y, w, h = cv2.boundingRect(c)
     aspect_ratio = round(w / h, 3) if h > 0 else None
-    compactness = round(4 * np.pi * area_px / (perimeter_px ** 2), 4) if perimeter_px > 0 else None
-    area_mm2 = round(area_px / (px_per_mm ** 2), 3) if px_per_mm else None
+    compactness = (
+        round(4 * np.pi * area_px / (perimeter_px**2), 4) if perimeter_px > 0 else None
+    )
+    area_mm2 = round(area_px / (px_per_mm**2), 3) if px_per_mm else None
     return {
         "area_px": area_px,
-        "area_mm2": area_mm2,          # None when px_per_mm not provided
+        "area_mm2": area_mm2,  # None when px_per_mm not provided
         "perimeter_px": round(perimeter_px, 1),
         "aspect_ratio": aspect_ratio,
-        "compactness": compactness,    # 1.0 = circle; lower = elongated/irregular
+        "compactness": compactness,  # 1.0 = circle; lower = elongated/irregular
     }
 ```
 
 Always state the calibration limit when reporting area_mm2:
+
 > "area_mm2 requires a known-dimension reference object visible in the same frame."
 
-**Crack width measurement (when requested):**
-Skeletonize the mask (`skimage.morphology.skeletonize`), sample perpendicular cross-sections along the centerline, measure cross-section width in pixels. Convert to mm via px_per_mm if calibration reference is present.
+**Crack width measurement (when requested):** Skeletonize the mask (`skimage.morphology.skeletonize`), sample perpendicular cross-sections along the centerline, measure cross-section width in pixels. Convert to mm via px_per_mm if calibration reference is present.
 
 **Step 6 — Artifact: `segment_measure.py`** — inference + mask measurement script; `eval_definition.md` with IoU threshold and calibration method.
 
@@ -112,16 +124,18 @@ Skeletonize the mask (`skimage.morphology.skeletonize`), sample perpendicular cr
 Produce these two user-owned, portable files at Step 6.
 
 **`segment_measure.py`** — inference + measurement script:
+
 ```python
 import requests, json, base64, sys, numpy as np, cv2
 from pathlib import Path
 
 # ponytail: no SDK — stdlib + requests + numpy + opencv only
 WORKSPACE = "<workspace>"
-PROJECT   = "<project>"
-VERSION   = "<version>"
-API_KEY   = "<from ROBOFLOW_API_KEY env>"
+PROJECT = "<project>"
+VERSION = "<version>"
+API_KEY = "<from ROBOFLOW_API_KEY env>"
 PX_PER_MM = None  # set from calibration reference; None = pixel output only
+
 
 def segment_image(image_path: str) -> dict:
     with open(image_path, "rb") as f:
@@ -136,25 +150,37 @@ def segment_image(image_path: str) -> dict:
     results = []
     for p in preds:
         # Build binary mask from polygon points
-        pts = np.array([[pt["x"], pt["y"]] for pt in p.get("points", [])], dtype=np.int32)
+        pts = np.array(
+            [[pt["x"], pt["y"]] for pt in p.get("points", [])], dtype=np.int32
+        )
         h = resp.json().get("image", {}).get("height", 1000)
         w = resp.json().get("image", {}).get("width", 1000)
         mask = np.zeros((h, w), dtype=np.uint8)
         if len(pts):
             cv2.fillPoly(mask, [pts], 1)
         measurements = mask_measurements(mask, PX_PER_MM)
-        results.append({"class": p.get("class"), "confidence": p.get("confidence"), **measurements})
+        results.append(
+            {"class": p.get("class"), "confidence": p.get("confidence"), **measurements}
+        )
     return {"path": image_path, "predictions": results}
+
 
 def mask_measurements(mask_array, px_per_mm=None):
     area_px = int(mask_array.sum())
-    contours, _ = cv2.findContours(mask_array, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(
+        mask_array, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+    )
     if not contours:
         return {"area_px": area_px, "area_mm2": None, "perimeter_px": None}
     c = max(contours, key=cv2.contourArea)
     perimeter_px = float(cv2.arcLength(c, closed=True))
-    area_mm2 = round(area_px / (px_per_mm ** 2), 3) if px_per_mm else None
-    return {"area_px": area_px, "area_mm2": area_mm2, "perimeter_px": round(perimeter_px, 1)}
+    area_mm2 = round(area_px / (px_per_mm**2), 3) if px_per_mm else None
+    return {
+        "area_px": area_px,
+        "area_mm2": area_mm2,
+        "perimeter_px": round(perimeter_px, 1),
+    }
+
 
 if __name__ == "__main__":
     for path in sys.argv[1:]:
@@ -162,6 +188,7 @@ if __name__ == "__main__":
 ```
 
 **`eval_definition.md`**:
+
 ```markdown
 # Eval — <problem-title>
 Date: <ISO8601>
@@ -178,26 +205,28 @@ Also write `.vision-delivery/detections.jsonl` (one JSON line per image) — dow
 
 </artifact>
 
-<model_pick>
+\<model_pick>
 
 See `skills/_shared/model-selection.md` for the full decision tree and exact model_id values.
 
 Quick reference for segmentation:
+
 - First attempt: SAM zero-shot (no labels needed) via Roboflow Workflows
 - Fine-tune on SAM checkpoint when zero-shot IoU < threshold
 - Custom train from scratch: `rfdetr-seg-medium` (verify model_id from `roboflow://skills/training-and-evaluation` before first use — Instance Segmentation section in `skills/_shared/model-selection.md` uses placeholder IDs)
 
-</model_pick>
+\</model_pick>
 
-<safe_actions>
+\<safe_actions>
 
 Follow the safe-action gates in `skills/_shared/fde-methodology.md` exactly. Quick reference:
+
 - `models_train` → credit estimate + explicit yes required, same turn
 - `versions_generate` → free but irreversible; state augmentation config before calling
 - Image upload → state destination; offer local path if user declines
 - `project_deployment_launch` → not in this skill; seam offer hands to deployment-consultant
 
-</safe_actions>
+\</safe_actions>
 
 <ledger>
 
@@ -205,12 +234,12 @@ Follow the write protocol in `skills/_shared/ledger-protocol.md`. Write one reco
 
 Action triggers for this skill:
 
-| Trigger | `action` value | What to put in `notes` |
-|---------|---------------|------------------------|
-| `eval_definition.md` written and user confirmed | `eval_definition` | target classes, IoU threshold, calibration method |
-| First SAM zero-shot or `models_infer` returns IoU result | `baseline_measured` | `mean_IoU=X, area_error=Y%` |
-| `models_train` MCP call submitted | `models_train` | model name, checkpoint, dataset version |
-| Deployment launched (via seam offer → deployment-consultant) | `project_deployment_launch` | deployment_id, endpoint URL |
+| Trigger                                                      | `action` value              | What to put in `notes`                            |
+| ------------------------------------------------------------ | --------------------------- | ------------------------------------------------- |
+| `eval_definition.md` written and user confirmed              | `eval_definition`           | target classes, IoU threshold, calibration method |
+| First SAM zero-shot or `models_infer` returns IoU result     | `baseline_measured`         | `mean_IoU=X, area_error=Y%`                       |
+| `models_train` MCP call submitted                            | `models_train`              | model name, checkpoint, dataset version           |
+| Deployment launched (via seam offer → deployment-consultant) | `project_deployment_launch` | deployment_id, endpoint URL                       |
 
 `entity_id` format: `<workspace>/<project>` for projects; `<workspace>/<project>/<version>` when version is known.
 
@@ -221,11 +250,13 @@ Action triggers for this skill:
 Follow voice rules from `skills/_shared/fde-methodology.md`. Short reference:
 
 **Do:**
+
 - "SAM zero-shot on 20 images: mean IoU = 0.71 — threshold is 0.85. Missed by 14 points. Fastest lever: SAM box-prompt tuning first."
 - "Fine-tuned model passes: mean IoU = 0.87, area error = 9%. Threshold was IoU ≥ 0.85."
 - "Calibration reference detected: 50 mm ruler = 312 px → px/mm = 6.24. Area outputs now in mm²."
 
 **Do not:**
+
 - "Looks great!" / "This should work!" / "Great use case!"
 - Report passing when threshold not cleared.
 - Claim physical measurements (mm, cm²) without a confirmed calibration reference in frame.

@@ -11,6 +11,7 @@ Usage:
         --action models_train --entity-id workspace/project/1 \
         --notes "rfdetr-medium, mAP@50=84.6%"
 """
+
 from __future__ import annotations
 
 import argparse

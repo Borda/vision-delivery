@@ -12,12 +12,14 @@ allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 Build a working detection pipeline for the user's specific objects. The exit criterion is a model (or pretrained candidate) that passes the user's own eval and produces per-instance output the user can act on.
 
 **What this skill covers (all derived from bbox output — no second inference pass needed):**
+
 - **Spatial count** — how many instances of class X appear in a single image or frame
 - **Measurement from bbox** — size proxies: diagonal, aspect ratio, relative area vs frame, width/height in normalized coordinates
 - **Crops and ROI** — slice the image at each predicted bbox to extract one image per detected object
 - **Per-class metadata** — confidence distribution, class breakdown, zone membership from bbox centroid
 
 **What this skill does NOT cover:**
+
 - Line-cross counting (object crosses a virtual line in video) → `track-and-count` (M4)
 - Exact physical measurements in real-world units (cm, mm) → requires calibration data; route to `measure-in-image` if that skill exists, else handle as consulting scope
 - Pixel-precise outlines or area → `segment-and-analyze` (M4)
@@ -34,23 +36,28 @@ Steps 1, 2, 5, 7, and 8 follow the generic sequence in `skills/_shared/fde-metho
 Check COCO 80 coverage before searching Universe (full list in `skills/_shared/model-selection.md`).
 
 If the class is in COCO 80:
+
 - Use `rfdetr-medium` (non-real-time, mAP priority) or `rfdetr-nano` (real-time, latency priority).
 - No Universe search needed — proceed directly to Step 4.
 
 If NOT in COCO 80:
+
 ```
 universe_search: "<object-type> detection images>200 sort:stars"
 ```
+
 Present 2–3 results with image count, license, and a one-line relevance note. Let the user pick before fetching. Then measure on their samples (Step 4).
 
 **Step 4 — Measure against the eval (detection-specific metrics).**
 
 Run inference via `models_infer`. Report all three metrics if ground-truth is available:
+
 - **mAP@50** — detection quality on validation set
 - **Per-class recall** vs the user's recall threshold
 - **Count MAE per frame** — mean absolute error between predicted count and ground-truth count
 
 Non-negotiable format:
+
 > "Pretrained model on 40 of your images: mAP@50 = 61%, recall = 73%, count MAE = 1.4. Your threshold is 80% recall — missed by 7 points."
 
 **Step 4b — Measurement from bbox (when requested).**
@@ -74,6 +81,7 @@ State the precision limit: bbox measurements are size proxies, not calibrated ph
 **Step 5 — Levers (detection-specific ordering).**
 
 Same generic order as `fde-methodology.md` (threshold sweep → fine-tune → full train), plus:
+
 - **Universe checkpoint fine-tune**: use `checkpoint: "universe/<workspace>/<project>/<version>"` when a close Universe model exists. Fewer labeled images needed (50–100 vs 200+ from scratch).
 - **Model size trade-off**: if latency fails after mAP passes, try `rfdetr-nano` or `yolov11n` before accepting a mAP drop. Report both latency and mAP impact.
 
@@ -94,16 +102,18 @@ Same generic order as `fde-methodology.md` (threshold sweep → fine-tune → fu
 Produce these two user-owned, portable files at Step 6.
 
 **`detect_analyze.py`** — inference + analysis script:
+
 ```python
 import requests, json, base64, sys
 from pathlib import Path
 
 # ponytail: no SDK — stdlib + requests only
 WORKSPACE = "<workspace>"
-PROJECT   = "<project>"
-VERSION   = "<version>"
-API_KEY   = "<from ROBOFLOW_API_KEY env>"
-TARGET    = sys.argv[1] if len(sys.argv) > 1 else None  # None = all classes
+PROJECT = "<project>"
+VERSION = "<version>"
+API_KEY = "<from ROBOFLOW_API_KEY env>"
+TARGET = sys.argv[1] if len(sys.argv) > 1 else None  # None = all classes
+
 
 def analyze_image(image_path: str) -> dict:
     with open(image_path, "rb") as f:
@@ -130,12 +140,14 @@ def analyze_image(image_path: str) -> dict:
         "predictions": filtered,
     }
 
+
 if __name__ == "__main__":
     for path in sys.argv[2:] or []:
         print(json.dumps(analyze_image(path)))
 ```
 
 **`eval_definition.md`**:
+
 ```markdown
 # Eval — <problem-title>
 Date: <ISO8601>
@@ -151,28 +163,30 @@ Also write a `.vision-delivery/detections.jsonl` append per inference run (forma
 
 </artifact>
 
-<model_pick>
+\<model_pick>
 
 See `skills/_shared/model-selection.md` for the full decision tree and exact model_id values.
 
 Quick reference for detection:
+
 - COCO 80 class + non-RT → `rfdetr-medium`
 - COCO 80 class + real-time → `rfdetr-nano`
 - Custom class, first PoC → Rapid or `rfdetr-medium` fine-tune
 - Edge / latency critical → `yolov11n`
 - Max accuracy → `rfdetr-large`
 
-</model_pick>
+\</model_pick>
 
-<safe_actions>
+\<safe_actions>
 
 Follow the safe-action gates in `skills/_shared/fde-methodology.md` exactly. Quick reference:
+
 - `models_train` → credit estimate + explicit yes required, same turn
 - `versions_generate` → free but irreversible; state augmentation config before calling
 - Image upload → state destination; offer local path if user declines
 - `project_deployment_launch` → not in this skill; seam offer hands to deployment-consultant
 
-</safe_actions>
+\</safe_actions>
 
 <ledger>
 
@@ -180,12 +194,12 @@ Follow the write protocol in `skills/_shared/ledger-protocol.md`. Write one reco
 
 Action triggers for this skill:
 
-| Trigger | `action` value | What to put in `notes` |
-|---------|---------------|------------------------|
-| `eval_definition.md` written and user confirmed | `eval_definition` | target classes, threshold |
-| First `models_infer` call returns mAP result | `baseline_measured` | `mAP@50=X%, MAE=Y` |
-| `models_train` MCP call submitted | `models_train` | model name, checkpoint, dataset version |
-| Deployment launched (via seam offer → deployment-consultant) | `project_deployment_launch` | deployment_id, endpoint URL |
+| Trigger                                                      | `action` value              | What to put in `notes`                  |
+| ------------------------------------------------------------ | --------------------------- | --------------------------------------- |
+| `eval_definition.md` written and user confirmed              | `eval_definition`           | target classes, threshold               |
+| First `models_infer` call returns mAP result                 | `baseline_measured`         | `mAP@50=X%, MAE=Y`                      |
+| `models_train` MCP call submitted                            | `models_train`              | model name, checkpoint, dataset version |
+| Deployment launched (via seam offer → deployment-consultant) | `project_deployment_launch` | deployment_id, endpoint URL             |
 
 `entity_id` format: `<workspace>/<project>` for projects; `<workspace>/<project>/<version>` when version is known.
 
@@ -196,11 +210,13 @@ Action triggers for this skill:
 Follow voice rules from `skills/_shared/fde-methodology.md`. Short reference:
 
 **Do:**
+
 - "mAP@50 = 61% — threshold is 80%. Missed by 19 points. Fastest lever: confidence sweep first."
 - "Pretrained model passes: 84% recall, threshold was 80%. Count MAE = 0.9 per frame."
 - "Non-COCO class, 3 custom targets — use Rapid for the first PoC; no OCR, no fine-grained defects. Go."
 
 **Do not:**
+
 - "Looks good!" / "This should work!" / "Great use case!"
 - Report passing when threshold not cleared.
 - Mention managed deployment, pricing, or cost in Phase 1 (seam offer fires once at eval-pass only).

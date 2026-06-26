@@ -1,26 +1,21 @@
 # B4 Benchmark — Read Text: OCR Extraction
 
-**Problem:** read serial numbers off circuit boards in a manufacturing line using OCR.
-**Vertical:** `read-text` skill.
-**Last updated:** 2026-06-25 (TBD — pending live run).
+**Problem:** read serial numbers off circuit boards in a manufacturing line using OCR. **Vertical:** `read-text` skill. **Last updated:** 2026-06-25 (TBD — pending live run).
 
----
+______________________________________________________________________
 
 ## Fixture
 
-| Field | Value |
-|-------|-------|
-| Dataset | TBD — pending live run (Universe: PCB text / serial number OCR dataset) |
-| Workspace/Project | TBD |
-| **Pinned version** | TBD |
-| Images (total) | TBD |
-| Classes | text region (detection); serial number field (OCR target) |
-| License | Universe public or user workspace |
-| Primary eval metric | Field match ≥ 95%, latency ≤ 200 ms per image |
+- **Dataset:** TBD — pending live run (Universe: PCB text / serial number OCR dataset)
+- **Pinned version:** TBD
+- **Images:** TBD
+- **Classes:** text region (detection); serial number field (OCR target)
+- **License:** Universe public or user workspace
+- **Primary eval metric:** Field match ≥ 95%, latency ≤ 200 ms per image
 
 Dataset note: Universe hosts PCB and industrial text detection datasets. B4 fixture will be pinned to the dataset with the closest match to the user's lighting and board orientation. If no Universe fixture matches, user supplies 20–30 fixture images with ground-truth serial strings for field-match eval.
 
----
+______________________________________________________________________
 
 ## Problem definition
 
@@ -28,47 +23,51 @@ Dataset note: Universe hosts PCB and industrial text detection datasets. B4 fixt
 
 - **Target field:** serial number string (alphanumeric, fixed-length or variable)
 - **Eval metrics:**
-  - Field match accuracy ≥ 95% (exact string match on serial number field)
-  - End-to-end latency ≤ 200 ms per image (line throughput requirement)
+    - Field match accuracy ≥ 95% (exact string match on serial number field)
+    - End-to-end latency ≤ 200 ms per image (line throughput requirement)
 - **Threshold logic:** both thresholds must be met before deploy. If field match fails: try preprocessing levers (contrast, deskew, resize). If latency fails: switch OCR backend or add inference hardware.
-- **Mode:** batch (inline images) or stream (manufacturing line feed).
+- **Mode:** batch (inline images) or stream (manufacturing line feed)
 
----
+______________________________________________________________________
 
 ## Baseline results
 
 TBD — pending live run.
 
-| Metric | Value | Notes |
-|--------|-------|-------|
-| OCR backend | DocTR (default) or PaddleOCR | selected by plugin based on character set |
-| Detection crop | Roboflow Workflow detection block | isolates serial number region before OCR |
-| Field match — serial number | TBD | exact string match |
-| Character error rate (CER) | TBD | secondary metric |
-| End-to-end latency | TBD ms | CPU baseline; TBD with GPU |
-| **Threshold — field match** | **≥ 95%** | set before baseline measured |
-| **Threshold — latency** | **≤ 200 ms** | manufacturing line floor |
+- **OCR backend:** DocTR (default) or PaddleOCR — selected by plugin based on character set
+- **Detection crop:** Roboflow Workflow detection block — isolates serial number region before OCR
+- **Field match — serial number:** TBD (exact string match)
+- **Character error rate (CER):** TBD (secondary metric)
+- **End-to-end latency:** TBD ms (CPU baseline; TBD with GPU)
+- **Threshold — field match:** ≥ 95% — set before baseline measured
+- **Threshold — latency:** ≤ 200 ms — manufacturing line floor
 
 DocTR is the default backend because it handles alphanumeric industrial text without language-specific pretraining. PaddleOCR is offered as fallback for datasets with mixed scripts or very small font sizes.
 
----
+______________________________________________________________________
 
-## Comparison table
+## Plugin vs plain agent
 
-| Step | Plain agent (no plugin) | **vision-delivery plugin** | Delta |
-|------|------------------------|---------------------------|-------|
-| Problem framing | Suggests EasyOCR, Tesseract, or PaddleOCR; describes approach | Runs `read-text`; defines field match ≥ 95% + latency ≤ 200 ms before any backend selection | Plugin anchors to dual eval upfront |
-| Detection crop | Described ("crop the serial number region first") | Roboflow Workflow with detection block → OCR block built in session | Plugin only |
-| Field match measured | N/A | TBD — measured on fixture images in session | Measured vs described |
-| Latency benchmarked | N/A | TBD ms — measured per image in session | Measured vs described |
-| Preprocessing levers | Described ("try contrast adjustment") | Applied systematically if threshold not met (contrast, deskew, resize) | Principled lever sequence |
-| Steps to working PoC | 0 — no runnable result | 5 steps (eval → Workflow → measure → preprocessing → deploy) | 5 steps saved |
-| Deploy ready | No | OCR endpoint — 1 call | ✅ |
-| Eval defined | No | Yes | ✅ |
-| Field match accuracy measured in session | No | Yes | ✅ |
-| Latency budget set | No | Yes | ✅ |
+**Plain agent (no plugin):**
 
----
+- Suggests EasyOCR, Tesseract, or PaddleOCR; describes approach
+- No detection crop built
+- Field match not measured in session
+- Latency not benchmarked
+- Preprocessing described, not applied
+- No runnable PoC in session
+
+**vision-delivery plugin:**
+
+- Runs `read-text`; anchors to dual eval upfront (field match ≥ 95% + latency ≤ 200 ms)
+- Roboflow Workflow with detection block → OCR block built in session
+- Field match measured: TBD — pending live run
+- Latency benchmarked: TBD ms — measured per image in session
+- Preprocessing levers applied systematically if threshold not met (contrast, deskew, resize)
+- OCR endpoint — 1 call
+- Steps to working PoC: eval → Workflow → measure → preprocessing → deploy (5 steps)
+
+______________________________________________________________________
 
 ## Plugin path — step-by-step
 
@@ -78,7 +77,7 @@ DocTR is the default backend because it handles alphanumeric industrial text wit
 4. **Apply preprocessing levers if needed** — contrast normalization, deskew, resize attempted in order if field match < 95%.
 5. **Deploy OCR endpoint** — Roboflow hosted Workflow endpoint deployed; inference URL returned; latency confirmed < 200 ms.
 
----
+______________________________________________________________________
 
 ## Plain-agent path
 
@@ -87,6 +86,7 @@ Send the same cold prompt to Claude Code without the plugin:
 > "Read serial numbers off circuit boards in my manufacturing line."
 
 Typical plain-agent response:
+
 - Recommends EasyOCR, Tesseract, or PaddleOCR.
 - Describes approach ("install easyocr, crop the board region, call ocr on the crop").
 - Cannot construct a Roboflow Workflow.
@@ -94,7 +94,7 @@ Typical plain-agent response:
 - Cannot benchmark latency against a threshold.
 - No runnable PoC produced in session.
 
----
+______________________________________________________________________
 
 ## Reproduce
 
@@ -124,7 +124,7 @@ claude   # no --plugin-dir flag
 
 Record: whether eval was defined, whether field match was measured, whether latency was benchmarked, whether a deployable endpoint was produced.
 
----
+______________________________________________________________________
 
 ## Notes
 

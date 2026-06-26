@@ -19,7 +19,9 @@ function extractEntityId(toolInput) {
   if (!toolInput || typeof toolInput !== "object") return "";
   const raw = toolInput.project_id || toolInput.workspace || toolInput.project || "";
   // Allow only safe Roboflow path chars; clamp to prevent unbounded ledger growth.
-  return String(raw).replace(/[^a-zA-Z0-9_\-\/]/g, "").slice(0, 200);
+  return String(raw)
+    .replace(/[^a-zA-Z0-9_\-\/]/g, "")
+    .slice(0, 200);
 }
 
 try {
@@ -54,9 +56,7 @@ try {
       fs.appendFileSync(LEDGER_FILE, JSON.stringify(record) + "\n", "utf8");
 
       if (action === "project_deployment_launch") {
-        process.stdout.write(
-          "🚀 Deployment launched — track it at https://app.roboflow.com\n"
-        );
+        process.stdout.write("🚀 Deployment launched — track it at https://app.roboflow.com\n");
       }
     } catch (_) {
       // never block

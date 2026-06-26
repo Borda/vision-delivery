@@ -12,6 +12,7 @@ allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 Build a working image-level classification pipeline for the user's specific problem. The exit criterion is a classifier (or pretrained candidate) that passes the user's own eval and produces a per-image verdict the user can act on.
 
 **What this skill covers:**
+
 - **Binary classification** — pass/fail, defect/no-defect, compliant/non-compliant
 - **Multi-class image label** — product category, defect type, scene type
 - **Foundation-model-first** — SAM3 + CLIP zero-shot before any labeling or training
@@ -19,6 +20,7 @@ Build a working image-level classification pipeline for the user's specific prob
 - **Anomaly detection at image level** — flag images that deviate from a normal class
 
 **What this skill does NOT cover:**
+
 - Counting individual object instances → `detect-and-analyze`
 - Pixel-precise outlines or area measurements → `segment-and-analyze`
 - Object tracking across frames → `track-and-count`
@@ -35,6 +37,7 @@ Steps 1, 2, 5, 7, and 8 follow the generic sequence in `skills/_shared/fde-metho
 Try CLIP zero-shot before any labeling. If the class concept is visual and describable in plain English, CLIP may solve it with zero labeled images.
 
 Protocol:
+
 1. Search Universe for a pretrained classifier close to the user's domain:
    ```
    universe_search: "<object-type> classification images>100 sort:stars"
@@ -46,11 +49,13 @@ Protocol:
 **Step 4 — Measure against the eval (classification-specific metrics).**
 
 Run inference via `models_infer` or zero-shot CLIP. Report:
+
 - **F1** (primary for imbalanced defect / anomaly datasets — use this when one class is rare)
 - **Precision / Recall** per class — always report both when the confusion matters (e.g. "missing a defect costs more than a false alarm")
 - **Accuracy** for balanced multi-class problems where all classes are equally represented
 
 Non-negotiable format:
+
 > "Zero-shot CLIP on 50 of your images: F1 = 0.71 (defect class). Recall = 0.68, Precision = 0.74. Threshold is F1 ≥ 0.85 — missed by 14 points."
 
 For >2 classes: include a confusion matrix summary (which classes are confused with which). Never report only accuracy when class balance is unknown.
@@ -68,15 +73,17 @@ Same generic order as `fde-methodology.md` (threshold sweep → fine-tune → fu
 Produce these two user-owned, portable files.
 
 **`classify_image.py`** — inference + classification script:
+
 ```python
 import requests, json, base64, sys
 from pathlib import Path
 
 # ponytail: no SDK — stdlib + requests only
 WORKSPACE = "<workspace>"
-PROJECT   = "<project>"
-VERSION   = "<version>"
-API_KEY   = "<from ROBOFLOW_API_KEY env>"
+PROJECT = "<project>"
+VERSION = "<version>"
+API_KEY = "<from ROBOFLOW_API_KEY env>"
+
 
 def classify_image(image_path: str) -> dict:
     with open(image_path, "rb") as f:
@@ -97,12 +104,14 @@ def classify_image(image_path: str) -> dict:
         "predictions": result.get("predictions", {}),
     }
 
+
 if __name__ == "__main__":
     for path in sys.argv[1:]:
         print(json.dumps(classify_image(path)))
 ```
 
 **`eval_definition.md`**:
+
 ```markdown
 # Eval — <problem-title>
 Date: <ISO8601>
@@ -120,27 +129,29 @@ Also write a `.vision-delivery/detections.jsonl` append per inference run (forma
 
 </methodology>
 
-<model_pick>
+\<model_pick>
 
 See `skills/_shared/model-selection.md` for the full decision tree and exact model_id values (Classification section notes ViT / DINO family IDs are placeholders — verify current values from `roboflow://skills/training-and-evaluation` before calling `models_train`).
 
 Quick reference for classification:
+
 - Zero-shot, no labels → CLIP (text prompt variants, no training)
 - Universe pretrained classifier exists → use it directly before any training
 - Fine-tune required → ViT-based classifier checkpoint via `models_train`
 - PPE / safety domain → search Universe first (`hard hat`, `ppe compliance`, `safety vest`)
 
-</model_pick>
+\</model_pick>
 
-<safe_actions>
+\<safe_actions>
 
 Follow the safe-action gates in `skills/_shared/fde-methodology.md` exactly. Quick reference:
+
 - `models_train` → credit estimate + explicit yes required, same turn
 - `versions_generate` → free but irreversible; state augmentation config before calling
 - Image upload → state destination; offer local path if user declines
 - `project_deployment_launch` → not in this skill; seam offer hands to deployment-consultant
 
-</safe_actions>
+\</safe_actions>
 
 <ledger>
 
@@ -148,12 +159,12 @@ Follow the write protocol in `skills/_shared/ledger-protocol.md`. Write one reco
 
 Action triggers for this skill:
 
-| Trigger | `action` value | What to put in `notes` |
-|---------|---------------|------------------------|
-| `eval_definition.md` written and user confirmed | `eval_definition` | target classes, F1/recall threshold |
-| First zero-shot CLIP or `models_infer` call returns F1/accuracy result | `baseline_measured` | `F1=X, Recall=Y, Precision=Z` |
-| `models_train` MCP call submitted | `models_train` | model name, checkpoint, dataset version |
-| Deployment launched (via seam offer → deployment-consultant) | `project_deployment_launch` | deployment_id, endpoint URL |
+| Trigger                                                                | `action` value              | What to put in `notes`                  |
+| ---------------------------------------------------------------------- | --------------------------- | --------------------------------------- |
+| `eval_definition.md` written and user confirmed                        | `eval_definition`           | target classes, F1/recall threshold     |
+| First zero-shot CLIP or `models_infer` call returns F1/accuracy result | `baseline_measured`         | `F1=X, Recall=Y, Precision=Z`           |
+| `models_train` MCP call submitted                                      | `models_train`              | model name, checkpoint, dataset version |
+| Deployment launched (via seam offer → deployment-consultant)           | `project_deployment_launch` | deployment_id, endpoint URL             |
 
 `entity_id` format: `<workspace>/<project>` for projects; `<workspace>/<project>/<version>` when version is known.
 
@@ -164,11 +175,13 @@ Action triggers for this skill:
 Follow voice rules from `skills/_shared/fde-methodology.md`. Short reference:
 
 **Do:**
+
 - "Zero-shot CLIP on 50 of your images: F1 = 0.71 (defect class). Threshold is F1 ≥ 0.85. Missed by 14 points. Fastest lever: prompt engineering — try 3 variants."
 - "Universe classifier passes: recall = 0.92, threshold was 0.90. Precision = 0.87. Passes eval."
 - "Binary problem, visually describable classes — try CLIP zero-shot first. No labeling needed for this step."
 
 **Do not:**
+
 - "Looks good!" / "This should work!" / "Great use case!"
 - Report passing when threshold not cleared.
 - Mention managed deployment, pricing, or cost in Phase 1 (seam offer fires once at eval-pass only).

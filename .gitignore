@@ -6,6 +6,7 @@
 .claude/state/
 .claude/worktrees/
 .plans/
+.reports/
 .temp/
 
 # vision-delivery runtime

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ruff: noqa: E402
 """Baseline mAP@50 for B1 fixture: sandbox-ibs0b/cars-jnnoy-mmrcu/1.
 
 Computes zero-shot COCO pretrained FasterRCNN baseline on the test split.
@@ -10,8 +11,18 @@ Requirements: torch, torchvision, pillow, requests, numpy
 Weights: ~160 MB, downloaded once to ~/.cache/torch on first run.
 SSL: patches ssl._create_default_https_context for machines with cert issues.
 """
-import ssl; ssl._create_default_https_context = ssl._create_unverified_context  # ponytail: local cert workaround
-import json, zipfile, io, sys, requests, warnings
+
+import ssl
+
+ssl._create_default_https_context = (
+    ssl._create_unverified_context
+)  # ponytail: local cert workaround
+import json
+import zipfile
+import io
+import sys
+import requests
+import warnings
 from pathlib import Path
 from collections import defaultdict
 
@@ -21,7 +32,10 @@ import numpy as np
 
 try:
     import torch
-    from torchvision.models.detection import fasterrcnn_resnet50_fpn, FasterRCNN_ResNet50_FPN_Weights
+    from torchvision.models.detection import (
+        fasterrcnn_resnet50_fpn,
+        FasterRCNN_ResNet50_FPN_Weights,
+    )
     from PIL import Image
 except ImportError:
     sys.exit("pip install torch torchvision pillow numpy")
@@ -48,17 +62,25 @@ def iou(a: list, b: list) -> float:
 
 def compute_ap(recalls: list, precisions: list) -> float:
     """11-point interpolated AP."""
-    return sum(
-        max((p for r, p in zip(recalls, precisions) if r >= t), default=0.0)
-        for t in np.linspace(0, 1, 11)
-    ) / 11
+    return (
+        sum(
+            max((p for r, p in zip(recalls, precisions) if r >= t), default=0.0)
+            for t in np.linspace(0, 1, 11)
+        )
+        / 11
+    )
 
 
 def compute_map50(all_gt: list, all_pred: list) -> float:
     aps = {}
     for cid in COCO_TO_LABEL:
         preds = sorted(
-            [(s, p["img_id"], b) for p in all_pred for b, l, s in zip(p["boxes"], p["labels"], p["scores"]) if l == cid],
+            [
+                (s, p["img_id"], b)
+                for p in all_pred
+                for b, lbl, s in zip(p["boxes"], p["labels"], p["scores"])
+                if lbl == cid
+            ],
             key=lambda x: -x[0],
         )
         gt_by_img: dict = defaultdict(list)
@@ -96,11 +118,13 @@ def main() -> None:
     print("Downloading COCO export...")
     r = requests.get(EXPORT_URL, timeout=90, verify=False)
     r.raise_for_status()
-    print(f"  {len(r.content)//1024} KB")
+    print(f"  {len(r.content) // 1024} KB")
 
     zf = zipfile.ZipFile(io.BytesIO(r.content))
     names = zf.namelist()
-    test_ann = next((n for n in names if "test" in n.lower() and n.endswith(".json")), None)
+    test_ann = next(
+        (n for n in names if "test" in n.lower() and n.endswith(".json")), None
+    )
     if not test_ann:
         sys.exit("ERROR: no test annotation JSON in export")
 
@@ -110,7 +134,9 @@ def main() -> None:
     gt_by_image: dict = defaultdict(list)
     for ann in ann_data["annotations"]:
         gt_by_image[ann["image_id"]].append(ann)
-    print(f"  Images: {len(images_meta)}, annotations: {len(ann_data['annotations'])}\n")
+    print(
+        f"  Images: {len(images_meta)}, annotations: {len(ann_data['annotations'])}\n"
+    )
 
     print("Loading FasterRCNN (COCO pretrained)...")
     weights = FasterRCNN_ResNet50_FPN_Weights.COCO_V1
@@ -151,14 +177,21 @@ def main() -> None:
             gt_labels.append(coco_id)
 
         all_gt.append({"img_id": img_id, "boxes": gt_boxes, "labels": gt_labels})
-        all_pred.append({"img_id": img_id, "boxes": pred_boxes, "labels": pred_labels, "scores": pred_scores})
+        all_pred.append(
+            {
+                "img_id": img_id,
+                "boxes": pred_boxes,
+                "labels": pred_labels,
+                "scores": pred_scores,
+            }
+        )
 
         gt_cnt: dict = defaultdict(int)
-        for l in gt_labels:
-            gt_cnt[COCO_TO_LABEL[l]] += 1
+        for lbl in gt_labels:
+            gt_cnt[COCO_TO_LABEL[lbl]] += 1
         pred_cnt: dict = defaultdict(int)
-        for l in pred_labels:
-            pred_cnt[COCO_TO_LABEL[l]] += 1
+        for lbl in pred_labels:
+            pred_cnt[COCO_TO_LABEL[lbl]] += 1
         for cls in COCO_TO_LABEL.values():
             count_errors[cls].append(abs(gt_cnt[cls] - pred_cnt[cls]))
 
@@ -167,10 +200,12 @@ def main() -> None:
     map50 = compute_map50(all_gt, all_pred)
     all_errs = [e for errs in count_errors.values() for e in errs]
     count_mae = float(np.mean(all_errs)) if all_errs else 0.0
-    per_class_mae = {cls: round(float(np.mean(errs)), 2) for cls, errs in count_errors.items()}
+    per_class_mae = {
+        cls: round(float(np.mean(errs)), 2) for cls, errs in count_errors.items()
+    }
     threshold = max(round(map50 * 100, 1), 65.0)
 
-    print(f"\n{'='*50}")
+    print(f"\n{'=' * 50}")
     print(f"mAP@50:    {map50:.1%}")
     print(f"Count MAE: {count_mae:.2f} per class per image")
     for cls, mae in sorted(per_class_mae.items()):
@@ -189,8 +224,10 @@ def main() -> None:
         "count_mae": round(count_mae, 3),
         "count_mae_per_class": per_class_mae,
         "classes": sorted(COCO_TO_LABEL.values()),
-        "threshold": f"max({round(map50*100,1)}%, 65%) = {threshold}%",
-        "notes": ["Aerial view — poor zero-shot COCO performance expected; training required to reach 65%"],
+        "threshold": f"max({round(map50 * 100, 1)}%, 65%) = {threshold}%",
+        "notes": [
+            "Aerial view — poor zero-shot COCO performance expected; training required to reach 65%"
+        ],
     }
 
     OUTPUT.parent.mkdir(exist_ok=True)

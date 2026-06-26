@@ -6,6 +6,7 @@ Usage:
     python3 scripts/ledger_report.py --json       # machine-readable JSON
     python3 scripts/ledger_report.py --ledger path/to/other.jsonl
 """
+
 import argparse
 import json
 import sys
@@ -84,10 +85,7 @@ def print_text(m: dict) -> None:
     print("─" * 33)
     print(f"Total events:             {m['total_events']}")
     print(f"Sessions:                 {m['sessions']}")
-    print(
-        f"Sessions reaching deploy: {m['sessions_reaching_deploy']}"
-        f" ({deploy_pct}%)"
-    )
+    print(f"Sessions reaching deploy: {m['sessions_reaching_deploy']} ({deploy_pct}%)")
     print(f"Solved-no-deploy:         {m['solved_no_deploy']}")
 
     print("\nWorkload mix (by skill):")

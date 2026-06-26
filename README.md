@@ -1,7 +1,6 @@
 vision-delivery takes a CV problem description and produces an eval-passing model and a deployable Roboflow Workflow — inside your IDE, in one session.
 
 <!-- TODO: replace with B1 demo GIF once recorded -->
-![B1 demo: cold-prompt → conveyor defect detector deployed in one session](assets/demo-b1.gif)
 
 ## How it works
 
@@ -29,7 +28,7 @@ Alex writes the key to `.env`. The key value never appears in chat.
 
 **What this shows:** the key prompt fires at the first concrete reason to unlock — not on startup. Two paths offered upfront (Universe first vs label-first). Key stays in env; chat log stays clean.
 
----
+______________________________________________________________________
 
 ### Story A — Build: defect detection on a packaging line
 
@@ -47,10 +46,7 @@ Alex writes the key to `.env`. The key value never appears in chat.
 >
 > Plugin: "Running a confidence-threshold sweep. Optimal at 0.31 → 83% recall. Eval passes."
 >
-> Plugin: "Model passes your eval. Next step:
->  (a) Export locally (ONNX, free, runs on your machine)
->  🚀 (b) Deploy to a managed Roboflow endpoint (scaling + monitoring)
->  (c) Skip for now"
+> Plugin: "Model passes your eval. Next step: (a) Export locally (ONNX, free, runs on your machine) 🚀 (b) Deploy to a managed Roboflow endpoint (scaling + monitoring) (c) Skip for now"
 >
 > Maya: "(a) — local ONNX."
 >
@@ -58,42 +54,37 @@ Alex writes the key to `.env`. The key value never appears in chat.
 
 **What this shows:** eval defined before model selection; threshold tuned with a confidence sweep at zero labeling cost; seam offer fires once and is declinable; local export is a first-class path, not a fallback.
 
----
+______________________________________________________________________
 
 ### Story B — Scale: deployment economics
 
 > Maya (3 weeks later): `/vision-delivery:estimate`
 
-> Plugin: "Reading your project... YOLOv8s at 640 px, 5 camera streams from README. Two questions:
->  (1) 24/7, or production hours only (~8 h/day)?
->  (2) Existing GPU server, or starting from scratch?"
+> Plugin: "Reading your project... YOLOv8s at 640 px, 5 camera streams from README. Two questions: (1) 24/7, or production hours only (~8 h/day)? (2) Existing GPU server, or starting from scratch?"
 >
 > Maya: "24/7. No GPU."
 >
 > Plugin: "Back-of-envelope (rates fetched today):
 >
->  Self-host (5 streams, 24/7):
->    Cloud GPU + one-time setup + ops + drift budget: $___/mo + $___ one-time  [source: aws.amazon.com/ec2/pricing]
->  Roboflow managed (5 streams):                      $___/mo  [source: roboflow.com/pricing, fetched today]
+> Self-host (5 streams, 24/7): Cloud GPU + one-time setup + ops + drift budget: $___/mo + $___ one-time [source: aws.amazon.com/ec2/pricing] Roboflow managed (5 streams): $\_\_\_/mo [source: roboflow.com/pricing, fetched today]
 >
->  Crossover: managed is cheaper until month 18 given no existing GPU.
->  All inputs editable — tell me if any assumption is wrong."
+> Crossover: managed is cheaper until month 18 given no existing GPU. All inputs editable — tell me if any assumption is wrong."
 
 **What this shows:** plugin reads the project first and asks ≤2 questions. All five fully-loaded self-host components appear alongside the managed figure. Crossover month stated plainly — Maya leaves with a defensible number for her budget request.
 
----
+______________________________________________________________________
 
 ## Benchmarks
 
 Same cold prompt, plugin vs plain agent:
 
-| # | Problem | Skill | Eval defined | Deploy ready | Steps saved |
-|---|---------|-------|:---:|:---:|:---:|
-| B1 | Conveyor count | `detect-and-analyze` | ✅ | ✅ | 5 |
-| B2 | PPE compliance | `classify-or-flag` | ✅ | ✅ | 5 |
-| B3 | Shopper tracking (RTSP) | `track-and-count` | ✅ | ✅ | 8 |
-| B4 | Serial number OCR | `read-text` | ✅ | ✅ | 5 |
-| B5 | Crack width measurement | `segment-and-analyze` | ✅ | ✅ | 5 |
+| #   | Problem                 | Skill                 | Eval defined | Deploy ready | Steps saved |
+| --- | ----------------------- | --------------------- | :----------: | :----------: | :---------: |
+| B1  | Conveyor count          | `detect-and-analyze`  |      ✅      |      ✅      |      5      |
+| B2  | PPE compliance          | `classify-or-flag`    |      ✅      |      ✅      |      5      |
+| B3  | Shopper tracking (RTSP) | `track-and-count`     |      ✅      |      ✅      |      8      |
+| B4  | Serial number OCR       | `read-text`           |      ✅      |      ✅      |      5      |
+| B5  | Crack width measurement | `segment-and-analyze` |      ✅      |      ✅      |      5      |
 
 → [Full benchmark docs](docs/benchmarks/index.md)
 
@@ -116,14 +107,14 @@ For Codex: use the `dist/` adapter — the root `plugin.json` targets Claude Cod
 
 ## Skills
 
-| Skill | Fires when you say… |
-|-------|---------------------|
-| `detect-and-analyze` | "count X", "detect X", "how many X" |
-| `classify-or-flag` | "flag bad parts", "pass/fail", "PPE check" |
-| `track-and-count` | "track identity", "dwell time", "RTSP stream" |
-| `read-text` | "read the serial number", "OCR", "extract text from" |
-| `segment-and-analyze` | "measure area", "pixel outline", "crack width" |
-| `recognize-pose-or-gesture` | "detect pose", "gesture", "fall detection" |
+| Skill                       | Fires when you say…                                  |
+| --------------------------- | ---------------------------------------------------- |
+| `detect-and-analyze`        | "count X", "detect X", "how many X"                  |
+| `classify-or-flag`          | "flag bad parts", "pass/fail", "PPE check"           |
+| `track-and-count`           | "track identity", "dwell time", "RTSP stream"        |
+| `read-text`                 | "read the serial number", "OCR", "extract text from" |
+| `segment-and-analyze`       | "measure area", "pixel outline", "crack width"       |
+| `recognize-pose-or-gesture` | "detect pose", "gesture", "fall detection"           |
 
 ## Security
 

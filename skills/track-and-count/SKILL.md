@@ -12,12 +12,14 @@ allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 Track object identity across video frames and produce identity-linked counts, dwell times, or line-cross events for the user's specific objects and zones. The exit criterion is a working tracker PoC that passes the user's own eval — defined as entry/exit count accuracy, dwell time MAE, or line-cross precision on the user's own footage.
 
 **What this skill covers:**
+
 - **Identity-linked tracking** — ByteTrack algorithm layered on top of a detection backbone via Roboflow Workflows; each detected object gets a persistent track ID across frames
 - **Zone dwell time** — time (in seconds) an object with a given track ID spends inside a user-defined polygon zone
 - **Line-cross counting** — objects crossing a virtual line; direction-aware (entry vs exit)
 - **RTSP one-call deploy** — user provides an RTSP URL → skill builds a Roboflow Workflow (detection + ByteTrack + zone/line logic) and deploys it to a managed endpoint in one call; returns the endpoint URL
 
 **What this skill does NOT cover:**
+
 - Per-frame count with no identity — "how many cars are in this image" → `detect-and-analyze`
 - Pixel-precise outlines or area measurements → `segment-and-analyze`
 
@@ -30,6 +32,7 @@ Steps 1, 2, 5, 7, and 8 follow the generic sequence in `skills/_shared/fde-metho
 **Step 3 — Foundation-model-first (tracking-specific).**
 
 Detection backbone selection follows the same COCO 80 / Universe logic as `detect-and-analyze` (see `skills/_shared/model-selection.md`). Quick reference:
+
 - COCO 80 class + non-real-time → `rfdetr-medium`
 - COCO 80 class + real-time → `rfdetr-nano` (default for RTSP tracking)
 
@@ -46,11 +49,13 @@ Run inference via `workflow_specs_run` on a sample video clip or image sequence.
 - **Dwell time MAE** — mean absolute error in seconds between predicted and observed ground-truth dwell
 
 Non-negotiable format:
+
 > "ByteTrack on 60 s of your footage: MOTA = 81%, line-cross error = 2 vehicles/min. Your threshold is MOTA ≥ 75% — passes."
 
 **Step 5 — Levers (tracking-specific ordering).**
 
 Same generic order as `fde-methodology.md` (confidence-threshold sweep → fine-tune → full train), plus:
+
 - **ByteTrack parameter tuning** — before retraining, tune `track_thresh` (detection confidence floor for track initiation), `match_thresh` (IoU threshold for association), and `track_buffer` (frames to keep a lost track alive). Tuning is free and often closes 5–10 MOTA points. Report the parameter values explicitly.
 - If detection backbone mAP is the bottleneck (not association), fine-tune or retrain the detection backbone; ByteTrack parameters do not help a weak detector.
 
@@ -73,16 +78,18 @@ Use `workflow_specs_run` or `workflows_run` for one-shot validation before `proj
 Produce these two user-owned, portable files at Step 6.
 
 **`track_count.py`** — inference script for recorded video (not RTSP; RTSP uses the deployed Workflow endpoint):
+
 ```python
 import requests, json, base64, sys, time
 from pathlib import Path
 
 # ponytail: no SDK — stdlib + requests only
-WORKSPACE    = "<workspace>"
-PROJECT      = "<project>"
-VERSION      = "<version>"
-API_KEY      = "<from ROBOFLOW_API_KEY env>"
-VIDEO_PATH   = sys.argv[1] if len(sys.argv) > 1 else None
+WORKSPACE = "<workspace>"
+PROJECT = "<project>"
+VERSION = "<version>"
+API_KEY = "<from ROBOFLOW_API_KEY env>"
+VIDEO_PATH = sys.argv[1] if len(sys.argv) > 1 else None
+
 
 def track_frame(frame_b64: str, frame_idx: int) -> dict:
     resp = requests.post(
@@ -93,6 +100,7 @@ def track_frame(frame_b64: str, frame_idx: int) -> dict:
     resp.raise_for_status()
     preds = resp.json().get("predictions", [])
     return {"frame": frame_idx, "predictions": preds, "count": len(preds)}
+
 
 # NOTE: for RTSP streams use the managed Workflow endpoint returned by project_deployment_launch.
 # This script supports recorded video sampled frame-by-frame via cv2 or ffmpeg.
@@ -105,6 +113,7 @@ if __name__ == "__main__":
 ```
 
 **`eval_definition.md`**:
+
 ```markdown
 # Eval — <problem-title>
 Date: <ISO8601>
@@ -121,11 +130,12 @@ Also write a `.vision-delivery/detections.jsonl` append per inference run (forma
 
 </artifact>
 
-<model_pick>
+\<model_pick>
 
 See `skills/_shared/model-selection.md` for the full decision tree and exact model_id values.
 
 Quick reference for tracking (detection backbone only — ByteTrack is added via Roboflow Workflows, not a separate model):
+
 - COCO 80 class + RTSP / real-time → `rfdetr-nano` (default for RTSP tracking)
 - COCO 80 class + recorded video / non-real-time → `rfdetr-medium`
 - Custom class, first PoC → Rapid or `rfdetr-medium` fine-tune
@@ -134,17 +144,18 @@ Quick reference for tracking (detection backbone only — ByteTrack is added via
 
 ByteTrack has no model_id — it is a Roboflow Workflows block, not a trainable model.
 
-</model_pick>
+\</model_pick>
 
-<safe_actions>
+\<safe_actions>
 
 Follow the safe-action gates in `skills/_shared/fde-methodology.md` exactly. Quick reference:
+
 - `models_train` → credit estimate + explicit yes required, same turn
 - `versions_generate` → free but irreversible; state augmentation config before calling
 - Image upload → state destination; offer local path if user declines
 - `project_deployment_launch` → credit-spending; show estimate, wait for explicit yes; this IS in scope for this skill (RTSP Workflow deploy path) — do not silently defer to deployment-consultant without offering first
 
-</safe_actions>
+\</safe_actions>
 
 <ledger>
 
@@ -152,12 +163,12 @@ Follow the write protocol in `skills/_shared/ledger-protocol.md`. Write one reco
 
 Action triggers for this skill:
 
-| Trigger | `action` value | What to put in `notes` |
-|---------|---------------|------------------------|
-| `eval_definition.md` written and user confirmed | `eval_definition` | target classes, metric type, threshold |
-| First `workflow_specs_run` or `models_infer` call returns tracking metric | `baseline_measured` | `MOTA=X%` or `line-cross error=Y/min` or `dwell MAE=Z s` |
-| `models_train` MCP call submitted | `models_train` | model name, checkpoint, dataset version |
-| `project_deployment_launch` MCP call submitted for RTSP Workflow | `project_deployment_launch` | deployment_id, endpoint URL, Workflow spec summary |
+| Trigger                                                                   | `action` value              | What to put in `notes`                                   |
+| ------------------------------------------------------------------------- | --------------------------- | -------------------------------------------------------- |
+| `eval_definition.md` written and user confirmed                           | `eval_definition`           | target classes, metric type, threshold                   |
+| First `workflow_specs_run` or `models_infer` call returns tracking metric | `baseline_measured`         | `MOTA=X%` or `line-cross error=Y/min` or `dwell MAE=Z s` |
+| `models_train` MCP call submitted                                         | `models_train`              | model name, checkpoint, dataset version                  |
+| `project_deployment_launch` MCP call submitted for RTSP Workflow          | `project_deployment_launch` | deployment_id, endpoint URL, Workflow spec summary       |
 
 `entity_id` format: `<workspace>/<project>` for projects; `<workspace>/<project>/<version>` when version is known.
 
@@ -168,11 +179,13 @@ Action triggers for this skill:
 Follow voice rules from `skills/_shared/fde-methodology.md`. Short reference:
 
 **Do:**
+
 - "ByteTrack on 60 s of your footage: MOTA = 81%, threshold is 75%. Passes. Fastest next step: tune track_thresh from 0.5 → 0.6."
 - "Line-cross error = 3 vehicles/min — threshold is 5/min. Passes."
 - "RTSP + Workflow → one-call deploy. I build the Workflow spec now; confirm to deploy (credits apply)."
 
 **Do not:**
+
 - "Looks good!" / "This should work!" / "Great use case!"
 - Report passing when threshold not cleared.
 - Mention managed deployment, pricing, or cost before eval passes (seam offer fires once at eval-pass only) — exception: RTSP deploy path explicitly surfaces credit warning in-step, as required by `safe_actions`.

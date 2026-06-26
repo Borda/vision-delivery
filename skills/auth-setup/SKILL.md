@@ -12,6 +12,7 @@ allowed-tools: Bash, Read, Write, Edit, AskUserQuestion
 Govern all Roboflow API key handling and first-time onboarding. This skill implements the motivation-first unlock pattern: never block partial work, never pitch generics, never ask for the key twice in one session, never let the key value appear in chat or logs.
 
 **Security invariants — non-negotiable:**
+
 - Never ask the user to paste an API key into chat. The key is written by the user to `.env`; the plugin never reads or logs the value.
 - Never include the key value in error messages, bash output, or any file other than `.env`.
 - Never commit `.env`. Assert `.gitignore` includes the entry before any other file is written.
@@ -27,7 +28,7 @@ MCP connected at startup. **Do nothing.** Do not mention setup, configuration, o
 
 Detection: `ROBOFLOW_API_KEY` present in environment → MCP is already authenticated → silent proceed.
 
----
+______________________________________________________________________
 
 ## FLOW B — Key missing, user has not yet asked for a Universe-dependent feature
 
@@ -35,7 +36,7 @@ Detection: `ROBOFLOW_API_KEY` present in environment → MCP is already authenti
 
 Continue working: describe the approach, define the eval criteria, ask what sample data the user has, present path options. The key becomes relevant only when the user opts into a Universe action. Until that moment, every question you ask should move the task forward, not gate on account creation.
 
----
+______________________________________________________________________
 
 ## FLOW C — Natural unlock moment
 
@@ -46,6 +47,7 @@ Fires when the user asks to search Universe, see available models, or take any a
 State what the Universe search will fetch for their specific problem (not a generic pitch). Ask whether they want to proceed or work without it.
 
 Example phrasing:
+
 > "To search Universe I need a free Roboflow account. While you set that up I can tell you what I expect to find: [specific dataset types relevant to their problem]. You can decide if any match before committing to anything. Want me to walk you through setup, or keep going without Universe?"
 
 If the user skips: say "Fine — [continue with the local/label-first path]." Do not ask again this session.
@@ -83,7 +85,7 @@ Deliver these four instructions as a numbered list — no extra prose:
 
 > "Come back and say 'continue' to resume here."
 
----
+______________________________________________________________________
 
 ## FLOW D — User returns after restart ("continue")
 
@@ -94,21 +96,22 @@ Call `universe_search` with a generic query, or `projects_list`. Do not show the
 **Step 2: On success.**
 
 Report the connected workspace name — nothing else:
+
 > "Connected to [workspace-name]. Searching Universe..."
 
 Then resume from where the session left off (whatever Universe action the user originally requested).
 
 **Step 3: On failure — diagnose clearly.**
 
-| Symptom | Likely cause | Instruction |
-|---------|-------------|-------------|
-| `401 Unauthorized` | Wrong key or wrong workspace key copied | "The key was rejected — check you copied the **Private** API key (not the Publishable key) from the correct workspace settings page." |
+| Symptom                       | Likely cause                                 | Instruction                                                                                                                                                            |
+| ----------------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `401 Unauthorized`            | Wrong key or wrong workspace key copied      | "The key was rejected — check you copied the **Private** API key (not the Publishable key) from the correct workspace settings page."                                  |
 | `key not found` after restart | `.env` not in project root or env not loaded | "Check that `.env` exists at the project root (same directory as this session) and contains exactly: `ROBOFLOW_API_KEY=your_key_here` with no extra spaces or quotes." |
-| MCP tools unavailable | MCP server not started / network issue | "MCP did not start. Open a fresh terminal, navigate to this project directory, and relaunch Claude Code. If behind a VPN, check that `api.roboflow.com` is reachable." |
+| MCP tools unavailable         | MCP server not started / network issue       | "MCP did not start. Open a fresh terminal, navigate to this project directory, and relaunch Claude Code. If behind a VPN, check that `api.roboflow.com` is reachable." |
 
 After giving the correction hint, repeat FLOW C Step 3 (key instruction) only if the user needs to re-write the key. Do not repeat the full onboarding; give only the specific corrective step.
 
----
+______________________________________________________________________
 
 ## FLOW E — Second run in same project
 
@@ -133,12 +136,14 @@ After giving the correction hint, repeat FLOW C Step 3 (key instruction) only if
 Follow the voice rules from §4 (Forward-Deployed-Engineer model) at every step.
 
 **Do:**
+
 - "Key not connected yet — you can still define your eval and describe your data while I look up Universe options."
 - "Added `.env` to `.gitignore`. Now: open `./.env` and add `ROBOFLOW_API_KEY=your_key_here` — never paste it here."
 - "Connected to [workspace-name]. Searching Universe..."
 - "The key was rejected — check you copied the Private key, not the Publishable key."
 
 **Do not:**
+
 - "Sorry, I can't help without a Roboflow API key." (blocks; wrong)
 - "Would you like to configure your API key?" (weak; non-committal)
 - "Great news — you can get a free account!" (sycophancy)
@@ -155,6 +160,7 @@ Follow the voice rules from §4 (Forward-Deployed-Engineer model) at every step.
 **Symptom:** MCP tools unavailable or returning auth errors despite the user restarting.
 
 **Checks (in order):**
+
 1. Does `.env` exist at the project root? Run `ls -la .env` — if absent, the file was not created or was saved elsewhere.
 2. Is the variable name exactly `ROBOFLOW_API_KEY` (no typos, no extra spaces)?
 3. Is the value unquoted? Some editors add quotes: `ROBOFLOW_API_KEY="abc"` — Roboflow MCP expects an unquoted value.
@@ -165,6 +171,7 @@ Follow the voice rules from §4 (Forward-Deployed-Engineer model) at every step.
 **Symptom:** MCP returns `401` on any tool call.
 
 **Causes:**
+
 - Wrong key type: Publishable key used instead of Private API key. The Private key is the one under "Private API Key" in workspace settings — not the workspace API key shown on the overview page.
 - Wrong workspace: copied key from a different workspace. Ensure the workspace slug in the settings URL matches the project you are working in.
 - Key revoked or expired: generate a new key from workspace settings.
@@ -174,6 +181,7 @@ Follow the voice rules from §4 (Forward-Deployed-Engineer model) at every step.
 **Symptom:** Roboflow MCP tools do not appear or every call returns a connection error.
 
 **Checks:**
+
 1. Network: `curl -s https://api.roboflow.com` from the terminal — if it hangs or returns a network error, the host is unreachable (VPN, firewall, or DNS issue).
 2. Plugin scope: confirm the Roboflow MCP is installed with `--scope local` for this project, or globally. Check `~/.claude/settings.json` or `.claude/settings.json` for the MCP entry.
 3. Fresh terminal: open a new terminal window, navigate to the project directory, relaunch Claude Code. MCP servers inherit the environment from the process that starts Claude Code — a stale shell may not have loaded the updated `.env`.

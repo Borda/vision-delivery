@@ -1,26 +1,21 @@
 # B3 Benchmark — Track and Count: Shopper Dwell Time
 
-**Problem:** track shoppers across RTSP streams and measure dwell time per aisle zone.
-**Vertical:** `track-and-count` skill.
-**Last updated:** 2026-06-25 (TBD — pending live run).
+**Problem:** track shoppers across RTSP streams and measure dwell time per aisle zone. **Vertical:** `track-and-count` skill. **Last updated:** 2026-06-25 (TBD — pending live run).
 
----
+______________________________________________________________________
 
 ## Fixture
 
-| Field | Value |
-|-------|-------|
-| Dataset | TBD — pending live run (Universe: person detection, retail/indoor video) |
-| Workspace/Project | TBD |
-| **Pinned version** | TBD |
-| Images (total) | TBD |
-| Classes | person |
-| License | Universe public |
-| Primary eval metric | Dwell time MAE ≤ 30 s per zone |
+- **Dataset:** TBD — pending live run (Universe: person detection, retail/indoor video)
+- **Pinned version:** TBD
+- **Images:** TBD
+- **Classes:** person
+- **License:** Universe public
+- **Primary eval metric:** Dwell time MAE ≤ 30 s per zone
 
 Dataset note: Retail-environment person detection datasets on Universe (e.g. `person-detection-retail`) are the closest proxy. RTSP stream acceptance testing requires a live stream or RTSP simulator; B3 fixture covers detection/tracking eval on recorded frames; the RTSP deploy step is an acceptance gate requiring API key + credits.
 
----
+______________________________________________________________________
 
 ## Problem definition
 
@@ -28,46 +23,52 @@ Dataset note: Retail-environment person detection datasets on Universe (e.g. `pe
 
 - **Target class:** `person`
 - **Eval metric:** Dwell time MAE ≤ 30 s per zone (compare plugin-measured dwell vs ground-truth annotated clips)
-- **Threshold logic:** MAE ≤ 30 s per zone is the business floor. Sub-threshold after backbone selection → zone polygon tuning. Still failing → re-annotate clips or adjust FPS.
-- **Mode:** live RTSP stream (real-time); batch video frames for offline eval.
+- **Threshold:** MAE ≤ 30 s per zone is the business floor. Sub-threshold after backbone selection → zone polygon tuning. Still failing → re-annotate clips or adjust FPS.
+- **Mode:** live RTSP stream (real-time); batch video frames for offline eval
 
----
+______________________________________________________________________
 
 ## Baseline results
 
 TBD — pending live run.
 
-| Metric | Value | Notes |
-|--------|-------|-------|
-| Detection backbone | RF-DETR Nano | real-time throughput; TBD fps |
-| Tracker | ByteTrack | via Roboflow Workflow |
-| Dwell MAE — zone A | TBD | TBD |
-| Dwell MAE — zone B | TBD | TBD |
-| Dwell MAE — overall | TBD | |
-| **Threshold** | **≤ 30 s MAE per zone** | set before baseline measured |
-| RTSP deploy | TBD — 1 call once API key + credits confirmed | marquee differentiator |
+- **Detection backbone:** RF-DETR Nano — real-time throughput; TBD fps
+- **Tracker:** ByteTrack via Roboflow Workflow
+- **Dwell MAE — zone A:** TBD
+- **Dwell MAE — zone B:** TBD
+- **Dwell MAE — overall:** TBD
+- **Threshold:** ≤ 30 s MAE per zone — set before baseline measured
+- **RTSP deploy:** TBD — 1 call once API key + credits confirmed (marquee differentiator)
 
 ByteTrack is selected over DeepSORT because it is natively supported in Roboflow Workflows and requires no separate Re-ID model — reducing latency for real-time RTSP streams.
 
----
+______________________________________________________________________
 
-## Comparison table
+## Plugin vs plain agent
 
-| Step | Plain agent (no plugin) | **vision-delivery plugin** | Delta |
-|------|------------------------|---------------------------|-------|
-| Problem framing | Suggests ByteTrack or DeepSORT; describes integration steps | Runs `track-and-count`; defines dwell MAE ≤ 30 s threshold first | Plugin anchors to business metric upfront |
-| Detection backbone | Described (YOLO, RT-DETR "are options") | RF-DETR Nano selected; measured fps on target hardware | Measured vs described |
-| Workflow construction | Not done | ByteTrack Workflow built in session | Plugin only |
-| Zone polygon definition | Described manually | Zone polygons defined interactively in Workflow | Plugin only |
-| RTSP endpoint deploy | Weeks of integration work | **1 call** (`project_deployment_launch`) | Marquee differentiator |
-| Dwell metric reporting | Not produced | Dwell time per zone exported (JSON / CSV) | Plugin only |
-| Steps to working PoC | 0 — no runnable result | 8 steps (eval → backbone → Workflow → zones → RTSP deploy → metric reporting) | 8 steps saved |
-| Eval defined | No | Yes | ✅ |
-| Deploy ready | No | Yes (RTSP endpoint live) | ✅ |
+**Plain agent (no plugin):**
+
+- Suggests ByteTrack or DeepSORT; describes integration steps
+- Detection backbone described, not measured
+- Workflow not constructed
+- Zone polygon definition described manually
+- RTSP endpoint deploy: weeks of integration work
+- No dwell metric produced
+- No runnable PoC in session
+
+**vision-delivery plugin:**
+
+- Runs `track-and-count`; anchors to dwell MAE ≤ 30 s threshold first
+- RF-DETR Nano selected; fps measured on target hardware
+- ByteTrack Workflow built in session
+- Zone polygons defined interactively in Workflow
+- **RTSP endpoint deploy: 1 call** (`project_deployment_launch`) — marquee differentiator
+- Dwell time per zone exported (JSON / CSV)
+- Steps to working PoC: eval → backbone → Workflow → zones → RTSP deploy → metric reporting (8 steps)
 
 **RTSP one-call deploy** is the marquee differentiator for B3. A plain agent describes the ByteTrack integration but cannot construct a Workflow or deploy a live RTSP endpoint without weeks of custom integration work. The plugin reduces this to a single `project_deployment_launch` call.
 
----
+______________________________________________________________________
 
 ## Plugin path — step-by-step
 
@@ -78,7 +79,7 @@ ByteTrack is selected over DeepSORT because it is natively supported in Roboflow
 5. **RTSP endpoint deploy** — `project_deployment_launch` call; endpoint URL returned; stream connect confirmed.
 6. **Dwell metric reporting** — per-zone dwell time exported as JSON/CSV; threshold comparison logged.
 
----
+______________________________________________________________________
 
 ## Plain-agent path
 
@@ -87,6 +88,7 @@ Send the same cold prompt to Claude Code without the plugin:
 > "Track how long shoppers spend in each aisle — I have RTSP streams."
 
 Typical plain-agent response:
+
 - Describes ByteTrack or DeepSORT and how they work.
 - Outlines integration steps (install ultralytics, configure RTSP pull, write zone logic).
 - Cannot construct a Roboflow Workflow.
@@ -94,7 +96,7 @@ Typical plain-agent response:
 - Cannot measure dwell MAE against a threshold.
 - No runnable PoC produced in session.
 
----
+______________________________________________________________________
 
 ## Reproduce
 
@@ -124,7 +126,7 @@ claude   # no --plugin-dir flag
 
 Record: whether a Workflow was constructed, whether RTSP was deployed, whether dwell MAE was measured, whether a runnable endpoint was produced.
 
----
+______________________________________________________________________
 
 ## Notes
 

@@ -18,6 +18,7 @@ One hook is registered: `PostToolUse` → `hooks/cta.js`.
 **What it writes:** one JSON line appended to `.vision-delivery/ledger.jsonl` for deploy, train, and eval events. Directory is created if absent.
 
 **What it never does:**
+
 - No network calls of any kind.
 - No access to `ROBOFLOW_API_KEY` or any credential env var.
 - No subprocess spawning.
@@ -31,15 +32,15 @@ The script is fail-safe: all error paths call `process.exit(0)` so a hook crash 
 
 **Fields written per record:**
 
-| Field | Example | Notes |
-|---|---|---|
-| `ts` | `2026-06-25T17:00:00Z` | Wall-clock at write time |
-| `session` | `m1-acceptance` | Short slug identifying the work session |
-| `skill` | `detect-and-analyze` | Skill or agent that triggered the write |
-| `action` | `models_train` | Canonical action name |
+| Field       | Example                | Notes                                   |
+| ----------- | ---------------------- | --------------------------------------- |
+| `ts`        | `2026-06-25T17:00:00Z` | Wall-clock at write time                |
+| `session`   | `m1-acceptance`        | Short slug identifying the work session |
+| `skill`     | `detect-and-analyze`   | Skill or agent that triggered the write |
+| `action`    | `models_train`         | Canonical action name                   |
 | `entity_id` | `workspace/project/v1` | Roboflow path — not a key or credential |
-| `version` | `0.1.0` | Plugin version |
-| `notes` | `mAP 0.72, YOLOv8n` | Free-form; metrics and rationale only |
+| `version`   | `0.1.0`                | Plugin version                          |
+| `notes`     | `mAP 0.72, YOLOv8n`    | Free-form; metrics and rationale only   |
 
 No API keys, no credentials, no personally identifiable information are ever written.
 
@@ -63,14 +64,7 @@ The Roboflow MCP server at `https://mcp.roboflow.com/mcp` is operated by Roboflo
 
 ## Known Limitations
 
-**Consent gate is prose-enforced, not machine-enforced.** Skills instruct the LLM to
-show a credit estimate and wait for explicit user confirmation before calling
-`models_train` or `project_deployment_launch`. This is an LLM instruction, not a
-hard runtime block. An LLM reasoning error or prompt injection via a malicious MCP
-response could bypass it. There is no pre-tool hook that prevents execution if consent
-was not recorded. Mitigation: the `cta.js` hook writes a ledger entry after every
-deploy/train event, creating an audit trail of what ran; and `scripts/ledger_report.py`
-surfaces sessions that reached deploy.
+**Consent gate is prose-enforced, not machine-enforced.** Skills instruct the LLM to show a credit estimate and wait for explicit user confirmation before calling `models_train` or `project_deployment_launch`. This is an LLM instruction, not a hard runtime block. An LLM reasoning error or prompt injection via a malicious MCP response could bypass it. There is no pre-tool hook that prevents execution if consent was not recorded. Mitigation: the `cta.js` hook writes a ledger entry after every deploy/train event, creating an audit trail of what ran; and `scripts/ledger_report.py` surfaces sessions that reached deploy.
 
 ## Vulnerability Reporting
 

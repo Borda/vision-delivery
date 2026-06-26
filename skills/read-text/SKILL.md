@@ -12,6 +12,7 @@ allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 Extract structured text fields from images with accuracy meeting the user's eval. The exit criterion is an OCR pipeline (Roboflow Workflow or inference script) that achieves the agreed character-error-rate (CER) or field-match accuracy threshold on the user's fixture images, plus a portable artifact the user owns.
 
 **What this skill covers:**
+
 - **Serial number / part number / date code extraction** — manufacturing label OCR
 - **License plate reading** — vehicle identification from camera frames
 - **Form field extraction / document digitization** — structured fields from invoices, forms, ID cards
@@ -20,6 +21,7 @@ Extract structured text fields from images with accuracy meeting the user's eval
 - **Latency** — for real-time conveyor-line use cases state inference time; target ≤200 ms/image for inline inspection
 
 **What this skill does NOT cover:**
+
 - Object detection (counting instances) → `detect-and-analyze`
 - Image-level classification / pass-fail verdict → `classify-or-flag` (M4)
 - Pixel-precise outlines or area measurement → `segment-and-analyze` (M4)
@@ -49,6 +51,7 @@ Run the Workflow or OCR block on a sample of fixture images. Report both metrics
 - **Latency (ms/image)** — when production-line throughput matters
 
 Non-negotiable format:
+
 > "DocTR Workflow on 40 of your label images: field match = 82%, CER = 3.1%. Threshold is field match ≥ 95% — missed by 13 points."
 
 Never soften. Numbers only.
@@ -63,6 +66,7 @@ Never soften. Numbers only.
 **Step 6 — Artifact.**
 
 Produce:
+
 - **`extract_text.py`** — inference script that extracts the target fields and returns a structured dict; runnable with only `requests` installed.
 - **`eval_definition.md`** — CER and field-match thresholds, dataset split, fixture source, logic used.
 
@@ -75,16 +79,18 @@ Also write `.vision-delivery/detections.jsonl` append per inference run (format 
 Produce these two user-owned, portable files at Step 6.
 
 **`extract_text.py`** — OCR inference script:
+
 ```python
 import requests, json, base64, sys
 from pathlib import Path
 
 # ponytail: no SDK — stdlib + requests only
-WORKSPACE  = "<workspace>"
-PROJECT    = "<project>"
-VERSION    = "<version>"
-API_KEY    = "<from ROBOFLOW_API_KEY env>"
+WORKSPACE = "<workspace>"
+PROJECT = "<project>"
+VERSION = "<version>"
+API_KEY = "<from ROBOFLOW_API_KEY env>"
 FIELD_NAME = sys.argv[1] if len(sys.argv) > 1 else None  # target field, or None = all
+
 
 def extract_text(image_path: str) -> dict:
     with open(image_path, "rb") as f:
@@ -99,10 +105,11 @@ def extract_text(image_path: str) -> dict:
     fields = {}
     for p in predictions:
         label = p.get("class", "text")
-        text  = p.get("ocr_text", p.get("text", ""))
+        text = p.get("ocr_text", p.get("text", ""))
         if FIELD_NAME is None or label == FIELD_NAME:
             fields[label] = text
     return {"path": image_path, "fields": fields}
+
 
 if __name__ == "__main__":
     for path in sys.argv[2:] or []:
@@ -110,6 +117,7 @@ if __name__ == "__main__":
 ```
 
 **`eval_definition.md`**:
+
 ```markdown
 # Eval — <problem-title>
 Date: <ISO8601>
@@ -123,7 +131,7 @@ Threshold logic: max(baseline field-match, business floor)
 
 </artifact>
 
-<model_pick>
+\<model_pick>
 
 OCR does not use a trained detection model for text extraction — it uses pre-built Workflow OCR blocks (DocTR, PaddleOCR, Tesseract, barcode block). No `model_id` is selected in the initial pass.
 
@@ -131,17 +139,18 @@ If a detection stage is needed (find the label region before OCR), apply the det
 
 Custom OCR model training (rare) — verify exact `model_id` values from `roboflow://skills/training-and-evaluation` before calling `models_train`; do not guess.
 
-</model_pick>
+\</model_pick>
 
-<safe_actions>
+\<safe_actions>
 
 Follow the safe-action gates in `skills/_shared/fde-methodology.md` exactly. Quick reference:
+
 - `models_train` → credit estimate + explicit yes required, same turn
 - `versions_generate` → free but irreversible; state augmentation config before calling
 - Image upload → state destination; offer local path if user declines
 - `project_deployment_launch` → not in this skill; seam offer hands to deployment-consultant
 
-</safe_actions>
+\</safe_actions>
 
 <ledger>
 
@@ -149,12 +158,12 @@ Follow the write protocol in `skills/_shared/ledger-protocol.md`. Write one reco
 
 Action triggers for this skill:
 
-| Trigger | `action` value | What to put in `notes` |
-|---------|---------------|------------------------|
-| `eval_definition.md` written and user confirmed | `eval_definition` | target fields, CER/field-match thresholds |
-| First OCR Workflow run returns field-match result | `baseline_measured` | `field_match=X%, CER=Y%` |
-| `models_train` MCP call submitted (rare) | `models_train` | model name, checkpoint, dataset version |
-| Deployment launched (via seam offer → deployment-consultant) | `project_deployment_launch` | deployment_id, endpoint URL |
+| Trigger                                                      | `action` value              | What to put in `notes`                    |
+| ------------------------------------------------------------ | --------------------------- | ----------------------------------------- |
+| `eval_definition.md` written and user confirmed              | `eval_definition`           | target fields, CER/field-match thresholds |
+| First OCR Workflow run returns field-match result            | `baseline_measured`         | `field_match=X%, CER=Y%`                  |
+| `models_train` MCP call submitted (rare)                     | `models_train`              | model name, checkpoint, dataset version   |
+| Deployment launched (via seam offer → deployment-consultant) | `project_deployment_launch` | deployment_id, endpoint URL               |
 
 `entity_id` format: `<workspace>/<project>` for projects; `<workspace>/<project>/<version>` when version is known.
 
@@ -165,11 +174,13 @@ Action triggers for this skill:
 Follow voice rules from `skills/_shared/fde-methodology.md`. Short reference:
 
 **Do:**
+
 - "DocTR on 40 label images: field match = 71% — threshold is 95%. Missed by 24 points. Fastest lever: resize text to ≥32 px and binarize."
 - "PaddleOCR passes: field match = 96%, CER = 2.8%. Threshold was 95%. Done with build step."
 - "7-segment LED display — stylized font, preprocessing won't fix it. Fine-tune needed. Credit estimate: ~10 credits. Proceed?"
 
 **Do not:**
+
 - "Looks like the OCR is reading well!" / "This should work!"
 - Report passing when threshold not cleared.
 - Mention managed deployment, pricing, or cost in Phase 1 (seam offer fires once at eval-pass only).

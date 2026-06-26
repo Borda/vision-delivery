@@ -2,21 +2,21 @@
 
 These benchmarks demonstrate the structural gap between the `vision-delivery` plugin and a plain Claude Code agent given the same cold prompt. The plugin defines a measurable eval before any model selection, executes the eval loop in-session, and produces a deployable artifact. A plain agent describes an approach but cannot run the eval, enforce a threshold, or deploy an endpoint. The gap is not capability — it is execution: only the plugin closes the loop from cold prompt to running inference.
 
----
+______________________________________________________________________
 
 ## Summary table
 
-| # | Problem | Cold prompt | Skill | Steps saved | Eval defined | Deploy ready |
-|---|---------|-------------|-------|-------------|--------------|--------------|
-| B1 | Conveyor / aerial vehicle count | "Count defective items coming off my conveyor" | `detect-and-analyze` | 5 steps | ✅ | ✅ |
-| B2 | PPE compliance | "Flag workers not wearing hard hats on this construction site footage" | `classify-or-flag` | 5 steps | ✅ | ✅ |
-| B3 | Shopper dwell tracking | "Track how long shoppers spend in each aisle — I have RTSP streams" | `track-and-count` | 8 steps (RTSP deploy) | ✅ | ✅ |
-| B4 | OCR extraction | "Read serial numbers off circuit boards in my manufacturing line" | `read-text` | 5 steps | ✅ | ✅ |
-| B5 | Measurement | "Measure crack width in these bridge inspection photos for our maintenance report" | `segment-and-analyze` | 5 steps | ✅ | ✅ |
+| #   | Problem                         | Cold prompt                                                                        | Skill                 | Steps saved           | Eval defined | Deploy ready |
+| --- | ------------------------------- | ---------------------------------------------------------------------------------- | --------------------- | --------------------- | ------------ | ------------ |
+| B1  | Conveyor / aerial vehicle count | "Count defective items coming off my conveyor"                                     | `detect-and-analyze`  | 5 steps               | ✅           | ✅           |
+| B2  | PPE compliance                  | "Flag workers not wearing hard hats on this construction site footage"             | `classify-or-flag`    | 5 steps               | ✅           | ✅           |
+| B3  | Shopper dwell tracking          | "Track how long shoppers spend in each aisle — I have RTSP streams"                | `track-and-count`     | 8 steps (RTSP deploy) | ✅           | ✅           |
+| B4  | OCR extraction                  | "Read serial numbers off circuit boards in my manufacturing line"                  | `read-text`           | 5 steps               | ✅           | ✅           |
+| B5  | Measurement                     | "Measure crack width in these bridge inspection photos for our maintenance report" | `segment-and-analyze` | 5 steps               | ✅           | ✅           |
 
 Steps saved = steps to a runnable, eval-passing result. Plain agent produces 0 runnable steps in all cases.
 
----
+______________________________________________________________________
 
 ## Per-benchmark links
 
@@ -26,7 +26,7 @@ Steps saved = steps to a runnable, eval-passing result. Plain agent produces 0 r
 - [B4 — Serial number OCR extraction](b4-read-text-ocr.md)
 - [B5 — Crack width measurement](b5-measure-in-image.md)
 
----
+______________________________________________________________________
 
 ## Reproduce all
 
@@ -49,7 +49,7 @@ claude   # no --plugin-dir flag
 
 Send the same cold prompt. Record whether eval was defined, whether a threshold was set, and whether a deployable artifact was produced.
 
----
+______________________________________________________________________
 
 ## What the plugin adds structurally
 

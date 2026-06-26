@@ -8,17 +8,16 @@ Do not guess or invent model_id values — training fails silently on a wrong ID
 
 **Decision tree — start at top, stop at first match:**
 
-| Condition | Architecture | model_id |
-|-----------|-------------|----------|
-| Class in COCO 80 + non-real-time | RF-DETR Medium | `rfdetr-medium` |
-| Class in COCO 80 + real-time (<100 ms) | RF-DETR Nano | `rfdetr-nano` |
-| Non-COCO, ≤5 custom classes, first PoC | Roboflow Rapid | n/a (UI flow) |
-| Non-COCO, >5 classes or fine-grained | RF-DETR fine-tune | `rfdetr-medium` |
-| Edge hardware, latency critical | YOLOv11 Nano | `yolov11n` |
-| Best accuracy, no latency constraint | RF-DETR Large | `rfdetr-large` |
+| Condition                               | Architecture      | model_id        |
+| --------------------------------------- | ----------------- | --------------- |
+| Class in COCO 80 + non-real-time        | RF-DETR Medium    | `rfdetr-medium` |
+| Class in COCO 80 + real-time (\<100 ms) | RF-DETR Nano      | `rfdetr-nano`   |
+| Non-COCO, ≤5 custom classes, first PoC  | Roboflow Rapid    | n/a (UI flow)   |
+| Non-COCO, >5 classes or fine-grained    | RF-DETR fine-tune | `rfdetr-medium` |
+| Edge hardware, latency critical         | YOLOv11 Nano      | `yolov11n`      |
+| Best accuracy, no latency constraint    | RF-DETR Large     | `rfdetr-large`  |
 
-**Exact model_id values — object detection:**
-`rfdetr-pico`, `rfdetr-nano`, `rfdetr-small`, `rfdetr-base`, `rfdetr-medium`, `rfdetr-large`, `rfdetr-xlarge`, `rfdetr-2xlarge`; `yolov11n`, `yolov11s`, `yolov11m`, `yolov11l`, `yolov11x`; `yolo26n`, `yolo26s`, `yolo26m`, `yolo26l`, `yolo26x`.
+**Exact model_id values — object detection:** `rfdetr-pico`, `rfdetr-nano`, `rfdetr-small`, `rfdetr-base`, `rfdetr-medium`, `rfdetr-large`, `rfdetr-xlarge`, `rfdetr-2xlarge`; `yolov11n`, `yolov11s`, `yolov11m`, `yolov11l`, `yolov11x`; `yolo26n`, `yolo26s`, `yolo26m`, `yolo26l`, `yolo26x`.
 
 ## COCO 80 Coverage
 
@@ -28,15 +27,12 @@ person, car, truck, bus, bicycle, motorcycle, train, boat, airplane; cat, dog, h
 
 ## Instance Segmentation (M4)
 
-Verify model_id values from `roboflow://skills/training-and-evaluation` when building `segment-and-analyze`:
-`rfdetr-seg-small`, `rfdetr-seg-medium`, `rfdetr-seg-large` (placeholder — confirm before first use).
+Verify model_id values from `roboflow://skills/training-and-evaluation` when building `segment-and-analyze`: `rfdetr-seg-small`, `rfdetr-seg-medium`, `rfdetr-seg-large` (placeholder — confirm before first use).
 
 ## Keypoint / Pose (M4)
 
-Verify model_id values when building `recognize-pose-or-gesture`:
-YOLO26-pose and YOLO11-pose families (placeholder — confirm before first use).
+Verify model_id values when building `recognize-pose-or-gesture`: YOLO26-pose and YOLO11-pose families (placeholder — confirm before first use).
 
 ## Classification (M4)
 
-Verify model_id values when building `classify-or-flag`:
-ViT / DINO family (placeholder — confirm before first use).
+Verify model_id values when building `classify-or-flag`: ViT / DINO family (placeholder — confirm before first use).

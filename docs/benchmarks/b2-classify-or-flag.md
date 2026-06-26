@@ -1,26 +1,21 @@
 # B2 Benchmark — Classify or Flag: PPE Compliance
 
-**Problem:** detect workers not wearing hard hats in construction site images and flag non-compliant frames.
-**Vertical:** `classify-or-flag` skill.
-**Last updated:** 2026-06-25 (TBD — pending live run).
+**Problem:** detect workers not wearing hard hats in construction site images and flag non-compliant frames. **Vertical:** `classify-or-flag` skill. **Last updated:** 2026-06-25 (TBD — pending live run).
 
----
+______________________________________________________________________
 
 ## Fixture
 
-| Field | Value |
-|-------|-------|
-| Dataset | TBD — pending live run (Universe: hard-hat / PPE detection dataset) |
-| Workspace/Project | TBD |
-| **Pinned version** | TBD |
-| Images (total) | TBD |
-| Classes | hardhat, no-hardhat (and optionally: vest, no-vest) |
-| License | Universe public |
-| Primary eval class | no-hardhat (safety-critical class; recall is primary metric) |
+- **Dataset:** TBD — pending live run (Universe: hard-hat / PPE detection dataset)
+- **Pinned version:** TBD
+- **Images:** TBD
+- **Classes:** hardhat, no-hardhat (and optionally: vest, no-vest)
+- **License:** Universe public
+- **Primary eval class:** no-hardhat (safety-critical; recall is primary metric)
 
 Dataset note: Roboflow Universe hosts multiple public PPE / hard-hat datasets (e.g. `hardhat-detection`, `ppe-dataset`). Select the dataset closest to the user's camera angle and site conditions. B2 fixture will be pinned once a live run confirms the best match.
 
----
+______________________________________________________________________
 
 ## Problem definition
 
@@ -28,42 +23,46 @@ Dataset note: Roboflow Universe hosts multiple public PPE / hard-hat datasets (e
 
 - **Target class:** `no-hardhat` (binary: compliant / non-compliant)
 - **Eval metric:** Recall@0.50 on `no-hardhat` class (safety-critical: missing a non-compliant worker is worse than a false alarm)
-- **Threshold logic:** Recall ≥ 0.90 on `no-hardhat`. If CLIP zero-shot meets threshold, stop — no fine-tuning needed. If not, fine-tune on user's labeled frames.
-- **Mode:** batch images or video frames.
+- **Threshold:** Recall ≥ 0.90 on `no-hardhat`. If CLIP zero-shot meets threshold, stop — no fine-tuning needed. If not, fine-tune on user's labeled frames.
+- **Mode:** batch images or video frames
 
----
+______________________________________________________________________
 
 ## Baseline results
 
 TBD — pending live run.
 
-| Metric | Value | Notes |
-|--------|-------|-------|
-| Model | CLIP zero-shot (ViT-L/14) | SAM3 + CLIP; no custom training |
-| Recall@0.50 — no-hardhat | TBD | TBD test images |
-| Precision@0.50 — no-hardhat | TBD | |
-| F1 — no-hardhat | TBD | |
-| **Threshold** | **0.90 recall** | safety-floor; set before baseline measured |
+- **Model:** CLIP zero-shot (ViT-L/14), SAM3 + CLIP; no custom training
+- **Recall@0.50 — no-hardhat:** TBD
+- **Precision@0.50 — no-hardhat:** TBD
+- **F1 — no-hardhat:** TBD
+- **Threshold:** 0.90 recall — safety-floor; set before baseline measured
 
 CLIP zero-shot is attempted first because PPE classes (hardhat, vest, person) are well-represented in CLIP's pretraining. If recall falls below threshold, the plugin triggers the fine-tune path using labeled frames from the user's site — this is the critical differentiator vs a plain agent.
 
----
+______________________________________________________________________
 
-## Comparison table
+## Plugin vs plain agent
 
-| Step | Plain agent (no plugin) | **vision-delivery plugin** | Delta |
-|------|------------------------|---------------------------|-------|
-| Problem framing | Suggests ViT, ResNet, or a pre-trained PPE model; may skip eval definition | Runs `classify-or-flag`; defines recall ≥ 0.90 threshold before any model search | Plugin anchors to safety metric upfront |
-| Zero-shot attempt | Not run; no measurement | CLIP zero-shot → measured recall on user's images | Measured vs described |
-| Recall on no-hardhat | N/A | TBD — pending live run | TBD |
-| Eval defined before training | No | Yes | Structural |
-| Fine-tune decision | Ad hoc ("try fine-tuning") | Data-gated: only if measured recall < 0.90 | Principled threshold gate |
-| Steps to working PoC | 0 — no runnable result | 5 steps (eval definition → zero-shot → measure → fine-tune if needed → deploy) | 5 steps saved |
-| Deployment | N/A (describes endpoint setup) | Roboflow classifier endpoint — 1 call | Deploy ready |
-| Eval defined | No | Yes | ✅ |
-| Deploy ready | No | Yes | ✅ |
+**Plain agent (no plugin):**
 
----
+- Suggests ViT, ResNet, or a pre-trained PPE model; may skip eval definition
+- No zero-shot attempt; no recall measured
+- Eval not defined before training
+- Fine-tune decision is ad hoc ("try fine-tuning")
+- No runnable PoC in session
+
+**vision-delivery plugin:**
+
+- Runs `classify-or-flag`; anchors to recall ≥ 0.90 before any model search
+- CLIP zero-shot → measured recall on user's images
+- Recall on no-hardhat: TBD — pending live run
+- Eval defined before training
+- Fine-tune decision data-gated: only if measured recall < 0.90
+- Roboflow classifier endpoint — 1 call
+- Steps to working PoC: eval definition → zero-shot → measure → fine-tune if needed → deploy (5 steps)
+
+______________________________________________________________________
 
 ## Plugin path — step-by-step
 
@@ -73,7 +72,7 @@ CLIP zero-shot is attempted first because PPE classes (hardhat, vest, person) ar
 4. **Fine-tune if needed** — if recall < 0.90: plugin proposes labeling session (seam offer) + Roboflow training on user's frames; confirms before credit spend.
 5. **Deploy classifier endpoint** — Roboflow hosted classifier (or Workflow with detection crop + classifier) deployed; inference URL returned.
 
----
+______________________________________________________________________
 
 ## Plain-agent path
 
@@ -82,6 +81,7 @@ Send the same cold prompt to Claude Code without the plugin:
 > "Flag workers not wearing hard hats on this construction site footage."
 
 Typical plain-agent response:
+
 - Recommends a ViT or ResNet PPE model from Hugging Face / Roboflow Universe.
 - Describes approach ("fine-tune on your images", "use transfer learning").
 - Cannot run zero-shot inference or measure recall.
@@ -89,7 +89,7 @@ Typical plain-agent response:
 - Cannot construct or deploy a Roboflow Workflow.
 - No runnable PoC produced in session.
 
----
+______________________________________________________________________
 
 ## Reproduce
 
@@ -118,7 +118,7 @@ claude   # no --plugin-dir flag
 
 Record: whether eval was defined, whether zero-shot was attempted, whether recall was measured, whether a deployable endpoint was produced.
 
----
+______________________________________________________________________
 
 ## Notes
 
