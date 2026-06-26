@@ -1,6 +1,8 @@
 # B4 Benchmark — Read Text: OCR Extraction
 
-**Problem:** read serial numbers off circuit boards in a manufacturing line using OCR. **Vertical:** `read-text` skill. **Last updated:** 2026-06-25 (TBD — pending live run).
+**Problem:** read serial numbers off circuit boards in a manufacturing line using OCR. **Vertical:** `read-text` skill. **Evidence:** benchmark fixture defined; live measurements pending. **Last updated:** 2026-06-25.
+
+> This page defines the benchmark fixture and acceptance criteria for the `read-text` route.
 
 ______________________________________________________________________
 
@@ -34,7 +36,7 @@ ______________________________________________________________________
 
 TBD — pending live run.
 
-- **OCR backend:** DocTR (default) or PaddleOCR — selected by plugin based on character set
+- **OCR backend:** DocTR (default) or PaddleOCR — selected based on character set
 - **Detection crop:** Roboflow Workflow detection block — isolates serial number region before OCR
 - **Field match — serial number:** TBD (exact string match)
 - **Character error rate (CER):** TBD (secondary metric)
@@ -48,24 +50,24 @@ ______________________________________________________________________
 
 ## Plugin vs plain agent
 
-**Plain agent (no plugin):**
+**Expected plain-agent behavior (not yet measured):**
 
 - Suggests EasyOCR, Tesseract, or PaddleOCR; describes approach
 - No detection crop built
 - Field match not measured in session
 - Latency not benchmarked
 - Preprocessing described, not applied
-- No runnable PoC in session
+- Runnable PoC not guaranteed in-session
 
-**vision-delivery plugin:**
+**vision-delivery behavior to measure:**
 
-- Runs `read-text`; anchors to dual eval upfront (field match ≥ 95% + latency ≤ 200 ms)
+- Route to `read-text`; anchor to dual eval upfront (field match ≥ 95% + latency ≤ 200 ms)
 - Roboflow Workflow with detection block → OCR block built in session
 - Field match measured: TBD — pending live run
 - Latency benchmarked: TBD ms — measured per image in session
 - Preprocessing levers applied systematically if threshold not met (contrast, deskew, resize)
-- OCR endpoint — 1 call
-- Steps to working PoC: eval → Workflow → measure → preprocessing → deploy (5 steps)
+- OCR endpoint path — 1 call after eval passes
+- Target steps to working PoC: eval → Workflow → measure → preprocessing → deploy (5 steps)
 
 ______________________________________________________________________
 
@@ -107,12 +109,12 @@ ______________________________________________________________________
 ### Plugin run
 
 ```bash
-git clone https://github.com/<org>/vision-delivery
+git clone https://github.com/Borda/vision-delivery
 cd vision-delivery
 claude --plugin-dir . "Read serial numbers off circuit boards in my manufacturing line"
 ```
 
-`--plugin-dir .` is required. Plugin will request fixture images or Universe dataset confirmation before running eval.
+`--plugin-dir .` is required. Without it, the session falls back to the plain-agent path.
 
 ### Plain-agent run (comparison)
 

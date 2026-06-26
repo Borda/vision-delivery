@@ -21,10 +21,10 @@ Build a working pose/gesture pipeline for the user's specific action classes and
 
 **What this skill does NOT cover:**
 
-- Identity-linked tracking across frames without pose → `track-and-count` (M4)
-- Image-level classification without keypoints (e.g. PPE detection, pass/fail) → `classify-or-flag` (M4)
-- Pixel-precise body contour or area measurement → `segment-and-analyze` (M4)
-- Text or label extraction from images → `read-text` (M4)
+- Identity-linked tracking across frames without pose → `track-and-count`
+- Image-level classification without keypoints (e.g. PPE detection, pass/fail) → `classify-or-flag`
+- Pixel-precise body contour or area measurement → `segment-and-analyze`
+- Text or label extraction from images → `read-text`
 
 </objective>
 
@@ -211,7 +211,7 @@ Also write a `.vision-delivery/detections.jsonl` append per inference run (forma
 
 \<model_pick>
 
-See `skills/_shared/model-selection.md` — Keypoint/Pose section (M4 placeholder IDs). Verify exact `model_id` values from `roboflow://skills/training-and-evaluation` before calling `models_train` — training fails silently on a wrong ID.
+See `skills/_shared/model-selection.md` — Keypoint/Pose section. Verify exact `model_id` values from `roboflow://skills/training-and-evaluation` before calling `models_train` — training fails silently on a wrong ID.
 
 Quick reference for pose:
 
@@ -265,6 +265,6 @@ Follow voice rules from `skills/_shared/fde-methodology.md`. Short reference:
 - "Looks good!" / "This should work!" / "Great use case!"
 - Report passing when threshold not cleared.
 - Jump to "label 500 keypoint images" when angle threshold tuning might close the gap.
-- Mention managed deployment, pricing, or cost in Phase 1 (seam offer fires once at eval-pass only).
+- Mention managed deployment, pricing, or cost during the build flow (seam offer fires once at eval-pass only).
 
 </voice>

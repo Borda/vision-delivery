@@ -1,9 +1,9 @@
 ---
 name: decision-report
 description: |
-  Generate a portable stakeholder decision report for a CV deployment decision (Phase 2).
+  Generate a portable stakeholder decision report for a CV deployment decision.
   TRIGGER when: user explicitly asks for a decision report, manager report, or stakeholder doc after a cost crossover has been computed; phrases: "write me a decision report", "generate a report for my manager", "I need a stakeholder doc", "produce the decision doc", "decision-report skill", "report for my team".
-  SKIP when: no cost crossover exists yet — deployment-consultant must run first and deliver a crossover number; user is still in Phase 1 build work; user wants a one-paragraph summary (answer inline instead).
+  SKIP when: no cost crossover exists yet — deployment-consultant must run first and deliver a crossover number; user is still in build work; user wants a one-paragraph summary (answer inline instead).
 allowed-tools: Read, Write, Bash, Glob
 ---
 
@@ -90,7 +90,7 @@ Sensitivities (±20% on each live-fetched rate — re-run cost_model.py to gener
 
 **8. Cost of inaction** Financial, operational, and reputational cost of not deploying. Value left on the table per month/quarter. Opportunity cost.
 
-**9. Recommendation and next steps** State the recommendation plainly — one sentence. Roadmap: who does what by when. What decision rights are needed. What is being approved.
+**9. Recommendation and next steps** State the recommendation plainly — one sentence. Execution path: who does what by when. What decision rights are needed. What is being approved.
 
 **10. Appendix**
 

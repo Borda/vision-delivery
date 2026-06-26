@@ -1,6 +1,8 @@
 # B3 Benchmark — Track and Count: Shopper Dwell Time
 
-**Problem:** track shoppers across RTSP streams and measure dwell time per aisle zone. **Vertical:** `track-and-count` skill. **Last updated:** 2026-06-25 (TBD — pending live run).
+**Problem:** track shoppers across RTSP streams and measure dwell time per aisle zone. **Vertical:** `track-and-count` skill. **Evidence:** benchmark fixture defined; live measurements pending. **Last updated:** 2026-06-25.
+
+> This page defines the benchmark fixture and acceptance criteria for the `track-and-count` route.
 
 ______________________________________________________________________
 
@@ -38,7 +40,7 @@ TBD — pending live run.
 - **Dwell MAE — zone B:** TBD
 - **Dwell MAE — overall:** TBD
 - **Threshold:** ≤ 30 s MAE per zone — set before baseline measured
-- **RTSP deploy:** TBD — 1 call once API key + credits confirmed (marquee differentiator)
+- **RTSP deploy:** TBD — 1-call path once API key + credits are confirmed
 
 ByteTrack is selected over DeepSORT because it is natively supported in Roboflow Workflows and requires no separate Re-ID model — reducing latency for real-time RTSP streams.
 
@@ -46,27 +48,27 @@ ______________________________________________________________________
 
 ## Plugin vs plain agent
 
-**Plain agent (no plugin):**
+**Expected plain-agent behavior (not yet measured):**
 
 - Suggests ByteTrack or DeepSORT; describes integration steps
 - Detection backbone described, not measured
 - Workflow not constructed
 - Zone polygon definition described manually
-- RTSP endpoint deploy: weeks of integration work
+- RTSP endpoint deploy requires manual integration work
 - No dwell metric produced
-- No runnable PoC in session
+- Runnable PoC not guaranteed in-session
 
-**vision-delivery plugin:**
+**vision-delivery behavior to measure:**
 
-- Runs `track-and-count`; anchors to dwell MAE ≤ 30 s threshold first
+- Route to `track-and-count`; anchor to dwell MAE ≤ 30 s threshold first
 - RF-DETR Nano selected; fps measured on target hardware
 - ByteTrack Workflow built in session
 - Zone polygons defined interactively in Workflow
-- **RTSP endpoint deploy: 1 call** (`project_deployment_launch`) — marquee differentiator
+- **RTSP endpoint deploy: 1 call** (`project_deployment_launch`) after eval passes and credit spend is confirmed
 - Dwell time per zone exported (JSON / CSV)
 - Steps to working PoC: eval → backbone → Workflow → zones → RTSP deploy → metric reporting (8 steps)
 
-**RTSP one-call deploy** is the marquee differentiator for B3. A plain agent describes the ByteTrack integration but cannot construct a Workflow or deploy a live RTSP endpoint without weeks of custom integration work. The plugin reduces this to a single `project_deployment_launch` call.
+**RTSP one-call deploy** is the differentiator for B3. The controlled comparison must verify whether the plugin reduces the manual Workflow and RTSP setup to a single `project_deployment_launch` call.
 
 ______________________________________________________________________
 
@@ -109,12 +111,12 @@ ______________________________________________________________________
 ### Plugin run
 
 ```bash
-git clone https://github.com/<org>/vision-delivery
+git clone https://github.com/Borda/vision-delivery
 cd vision-delivery
 claude --plugin-dir . "Track how long shoppers spend in each aisle — I have RTSP streams"
 ```
 
-`--plugin-dir .` is required. RTSP endpoint deploy is the acceptance gate — plugin prompts for confirmation before credit-spending deploy step (safe-actions rule).
+`--plugin-dir .` is required. Without it, the session falls back to the plain-agent path.
 
 ### Plain-agent run (comparison)
 
@@ -132,5 +134,5 @@ ______________________________________________________________________
 
 - ByteTrack over DeepSORT: ByteTrack requires no Re-ID model; it runs in-Workflow natively; lower latency for real-time RTSP.
 - Zone polygons must match physical store layout — the plugin offers a seam to upload a store map and auto-derive polygon coordinates, but this requires `[Together]` collaboration for the first run.
-- RTSP one-call deploy is the single most impactful differentiator vs plain agents for this use case. Weeks of custom integration → 1 `project_deployment_launch` call.
+- RTSP one-call deploy is the differentiator vs plain agents for this use case; acceptance must validate the actual turn count and deploy path.
 - Dwell MAE threshold (30 s) is a business floor, not a hard CV metric. It encodes the business requirement: 30 s resolution is sufficient for aisle optimization decisions.

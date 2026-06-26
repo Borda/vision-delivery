@@ -23,9 +23,9 @@ Produce pixel-precise instance masks and area/shape measurements that pass the u
 **What this skill does NOT cover:**
 
 - Simple bounding-box count without area → `detect-and-analyze`
-- Image-level pass/fail verdict → `classify-or-flag` (M4)
-- Text or label extraction → `read-text` (M4)
-- Object tracking across frames → `track-and-count` (M4)
+- Image-level pass/fail verdict → `classify-or-flag`
+- Text or label extraction → `read-text`
+- Object tracking across frames → `track-and-count`
 
 **Important precision limit.** Pixel measurements are proxies. Physical units (mm, cm²) require a calibration reference (an object of known dimensions) visible in the same frame as the target. Always state this limit before reporting a physical measurement.
 
@@ -260,6 +260,6 @@ Follow voice rules from `skills/_shared/fde-methodology.md`. Short reference:
 - "Looks great!" / "This should work!" / "Great use case!"
 - Report passing when threshold not cleared.
 - Claim physical measurements (mm, cm²) without a confirmed calibration reference in frame.
-- Mention managed deployment, pricing, or cost in Phase 1 (seam offer fires once at eval-pass only).
+- Mention managed deployment, pricing, or cost during the build flow (seam offer fires once at eval-pass only).
 
 </voice>

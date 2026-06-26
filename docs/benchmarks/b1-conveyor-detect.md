@@ -1,6 +1,6 @@
 # B1 Benchmark — Detect and Analyze: Vehicle Detection
 
-**Problem:** detect and count cars, motorcycles, and trucks in aerial/overhead view images. **Vertical:** `detect-and-analyze` skill. **Last updated:** 2026-06-25 (M1 acceptance complete — baseline + trained model deployed).
+**Problem:** detect and count cars, motorcycles, and trucks in aerial/overhead view images. **Vertical:** `detect-and-analyze` skill. **Last updated:** 2026-06-25.
 
 ______________________________________________________________________
 
@@ -12,7 +12,7 @@ ______________________________________________________________________
 - **Classes:** car, motorcycle, truck (COCO 80)
 - **License:** user workspace
 
-Dataset is an aerial/overhead view vehicle detection dataset. Note: original fixture `boxes-jdugd/boxes-on-conveyor` is Universe-workspace-gated and not accessible cross-workspace via API; this fixture is equivalent in scope (counting objects from overhead view).
+Dataset is an aerial/overhead view vehicle detection dataset. Note: original fixture `boxes-jdugd/boxes-on-conveyor` is Universe-workspace-gated and not accessible cross-workspace via API; this fixture is an **aerial-vehicle proxy** — equivalence with the conveyor-box task (different object scale, lighting, class distribution) is unverified.
 
 ______________________________________________________________________
 
@@ -22,7 +22,7 @@ ______________________________________________________________________
 
 - **Target classes:** car, motorcycle, truck
 - **Eval metric:** mAP@50 on the test split + per-class count MAE
-- **Threshold:** `max(measured pretrained baseline, business floor = 65%)`. No threshold committed before baseline is measured.
+- **Threshold:** 65% mAP@50 business floor, committed before model search. The measured pretrained baseline determines whether tuning/training is needed, not what success means.
 - **Mode:** batch (images)
 
 ______________________________________________________________________
@@ -43,7 +43,7 @@ Zero-shot COCO pretrained model on aerial vehicle images — measured 2026-06-25
 
 Roboflow hosted COCO model (`coco-detection-ei0ii/4`) also tested: **0% mAP** — misclassified vehicles as books/sports balls. Confirms ground-level distribution mismatch.
 
-## Post-train results (M1 acceptance)
+## Post-train results
 
 - **Model:** RF-DETR medium, 23 epochs
 - **mAP@50:** 84.6%
@@ -57,23 +57,26 @@ ______________________________________________________________________
 
 ## Plugin vs plain agent
 
-**Plain agent (no plugin):**
+> ⚠️ **Plain-agent arm not yet run.** The plain-agent column below is a hypothesis, not a measured result. See "Run the plain-agent comparison" below to record the real data.
+
+**Hypothesized plain-agent behavior (not yet measured):**
 
 - Generic response; may suggest labeling immediately
-- No eval defined before model search
-- No pretrained baseline measured
-- No threshold set (ad hoc)
-- No runnable PoC in session
+- Eval may not be defined before model search
+- Pretrained baseline may not be measured explicitly
+- Threshold may not be set before training (ad hoc)
+- Deployable PoC not guaranteed in-session
 
-**vision-delivery plugin:**
+**vision-delivery plugin (measured, 2026-06-25):**
 
 - Runs `detect-and-analyze`; defines eval first; foundation-model-first
 - Pretrained baseline: **3% mAP (zero-shot COCO)** — measured
 - Count MAE: **1.39 per class per image** — measured
-- Threshold: **65%** floor, principled, set before training
+- Threshold: **65%** floor, principled, set before model search/training
 - Post-train: **84.6% mAP** — eval passes
 - Deploy: live endpoint, 1 call
-- Steps to working PoC: eval → baseline → threshold → train → deploy
+
+> **Attribution note:** the 84.6% mAP result validates the Roboflow RF-DETR training path on this dataset, not the plugin's marginal orchestration value. A plain agent driving the same Roboflow MCP tools would reach a comparable number after fine-tuning. The plugin's contribution is the automatic eval-first discipline — measuring this requires a controlled run (see below).
 
 ______________________________________________________________________
 
@@ -92,7 +95,7 @@ python3 scripts/baseline_map.py
 
 Output: mAP@50 and count MAE printed to terminal; full results written to `.temp/baseline-result.json`.
 
-Baseline already measured: **mAP@50 = 3.0%, Count MAE = 2.42** — see §Baseline results above.
+Baseline already measured: **mAP@50 = 3.0%, Count MAE = 1.39 per class per image** — see §Baseline results above.
 
 ______________________________________________________________________
 
@@ -106,7 +109,9 @@ claude   # no --plugin-dir flag
 
 Send this cold prompt:
 
-> "I have an overhead camera on a conveyor belt. I need to count how many boxes pass each minute. I have footage. Where do I start?"
+> "I have an overhead camera above a parking lot. I need to count how many vehicles are in view. Where do I start?"
+
+*(This matches the B1 fixture — aerial vehicle detection. Adjust to your actual use case when running on a different dataset.)*
 
 Record:
 
@@ -129,9 +134,9 @@ ______________________________________________________________________
 Full sequence is specified in `evals/e2e/detect-and-analyze.e2e.md`. Summary:
 
 1. `claude --plugin-dir .` in this repo root.
-2. Send: "I need to count boxes on a conveyor belt. I have camera footage."
+2. Send: "I have an overhead camera above a parking lot. I need to count vehicles in view."
 3. Plugin triggers `detect-and-analyze` skill. Defines eval. Searches Universe.
-4. Selects `boxes-on-conveyor` v7. Runs inference on test images.
+4. Selects `cars-jnnoy-mmrcu` (or fixture dataset). Runs inference on test images.
 5. Reports mAP@50 and count MAE vs threshold.
 6. Produces `count_inference.py` + `eval_definition.md`.
 7. Seam offer fires once.
@@ -142,4 +147,4 @@ ______________________________________________________________________
 
 - Baseline mAP is from the fixture's existing pretrained Snap model — no custom training, no credit spend.
 - Post-training requires fine-tuning RF-DETR on the fixture data (credit-spending step, requires explicit confirmation in session per plugin safe-actions rule).
-- B2–B5 benchmarks (classify-or-flag, track-in-video, read-text-ocr, measure-in-image) ship at M4.
+- B2-B5 benchmarks (classify-or-flag, track-in-video, read-text-ocr, measure-in-image) define the remaining comparison fixtures.

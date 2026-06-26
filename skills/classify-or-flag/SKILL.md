@@ -184,7 +184,7 @@ Follow voice rules from `skills/_shared/fde-methodology.md`. Short reference:
 
 - "Looks good!" / "This should work!" / "Great use case!"
 - Report passing when threshold not cleared.
-- Mention managed deployment, pricing, or cost in Phase 1 (seam offer fires once at eval-pass only).
+- Mention managed deployment, pricing, or cost during the build flow (seam offer fires once at eval-pass only).
 - Report only accuracy when class balance is unknown — always report F1 and per-class recall.
 
 </voice>

@@ -23,9 +23,9 @@ Extract structured text fields from images with accuracy meeting the user's eval
 **What this skill does NOT cover:**
 
 - Object detection (counting instances) → `detect-and-analyze`
-- Image-level classification / pass-fail verdict → `classify-or-flag` (M4)
-- Pixel-precise outlines or area measurement → `segment-and-analyze` (M4)
-- Object tracking across frames → `track-and-count` (M4)
+- Image-level classification / pass-fail verdict → `classify-or-flag`
+- Pixel-precise outlines or area measurement → `segment-and-analyze`
+- Object tracking across frames → `track-and-count`
 
 </objective>
 
@@ -183,6 +183,6 @@ Follow voice rules from `skills/_shared/fde-methodology.md`. Short reference:
 
 - "Looks like the OCR is reading well!" / "This should work!"
 - Report passing when threshold not cleared.
-- Mention managed deployment, pricing, or cost in Phase 1 (seam offer fires once at eval-pass only).
+- Mention managed deployment, pricing, or cost during the build flow (seam offer fires once at eval-pass only).
 
 </voice>

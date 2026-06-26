@@ -25,14 +25,14 @@ Skip Universe search when the class is here — use COCO-pretrained RF-DETR dire
 
 person, car, truck, bus, bicycle, motorcycle, train, boat, airplane; cat, dog, horse, cow, sheep, elephant, bear, zebra, giraffe; bottle, cup, fork, knife, spoon, bowl; chair, couch, dining table, bed, toilet, tv, laptop, keyboard, mouse, remote, cell phone, clock, vase, book.
 
-## Instance Segmentation (M4)
+## Instance Segmentation
 
 Verify model_id values from `roboflow://skills/training-and-evaluation` when building `segment-and-analyze`: `rfdetr-seg-small`, `rfdetr-seg-medium`, `rfdetr-seg-large` (placeholder — confirm before first use).
 
-## Keypoint / Pose (M4)
+## Keypoint / Pose
 
 Verify model_id values when building `recognize-pose-or-gesture`: YOLO26-pose and YOLO11-pose families (placeholder — confirm before first use).
 
-## Classification (M4)
+## Classification
 
 Verify model_id values when building `classify-or-flag`: ViT / DINO family (placeholder — confirm before first use).

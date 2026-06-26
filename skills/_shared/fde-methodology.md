@@ -8,11 +8,31 @@ Every skill references these generic steps. Skills add only their modality-speci
 
 **Exit criterion.** A model or pretrained candidate that passes the user's own eval, plus a portable runnable artifact the user owns. Not a conversation.
 
-**Never open with cost.** Cost talk belongs in Phase 2. "Pricing" and "managed deployment" do not appear in Phase 1 output until the seam offer fires — exactly once.
+**Never open with cost.** Cost talk belongs in the deployment-decision flow. "Pricing" and "managed deployment" do not appear in build output until the seam offer fires — exactly once.
 
-## Generic 8-Step Sequence
+## Generic 9-Step Sequence (Step 0 + Steps 1–8)
 
 Specialist skills run these steps plus modality-specific additions. Never re-document these steps in a skill file — reference this file.
+
+**Step 0 — Feasibility gate (LLM as oracle).** Before any model search, eval definition, or tool call: determine whether the task is physically possible given the user's actual input data.
+
+Request 3–5 representative sample frames or a short clip if not already in artifacts. Using your own vision, attempt to identify the target objects or events.
+
+Two outcomes:
+
+- **Feasible** — you can see and identify the targets. State what is clear, what is ambiguous, and where the physical limits are. Proceed to Step 1.
+
+- **Infeasible** — you cannot detect the targets due to a physical constraint. **Stop.** State the specific blocker:
+
+  - *Resolution* — "Objects are \<5 px at this distance — below reliable detection threshold."
+  - *Lighting* — "Frames are underexposed for visible-light detection — IR or thermal camera required."
+  - *Occlusion* — "Target is >80% occluded in all frames — cannot be detected."
+  - *Motion blur* — "Shutter speed too slow for this object velocity — frames are unusable."
+  - *Frame rate* — "Object crosses frame in \<1 frame at this fps — tracking impossible."
+
+  Describe what physical change (camera placement, lighting, resolution, fps) would make the task feasible. Do not proceed to model selection.
+
+**LLM baseline (when feasible, optional but recommended).** If the user has no labeled data, run vision on 20–50 sample frames and produce structured detections as JSON. Write to `.vision-delivery/llm-baseline-<session>.jsonl`. This output becomes the eval target: the CV pipeline must agree with the LLM on ≥ threshold % of frames. Eliminates human annotation cost for the eval dataset.
 
 **Step 1 — Read artifacts before asking.** Glob and Read: any existing code, config, README, sample images list, annotations directory. Ask only what the artifacts cannot answer.
 
@@ -78,15 +98,15 @@ Create `.vision-delivery/` if absent. Never omit this write.
 
 **Banned phrases — never appear in output:**
 
-| Banned                                                      | Replace with                                             |
-| ----------------------------------------------------------- | -------------------------------------------------------- |
-| "Great question!"                                           | [direct answer]                                          |
-| "Absolutely!" / "Of course!" / "Happy to help!"             | [direct answer]                                          |
-| "This should work"                                          | "mAP 73% — passes threshold"                             |
-| "You might want to consider…"                               | "Use option B. Here is why."                             |
-| "It depends" (without resolving)                            | "It depends on X — tell me X, I'll give you a number"    |
-| Any mention of managed deployment, pricing, or cost         | Not in Phase 1 — seam offer fires once at eval-pass only |
-| "I apologize for the confusion" when there was no confusion | [omit or use "Correction:"]                              |
+| Banned                                                      | Replace with                                               |
+| ----------------------------------------------------------- | ---------------------------------------------------------- |
+| "Great question!"                                           | [direct answer]                                            |
+| "Absolutely!" / "Of course!" / "Happy to help!"             | [direct answer]                                            |
+| "This should work"                                          | "mAP 73% — passes threshold"                               |
+| "You might want to consider…"                               | "Use option B. Here is why."                               |
+| "It depends" (without resolving)                            | "It depends on X — tell me X, I'll give you a number"      |
+| Any mention of managed deployment, pricing, or cost         | Not during build — seam offer fires once at eval-pass only |
+| "I apologize for the confusion" when there was no confusion | [omit or use "Correction:"]                                |
 
 ## Skill Level Detection
 
@@ -155,4 +175,4 @@ Every credit-spending or data-movement action requires explicit confirmation wit
 - **`models_train`** — state credit estimate, show confirmation prompt, wait for explicit yes in current turn. Never start speculatively.
 - **`versions_generate`** — free but irreversible. State preprocessing/augmentation applied before calling.
 - **Image upload** — state what leaves the machine, to where. Offer local-only path if user declines.
-- **`project_deployment_launch`** — not in Phase 1 skills; seam offer hands to deployment-consultant.
+- **`project_deployment_launch`** — not in build skills; seam offer hands to deployment-consultant.

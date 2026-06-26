@@ -1,6 +1,6 @@
 # Ledger Protocol — Shared Fragment
 
-Every skill and agent writes to `.vision-delivery/ledger.jsonl` after any action that creates, trains, or deploys a Roboflow entity. This is the plugin-side provenance record (M2).
+Every skill and agent writes to `.vision-delivery/ledger.jsonl` after any action that creates, trains, or deploys a Roboflow entity. This is the plugin-side provenance record.
 
 ## Schema
 
@@ -30,15 +30,15 @@ version: 0.1.0
 notes: free-form; include key numbers (mAP, model name, etc.)
 ```
 
-| Field       | Format                                | Notes                                                                    |
-| ----------- | ------------------------------------- | ------------------------------------------------------------------------ |
-| `ts`        | ISO 8601 UTC (`YYYY-MM-DDTHH:MM:SSZ`) | Current wall-clock at write time                                         |
-| `session`   | Short slug                            | Descriptive name for the work session; `YYYY-MM-DD-<topic>` convention   |
-| `skill`     | Skill or agent name                   | e.g. `detect-and-analyze`, `deployment-consultant`                       |
-| `action`    | Action name (see below)               | Lowercase snake_case                                                     |
-| `entity_id` | Roboflow path                         | `workspace/project` or `workspace/project/version`                       |
-| `version`   | Plugin version                        | `0.1.0` until major release                                              |
-| `notes`     | String                                | Key metrics, model name, decision rationale — whatever future-self needs |
+| Field       | Format                                | Notes                                                                     |
+| ----------- | ------------------------------------- | ------------------------------------------------------------------------- |
+| `ts`        | ISO 8601 UTC (`YYYY-MM-DDTHH:MM:SSZ`) | Current wall-clock at write time                                          |
+| `session`   | Short slug                            | Descriptive name for the work session; `YYYY-MM-DD-<topic>` convention    |
+| `skill`     | Skill or agent name                   | e.g. `detect-and-analyze`, `deployment-consultant`                        |
+| `action`    | Action name (see below)               | Lowercase snake_case                                                      |
+| `entity_id` | Roboflow path                         | `workspace/project` or `workspace/project/version`                        |
+| `version`   | Plugin version                        | `0.1.0` until major release                                               |
+| `notes`     | String                                | Key metrics, model name, decision rationale — whatever later review needs |
 
 Skills may add **skill-specific optional fields** (e.g. `streams`, `decision` for deployment-consultant). Required fields must always be present.
 

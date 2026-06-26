@@ -2,6 +2,8 @@
 
 Claude Code plugin — solve a CV problem end-to-end, then get an honest build-vs-buy estimate.
 
+`vision-delivery` adds an eval-first workflow around Roboflow MCP tools: it chooses the right CV modality, commits the success threshold before model search, measures a pretrained baseline before training, and gates credit-spending actions on explicit confirmation.
+
 ## What it does
 
 Two modes:
@@ -22,23 +24,26 @@ Two modes:
 
 ## Benchmarks
 
-Plugin vs plain-agent comparison across 5 problems — same cold prompt, measurable delta.
+B1 has measured evidence. B2-B5 define benchmark fixtures and acceptance criteria for the other skill routes.
 
-| #   | Problem                 | Skill                 | Eval defined | Deploy ready |
-| --- | ----------------------- | --------------------- | :----------: | :----------: |
-| B1  | Conveyor count          | `detect-and-analyze`  |      ✅      |      ✅      |
-| B2  | PPE compliance          | `classify-or-flag`    |      ⬜      |      ⬜      |
-| B3  | Shopper tracking (RTSP) | `track-and-count`     |      ⬜      |      ⬜      |
-| B4  | Serial number OCR       | `read-text`           |      ⬜      |      ⬜      |
-| B5  | Crack width measurement | `segment-and-analyze` |      ⬜      |      ⬜      |
+| #   | Problem                 | Skill                 | Evidence        |
+| --- | ----------------------- | --------------------- | --------------- |
+| B1  | Conveyor count          | `detect-and-analyze`  | Measured        |
+| B2  | PPE compliance          | `classify-or-flag`    | Fixture defined |
+| B3  | Shopper tracking (RTSP) | `track-and-count`     | Fixture defined |
+| B4  | Serial number OCR       | `read-text`           | Fixture defined |
+| B5  | Crack width measurement | `segment-and-analyze` | Fixture defined |
 
 → [Full benchmark docs](benchmarks/index.md)
 
 ## Install
 
 ```bash
-claude plugin install vision-delivery
-export ROBOFLOW_API_KEY=<your-key>
+claude plugin install https://github.com/Borda/vision-delivery
+echo "ROBOFLOW_API_KEY=your_key_here" >> .env
+echo ".env" >> .gitignore
 ```
 
 Get your key at [app.roboflow.com/settings/api](https://app.roboflow.com/settings/api). Never paste it in chat.
+
+For Codex: use the `dist/` adapter — the root `plugin.json` targets Claude Code.

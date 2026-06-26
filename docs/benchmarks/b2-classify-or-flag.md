@@ -1,6 +1,8 @@
 # B2 Benchmark — Classify or Flag: PPE Compliance
 
-**Problem:** detect workers not wearing hard hats in construction site images and flag non-compliant frames. **Vertical:** `classify-or-flag` skill. **Last updated:** 2026-06-25 (TBD — pending live run).
+**Problem:** detect workers not wearing hard hats in construction site images and flag non-compliant frames. **Vertical:** `classify-or-flag` skill. **Evidence:** benchmark fixture defined; live measurements pending. **Last updated:** 2026-06-25.
+
+> This page defines the benchmark fixture and acceptance criteria for the `classify-or-flag` route.
 
 ______________________________________________________________________
 
@@ -38,29 +40,29 @@ TBD — pending live run.
 - **F1 — no-hardhat:** TBD
 - **Threshold:** 0.90 recall — safety-floor; set before baseline measured
 
-CLIP zero-shot is attempted first because PPE classes (hardhat, vest, person) are well-represented in CLIP's pretraining. If recall falls below threshold, the plugin triggers the fine-tune path using labeled frames from the user's site — this is the critical differentiator vs a plain agent.
+The workflow attempts CLIP zero-shot first because PPE classes (hardhat, vest, person) are well-represented in CLIP's pretraining. If recall falls below threshold, the workflow offers the fine-tune path using labeled frames from the user's site.
 
 ______________________________________________________________________
 
 ## Plugin vs plain agent
 
-**Plain agent (no plugin):**
+**Expected plain-agent behavior (not yet measured):**
 
 - Suggests ViT, ResNet, or a pre-trained PPE model; may skip eval definition
 - No zero-shot attempt; no recall measured
 - Eval not defined before training
 - Fine-tune decision is ad hoc ("try fine-tuning")
-- No runnable PoC in session
+- Runnable PoC not guaranteed in-session
 
-**vision-delivery plugin:**
+**vision-delivery behavior to measure:**
 
-- Runs `classify-or-flag`; anchors to recall ≥ 0.90 before any model search
+- Route to `classify-or-flag`; anchor to recall ≥ 0.90 before any model search
 - CLIP zero-shot → measured recall on user's images
 - Recall on no-hardhat: TBD — pending live run
 - Eval defined before training
 - Fine-tune decision data-gated: only if measured recall < 0.90
-- Roboflow classifier endpoint — 1 call
-- Steps to working PoC: eval definition → zero-shot → measure → fine-tune if needed → deploy (5 steps)
+- Roboflow classifier endpoint path — 1 call after eval passes
+- Target steps to working PoC: eval definition → zero-shot → measure → fine-tune if needed → deploy (5 steps)
 
 ______________________________________________________________________
 
@@ -70,7 +72,7 @@ ______________________________________________________________________
 2. **CLIP zero-shot attempt** — SAM3 + CLIP ViT-L/14 run on user's images; recall measured against threshold.
 3. **Measure F1 on fixture images** — plugin reports recall, precision, F1 for `no-hardhat` class; compares against 0.90 threshold.
 4. **Fine-tune if needed** — if recall < 0.90: plugin proposes labeling session (seam offer) + Roboflow training on user's frames; confirms before credit spend.
-5. **Deploy classifier endpoint** — Roboflow hosted classifier (or Workflow with detection crop + classifier) deployed; inference URL returned.
+5. **Deploy classifier endpoint** — Roboflow hosted classifier (or Workflow with detection crop + classifier) deployed; inference URL returned after the threshold passes and credit spend is confirmed.
 
 ______________________________________________________________________
 
@@ -101,12 +103,12 @@ ______________________________________________________________________
 ### Plugin run
 
 ```bash
-git clone https://github.com/<org>/vision-delivery
+git clone https://github.com/Borda/vision-delivery
 cd vision-delivery
 claude --plugin-dir . "Flag workers not wearing hard hats on this construction site footage"
 ```
 
-`--plugin-dir .` is required; without it, the `classify-or-flag` skill does not load and the agent falls back to the plain-agent path.
+`--plugin-dir .` is required. Without it, the session falls back to the plain-agent path.
 
 ### Plain-agent run (comparison)
 

@@ -1,6 +1,8 @@
 # B5 Benchmark — Segment and Analyze: Crack Width Measurement
 
-**Problem:** measure crack width in bridge inspection photos for engineering maintenance reports. **Vertical:** `segment-and-analyze` skill. **Last updated:** 2026-06-25 (TBD — pending live run).
+**Problem:** measure crack width in bridge inspection photos for engineering maintenance reports. **Vertical:** `segment-and-analyze` skill. **Evidence:** benchmark fixture defined; live measurements pending. **Last updated:** 2026-06-25.
+
+> This page defines the benchmark fixture and acceptance criteria for the `segment-and-analyze` route.
 
 ______________________________________________________________________
 
@@ -43,30 +45,30 @@ TBD — pending live run.
 - **Threshold — area error:** ≤ 15% — engineering tolerance floor
 - **Calibration reference:** required — known-dimension object in frame; see Notes
 
-SAM 2 zero-shot is attempted first because cracks are visually salient, high-contrast targets in inspection photos. If IoU falls below 0.80, the plugin triggers the fine-tune path on the user's labeled inspection frames.
+The workflow attempts SAM 2 zero-shot first because cracks are visually salient, high-contrast targets in inspection photos. If IoU falls below 0.80, the workflow offers the fine-tune path on the user's labeled inspection frames.
 
 ______________________________________________________________________
 
 ## Plugin vs plain agent
 
-**Plain agent (no plugin):**
+**Expected plain-agent behavior (not yet measured):**
 
 - Describes pixel-to-mm math, edge detection (Canny), or Sobel filter
 - Segmentation model described, not run
 - IoU on crack mask: N/A
 - Calibration described, not automated
 - Width output: conceptual (no number)
-- No runnable PoC in session
+- Runnable PoC not guaranteed in-session
 
-**vision-delivery plugin:**
+**vision-delivery behavior to measure:**
 
-- Runs `segment-and-analyze`; anchors to measurable eval upfront (IoU ≥ 0.80 + area error ≤ 15%)
+- Route to `segment-and-analyze`; anchor to measurable eval upfront (IoU ≥ 0.80 + area error ≤ 15%)
 - SAM zero-shot run; IoU measured on fixture images
 - IoU on crack mask: TBD — measured in session
 - Calibration workflow automated: reference object → px/mm ratio → width in mm with uncertainty
 - Width output: mm with ± uncertainty bound
 - Steps to working PoC: eval → SAM zero-shot → measure IoU → calibrate → report (5 steps)
-- Deploy ready: segmentation endpoint
+- Deploy path: segmentation endpoint after eval passes
 
 ______________________________________________________________________
 
@@ -121,12 +123,12 @@ ______________________________________________________________________
 ### Plugin run
 
 ```bash
-git clone https://github.com/<org>/vision-delivery
+git clone https://github.com/Borda/vision-delivery
 cd vision-delivery
 claude --plugin-dir . "Measure crack width in these bridge inspection photos for our maintenance report"
 ```
 
-`--plugin-dir .` is required. Plugin will prompt for fixture images and calibration reference before running eval.
+`--plugin-dir .` is required. Without it, the session falls back to the plain-agent path.
 
 ### Plain-agent run (comparison)
 

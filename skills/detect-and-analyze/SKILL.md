@@ -3,7 +3,7 @@ name: detect-and-analyze
 description: |
   Detect object instances and analyze them from bounding boxes. Covers: spatial counts per frame, measurements derived from bbox geometry (size, aspect ratio, relative position), per-object crops and ROI extraction, per-class metadata. Builds a detection pipeline: define eval → find pretrained model → measure → train if needed → working PoC.
   TRIGGER when: user wants to count object instances ("count the X", "how many X in image/frame", "detect and count", "counts trucks/people/items", "tally objects on a conveyor/line/belt", "number of X", "object tally", "build a detection model"); measure objects from their bounding boxes ("how wide are the boxes", "estimate size of items", "relative dimensions of parts", "bbox diagonal"); extract crops or regions of interest per detected object ("crop each detected face", "extract ROI per defect", "save each detected item separately"); get per-object metadata from detection output ("per-box confidence", "class breakdown by region", "which objects are in zone A"); build a detection pipeline for any of the above.
-  SKIP when: user wants an image-level verdict with no per-instance count (("is this product defective?", "classify this image as pass/fail", "flag the whole image") → classify-or-flag, M4); tracking object identities across frames ("track X as it moves through the scene", "follow this person", line-cross counting → track-and-count, M4); pixel-precise outlines or area measurements requiring masks ("segment the tumor", "measure exact area of corrosion" → segment-and-analyze, M4); reading or extracting text, labels, serial numbers from images (→ read-text, M4); cost/scale/deployment question, self-hosting vs managed comparison, build-vs-buy analysis with no unsolved detection problem (→ deployment-consultant); user already has a working model and asks only about export, optimization, or active learning.
+  SKIP when: user wants an image-level verdict with no per-instance count (("is this product defective?", "classify this image as pass/fail", "flag the whole image") → classify-or-flag); tracking object identities across frames ("track X as it moves through the scene", "follow this person", line-cross counting → track-and-count); pixel-precise outlines or area measurements requiring masks ("segment the tumor", "measure exact area of corrosion" → segment-and-analyze); reading or extracting text, labels, serial numbers from images (→ read-text); cost/scale/deployment question, self-hosting vs managed comparison, build-vs-buy analysis with no unsolved detection problem (→ deployment-consultant); user already has a working model and asks only about export, optimization, or active learning.
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 ---
 
@@ -20,10 +20,10 @@ Build a working detection pipeline for the user's specific objects. The exit cri
 
 **What this skill does NOT cover:**
 
-- Line-cross counting (object crosses a virtual line in video) → `track-and-count` (M4)
+- Line-cross counting (object crosses a virtual line in video) → `track-and-count`
 - Exact physical measurements in real-world units (cm, mm) → requires calibration data; route to `measure-in-image` if that skill exists, else handle as consulting scope
-- Pixel-precise outlines or area → `segment-and-analyze` (M4)
-- Image-level verdict ("is the whole image defective?") → `classify-or-flag` (M4)
+- Pixel-precise outlines or area → `segment-and-analyze`
+- Image-level verdict ("is the whole image defective?") → `classify-or-flag`
 
 </objective>
 
@@ -219,6 +219,6 @@ Follow voice rules from `skills/_shared/fde-methodology.md`. Short reference:
 
 - "Looks good!" / "This should work!" / "Great use case!"
 - Report passing when threshold not cleared.
-- Mention managed deployment, pricing, or cost in Phase 1 (seam offer fires once at eval-pass only).
+- Mention managed deployment, pricing, or cost during the build flow (seam offer fires once at eval-pass only).
 
 </voice>
