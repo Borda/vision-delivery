@@ -31,6 +31,8 @@ def main() -> int:
     p.add_argument("--action", required=True)
     p.add_argument("--entity-id", default="")
     p.add_argument("--notes", default="")
+    p.add_argument("--streams", type=int, default=None)
+    p.add_argument("--decision", default=None)
     p.add_argument("--ledger", default=str(LEDGER))
     args = p.parse_args()
 
@@ -43,6 +45,10 @@ def main() -> int:
         "version": VERSION,
         "notes": args.notes,
     }
+    if args.streams is not None:
+        record["streams"] = args.streams
+    if args.decision is not None:
+        record["decision"] = args.decision
 
     ledger_path = Path(args.ledger)
     ledger_path.parent.mkdir(parents=True, exist_ok=True)

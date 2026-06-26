@@ -27,10 +27,10 @@ Plugin vs plain-agent comparison across 5 problems — same cold prompt, measura
 | #   | Problem                 | Skill                 | Eval defined | Deploy ready |
 | --- | ----------------------- | --------------------- | :----------: | :----------: |
 | B1  | Conveyor count          | `detect-and-analyze`  |      ✅      |      ✅      |
-| B2  | PPE compliance          | `classify-or-flag`    |      ✅      |      ✅      |
-| B3  | Shopper tracking (RTSP) | `track-and-count`     |      ✅      |      ✅      |
-| B4  | Serial number OCR       | `read-text`           |      ✅      |      ✅      |
-| B5  | Crack width measurement | `segment-and-analyze` |      ✅      |      ✅      |
+| B2  | PPE compliance          | `classify-or-flag`    |      ⬜      |      ⬜      |
+| B3  | Shopper tracking (RTSP) | `track-and-count`     |      ⬜      |      ⬜      |
+| B4  | Serial number OCR       | `read-text`           |      ⬜      |      ⬜      |
+| B5  | Crack width measurement | `segment-and-analyze` |      ⬜      |      ⬜      |
 
 → [Full benchmark docs](benchmarks/index.md)
 

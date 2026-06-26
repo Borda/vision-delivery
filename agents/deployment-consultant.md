@@ -61,7 +61,7 @@ You do not load from ambient cost curiosity, keyword sniffing, or enthusiastic P
  (2) Do you have an existing GPU server, or starting from scratch?"
 ```
 
-**Step 3 — Run cost_model.py with live-fetched pricing.** Execute `python scripts/cost_model.py --streams <N> --fps <F> --model-size <S> --uptime <U> --region <R>`. The script fetches current rates from PRICING_SOURCES. If fetch fails, it falls back to PRICING_SNAPSHOT.json and reports the snapshot date.
+**Step 3 — Run cost_model.py.** Execute `python scripts/cost_model.py --streams <N> --fps <F> --model-size <S> --uptime <U> --region <R>`. The script uses PRICING_SNAPSHOT.json (committed snapshot); it probes source URLs for reachability but never parses live HTML. Report the snapshot `as_of` date in all output.
 
 Do NOT hardcode any price in this system prompt. All figures must come from cost_model.py output.
 

@@ -9,22 +9,21 @@ Requirements: torch, torchvision, pillow, requests, numpy
     pip install torch torchvision pillow requests numpy
 
 Weights: ~160 MB, downloaded once to ~/.cache/torch on first run.
-SSL: patches ssl._create_default_https_context for machines with cert issues.
+
+Set ROBOFLOW_API_KEY and ROBOFLOW_EXPORT_ID in environment, or pass
+--export-url on the CLI (use the URL from app.roboflow.com → Export).
 """
 
-import ssl
-
-ssl._create_default_https_context = (
-    ssl._create_unverified_context
-)  # ponytail: local cert workaround
-import json
-import zipfile
 import io
+import json
+import os
 import sys
-import requests
 import warnings
-from pathlib import Path
+import zipfile
 from collections import defaultdict
+from pathlib import Path
+
+import requests
 
 warnings.filterwarnings("ignore")
 
@@ -40,7 +39,8 @@ try:
 except ImportError:
     sys.exit("pip install torch torchvision pillow numpy")
 
-EXPORT_URL = "https://app.roboflow.com/ds/KEwFWYdIal?key=GJwuCSp0Sb"
+# Read from env; never hardcode credentials in source.
+_export_url_env = os.environ.get("ROBOFLOW_EXPORT_URL", "")
 OUTPUT = Path(".temp/baseline-result.json")
 CONF_THRESH = 0.3
 IOU_THRESH = 0.5
@@ -115,8 +115,15 @@ def compute_map50(all_gt: list, all_pred: list) -> float:
 def main() -> None:
     print("=== B1 Baseline: FasterRCNN COCO zero-shot on Cars test split ===\n")
 
+    export_url = _export_url_env or sys.argv[1] if len(sys.argv) > 1 else ""
+    if not export_url:
+        sys.exit(
+            "ERROR: set ROBOFLOW_EXPORT_URL env var or pass the export URL as first arg.\n"
+            "  Generate at: app.roboflow.com → Dataset → Export → Download ZIP"
+        )
+
     print("Downloading COCO export...")
-    r = requests.get(EXPORT_URL, timeout=90, verify=False)
+    r = requests.get(export_url, timeout=90)
     r.raise_for_status()
     print(f"  {len(r.content) // 1024} KB")
 

@@ -20,7 +20,7 @@ function extractEntityId(toolInput) {
   const raw = toolInput.project_id || toolInput.workspace || toolInput.project || "";
   // Allow only safe Roboflow path chars; clamp to prevent unbounded ledger growth.
   return String(raw)
-    .replace(/[^a-zA-Z0-9_\-\/]/g, "")
+    .replace(/[^a-zA-Z0-9_\-\.\/]/g, "")
     .slice(0, 200);
 }
 
