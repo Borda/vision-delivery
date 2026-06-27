@@ -77,17 +77,6 @@
   color: #0F766E;
 }
 
-.vd-button-primary {
-  border-color: #6706CE;
-  background: #6706CE;
-  color: #FFFFFF;
-}
-
-.vd-button-primary:hover {
-  color: #FFFFFF;
-  filter: brightness(0.95);
-}
-
 .vd-proof-strip,
 .vd-grid {
   display: grid;

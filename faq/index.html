@@ -544,10 +544,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#should-this-repository-port-roboflows-skills" class="md-nav__link">
+  <a href="#does-it-guarantee-better-model-accuracy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Should This Repository Port Roboflow's Skills?
+        Does It Guarantee Better Model Accuracy?
       
     </span>
   </a>
@@ -555,10 +555,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#does-it-guarantee-better-model-accuracy" class="md-nav__link">
+  <a href="#what-if-the-model-does-not-hit-the-target" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Does It Guarantee Better Model Accuracy?
+        What If The Model Does Not Hit The Target?
       
     </span>
   </a>
@@ -625,17 +625,6 @@
     <span class="md-ellipsis">
       
         What Is Measured Today?
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-is-llmstxt" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What Is llms.txt?
       
     </span>
   </a>
@@ -932,10 +921,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#should-this-repository-port-roboflows-skills" class="md-nav__link">
+  <a href="#does-it-guarantee-better-model-accuracy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Should This Repository Port Roboflow's Skills?
+        Does It Guarantee Better Model Accuracy?
       
     </span>
   </a>
@@ -943,10 +932,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#does-it-guarantee-better-model-accuracy" class="md-nav__link">
+  <a href="#what-if-the-model-does-not-hit-the-target" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Does It Guarantee Better Model Accuracy?
+        What If The Model Does Not Hit The Target?
       
     </span>
   </a>
@@ -1019,17 +1008,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#what-is-llmstxt" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What Is llms.txt?
-      
-    </span>
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1052,16 +1030,16 @@
 
 <h1 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h1>
 <h2 id="what-is-vision-delivery">What Is vision-delivery?<a class="headerlink" href="#what-is-vision-delivery" title="Permanent link">&para;</a></h2>
-<p><code>vision-delivery</code> is a Codex and Claude Code plugin for eval-first computer-vision delivery. It turns vague image, video, or camera requests into scoped Roboflow proofs of concept with eval gates, local artifacts, paid-action guardrails, and CV economics decisions.</p>
+<p><code>vision-delivery</code> is a Codex and Claude Code plugin for eval-first computer-vision delivery. It turns vague image, video, or camera requests into scoped Roboflow proofs of concept with clear success checks, local artifacts, paid-action guardrails, and CV economics decisions.</p>
 <h2 id="is-this-a-model">Is This A Model?<a class="headerlink" href="#is-this-a-model" title="Permanent link">&para;</a></h2>
 <p>No. It is a plugin and workflow layer around Roboflow MCP tools and local scripts. Its value is process discipline: classify the task, define the eval, measure a baseline, improve in cost order, and record provenance.</p>
 <h2 id="does-this-replace-roboflow-mcp-or-computer-vision-skills">Does This Replace Roboflow MCP Or computer-vision-skills?<a class="headerlink" href="#does-this-replace-roboflow-mcp-or-computer-vision-skills" title="Permanent link">&para;</a></h2>
-<p>No for MCP, partially for skills. <code>vision-delivery</code> bundles Roboflow MCP configuration because it needs live Roboflow operations. It can replace generic "what should we build and how do we prove it?" guidance because it owns task framing, eval gates, local artifacts, ledger records, and economics. It should not replace Roboflow's product-reference guidance for model IDs, Workflows, platform navigation, pricing pages, or exact MCP tool behavior.</p>
+<p>No for MCP, partially for skills. <code>vision-delivery</code> bundles Roboflow MCP configuration because it needs live Roboflow operations. It can replace generic "what should we build and how do we prove it?" guidance because it owns task framing, success checks, local artifacts, ledger records, and economics. It should not replace Roboflow's product-reference guidance for model IDs, Workflows, platform navigation, pricing pages, or exact MCP tool behavior.</p>
 <p>Read <a href="../roboflow-skills/">Roboflow Skills Integration</a> for the recommended split.</p>
-<h2 id="should-this-repository-port-roboflows-skills">Should This Repository Port Roboflow's Skills?<a class="headerlink" href="#should-this-repository-port-roboflows-skills" title="Permanent link">&para;</a></h2>
-<p>No, not wholesale. Porting Roboflow's platform recipes would create stale duplicate guidance. Prefer this order for platform-specific questions: installed <a href="https://github.com/roboflow/computer-vision-skills"><code>roboflow/computer-vision-skills</code></a> skills, then MCP skill resources such as <code>roboflow://skills/inference/...</code> when the client exposes them, then ask the user to install Roboflow's official plugin or mark the answer unverified. Return to <code>vision-delivery</code> for eval-gated proof and economics decisions.</p>
 <h2 id="does-it-guarantee-better-model-accuracy">Does It Guarantee Better Model Accuracy?<a class="headerlink" href="#does-it-guarantee-better-model-accuracy" title="Permanent link">&para;</a></h2>
 <p>No. The docs intentionally do not claim a model-quality advantage. A plain agent with the same Roboflow MCP tools can reach comparable model metrics if it performs the same sequence. The plugin makes that careful sequence the default.</p>
+<h2 id="what-if-the-model-does-not-hit-the-target">What If The Model Does Not Hit The Target?<a class="headerlink" href="#what-if-the-model-does-not-hit-the-target" title="Permanent link">&para;</a></h2>
+<p>The plugin should act like a sparring partner, not jump straight to "label more images." First it checks what failed: which classes were confused, which examples were hard, whether training was still improving when it stopped, whether classes are balanced, whether annotations are consistent, and whether targeted augmentation or threshold tuning can close the gap.</p>
 <h2 id="which-hosts-are-supported">Which Hosts Are Supported?<a class="headerlink" href="#which-hosts-are-supported" title="Permanent link">&para;</a></h2>
 <p>The plugin is structured for both Codex and Claude Code:</p>
 <ul>
@@ -1087,8 +1065,6 @@
 </ul>
 <h2 id="what-is-measured-today">What Is Measured Today?<a class="headerlink" href="#what-is-measured-today" title="Permanent link">&para;</a></h2>
 <p>B1 has measured evidence. B2-B5 are fixture-defined and pending live measurements. Read <a href="../benchmarks/">Benchmarks</a> for the exact status and caveats.</p>
-<h2 id="what-is-llmstxt">What Is llms.txt?<a class="headerlink" href="#what-is-llmstxt" title="Permanent link">&para;</a></h2>
-<p><code>llms.txt</code> is an emerging Markdown convention for giving LLMs and coding agents a compact map of a site. It is not a formal ranking standard. This project publishes <a href="../llms.txt"><code>llms.txt</code></a> and a longer <a href="../llms-full.txt"><code>llms-full.txt</code></a> as agent-friendly discovery aids.</p>
 
 
 
@@ -1151,6 +1127,10 @@
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@10.9.1/dist/mermaid.min.js"></script>
+      
+        <script src="../javascripts/mermaid.js"></script>
       
     
   </body>

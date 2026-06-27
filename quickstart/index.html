@@ -974,14 +974,14 @@
 <li>input source: images, video, RTSP, camera, folder, dataset</li>
 <li>target: object, defect, text field, person, pose, area</li>
 <li>output: count, pass/fail, CSV, alert, endpoint, local script</li>
-<li>success threshold: recall, precision, field match, latency, IoU, count error</li>
+<li>success check: what must be caught, how many misses are acceptable, which false alarms matter, and how fast it needs to run</li>
 </ul>
 <h2 id="what-the-plugin-should-do-first">What The Plugin Should Do First<a class="headerlink" href="#what-the-plugin-should-do-first" title="Permanent link">&para;</a></h2>
 <p>The first useful response should not be a model shopping list. It should:</p>
 <ol>
 <li>classify the CV task,</li>
 <li>clarify ambiguity if needed,</li>
-<li>define or ask for the eval gate,</li>
+<li>define or ask for the success check,</li>
 <li>measure a baseline before training,</li>
 <li>confirm before any paid training or deployment action.</li>
 </ol>
@@ -1063,6 +1063,10 @@
     
     
       <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@10.9.1/dist/mermaid.min.js"></script>
+      
+        <script src="../javascripts/mermaid.js"></script>
       
     
   </body>

@@ -1053,13 +1053,13 @@
   <p class="vd-kicker">Codex and Claude Code plugin for real computer-vision delivery</p>
   <p class="vd-title">vision-delivery</p>
   <p class="vd-lede">
-    <strong>vision-delivery</strong> turns a vague camera, image, or video request into a scoped Roboflow proof of concept with an eval gate, local artifacts, paid-action guardrails, and a concrete economics decision.
+    <strong>vision-delivery</strong> turns a vague camera, image, or video request into a scoped Roboflow proof of concept with a clear success check, local artifacts, paid-action guardrails, and a concrete economics decision.
   </p>
   <p class="vd-actions">
     <a class="vd-button" href="#quick-start">Quick start</a>
     <a class="vd-button" href="#features">See features</a>
     <a class="vd-button" href="benchmarks/">Benchmark evidence</a>
-    <a class="vd-button vd-button-primary" href="https://github.com/Borda/vision-delivery/issues/new?template=use-case.yml">Share your use case</a>
+    <a class="vd-button" href="https://github.com/Borda/vision-delivery/issues/new?template=use-case.yml">Share your use case</a>
   </p>
 </section>
 
@@ -1072,14 +1072,14 @@
 
 <h2 id="why-this-exists">Why This Exists<a class="headerlink" href="#why-this-exists" title="Permanent link">&para;</a></h2>
 <p>Computer-vision projects often fail before the model fails. The request starts as "Can AI count this?" but the real decision is still missing: which object counts, what error rate is acceptable, whether a pretrained model is enough, what a missed detection costs, and whether labeling, training, or deployment is economically justified.</p>
-<p><code>vision-delivery</code> makes that careful sequence the default. It reads the project, classifies the CV task, defines the eval before model search, tries the cheapest useful baseline, confirms before paid actions, writes local proof artifacts, and leaves a ledger so the work can be audited later.</p>
+<p><code>vision-delivery</code> makes that careful sequence the default. It reads the project, classifies the CV task, defines success before model search, tries the cheapest useful baseline, investigates misses like a sparring partner, confirms before paid actions, writes local proof artifacts, and leaves a ledger so the work can be audited later.</p>
 <div class="admonition note">
 <p class="admonition-title">The value proposition</p>
 <p>A plain agent with Roboflow MCP access can train, evaluate, and deploy. The plugin's value is not magic accuracy. The value is that eval-first discipline, cost ordering, provenance, and safety gates are built into the workflow instead of depending on the user to ask for them.</p>
 </div>
 <div class="admonition tip">
 <p class="admonition-title">How this relates to Roboflow MCP and official skills</p>
-<p>Roboflow's source should own product truth: live MCP tools, MCP-provided skill resources when available, local <a href="https://github.com/roboflow/computer-vision-skills"><code>computer-vision-skills</code></a> plugin skills when installed, platform navigation, Workflows, model IDs, inference modes, training options, and pricing references. <code>vision-delivery</code> owns delivery discipline: problem framing, eval gates, local proof artifacts, provenance, and economics. Read <a href="roboflow-skills/">Roboflow Skills Integration</a> before treating one package as a full replacement for the other.</p>
+<p>Roboflow's source should own product truth: live MCP tools, MCP-provided skill resources when available, local <a href="https://github.com/roboflow/computer-vision-skills"><code>computer-vision-skills</code></a> plugin skills when installed, platform navigation, Workflows, model IDs, inference modes, training options, and pricing references. <code>vision-delivery</code> owns delivery discipline: problem framing, success checks, local proof artifacts, provenance, and economics. Read <a href="roboflow-skills/">Roboflow Skills Integration</a> before treating one package as a full replacement for the other.</p>
 </div>
 <h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
 <p>Install the plugin in either host, make <code>ROBOFLOW_API_KEY</code> available to the host process that starts the Roboflow MCP server, then begin with an operational CV task.</p>
@@ -1111,7 +1111,7 @@
 <p>Read the full <a href="quickstart/">Quick Start</a> for setup, key handling, first prompts, and expected first-session behavior.</p>
 <div class="admonition tip">
 <p class="admonition-title">Share your use case</p>
-<p>Have a real camera, image, or video problem? <a href="https://github.com/Borda/vision-delivery/issues/new?template=use-case.yml">Create a use-case issue</a> to get help turning it into a concrete route, eval gate, and first proof. If your work is public, link your project, dataset, company, paper, demo, or field problem so others can discover it. Do not include secrets, API keys, private customer data, faces, license plates, medical data, or media you are not allowed to share.</p>
+<p>Have a real camera, image, or video problem? <a href="https://github.com/Borda/vision-delivery/issues/new?template=use-case.yml">Create a use-case issue</a> to get help turning it into a concrete route, success check, and first proof. If your work is public, link your project, dataset, company, paper, demo, or field problem so others can discover it. Do not include secrets, API keys, private customer data, faces, license plates, medical data, or media you are not allowed to share.</p>
 </div>
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
 <div class="vd-grid">
@@ -1121,7 +1121,7 @@
   </article>
   <article>
     <h3>Eval-first workflow</h3>
-    <p>The plugin asks for the success threshold and records it before training or deployment advice can move forward.</p>
+    <p>The plugin asks practical success questions first: do you need to catch every object, how many misses are acceptable, and which error is worse?</p>
   </article>
   <article>
     <h3>Pretrained baseline first</h3>
@@ -1129,7 +1129,7 @@
   </article>
   <article>
     <h3>Cheapest improvement first</h3>
-    <p>Threshold tuning comes before fine-tuning, and fine-tuning comes before larger data work unless the evidence says otherwise.</p>
+    <p>When a model misses the target, the next step is diagnostics: metrics, loss curves, confusion matrix, hard cases, class balance, augmentation, then data or training.</p>
   </article>
   <article>
     <h3>Explicit credit gate</h3>
@@ -1153,7 +1153,7 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>flowchart LR
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>    A[Messy CV request] --&gt; B[Read project and samples]
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    B --&gt; C[Classify the task]
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    C --&gt; D[Define the eval gate]
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    C --&gt; D[Define the success check]
 <a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    D --&gt; E[Measure a pretrained baseline]
 <a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    E --&gt; F{Passes?}
 <a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>    F --&gt;|yes| G[Write local PoC artifacts]
@@ -1167,9 +1167,9 @@
 <ol>
 <li><strong>Read the context:</strong> inspect relevant files, sample images, annotations, and constraints.</li>
 <li><strong>Classify the CV job:</strong> choose the right route and clarify ambiguous wording.</li>
-<li><strong>Define the eval:</strong> capture the metric, threshold, dataset slice, and failure consequence.</li>
+<li><strong>Define success:</strong> ask guiding questions: do misses matter more than false alarms, how many misses are acceptable, and how fast does it need to run?</li>
 <li><strong>Measure a baseline:</strong> try pretrained or Universe candidates against the gate.</li>
-<li><strong>Improve in cost order:</strong> tune thresholds, then consider training, then recommend data work.</li>
+<li><strong>Investigate misses:</strong> review metrics, loss curves, confusion matrix, hard cases, class balance, and augmentation before recommending more data or training.</li>
 <li><strong>Write the PoC:</strong> produce local inference and eval artifacts the user can inspect.</li>
 <li><strong>Estimate economics:</strong> compare annotation, training, managed deployment, and self-hosting assumptions.</li>
 <li><strong>Record provenance:</strong> append train, eval, and deploy records for audit and reporting.</li>
@@ -1231,10 +1231,10 @@
 <h2 id="example-session">Example Session<a class="headerlink" href="#example-session" title="Permanent link">&para;</a></h2>
 <blockquote>
 <p>User: "Count cracked items on my packaging line. I have 40 sample images."</p>
-<p>Plugin: "This is an object-instance detection/counting task: one box per visible crack, count per image. What recall floor do you need?"</p>
-<p>User: "80% recall. A missed crack reaches the customer."</p>
-<p>Plugin: "Eval defined: recall &gt;= 80% on your 40 images. Measuring a pretrained candidate."</p>
-<p>Plugin: "Baseline result: 74% recall. Fastest lever is a confidence threshold sweep."</p>
+<p>Plugin: "This is an object-instance detection/counting task: one box per visible crack, count per image. Do you need to catch nearly every crack, or is an occasional miss acceptable?"</p>
+<p>User: "A missed crack reaches the customer. Missing up to 2 in 10 during the first proof is acceptable."</p>
+<p>Plugin: "Success check defined: catch at least 8 of 10 visible cracks on your 40 images. Measuring a pretrained candidate."</p>
+<p>Plugin: "Baseline catches about 7 of 10 cracks. That misses the target. First I will check the confidence threshold and hard cases."</p>
 <p>Plugin: "Best threshold reaches 83% recall. Eval passes. Writing the local PoC and ledger entry."</p>
 </blockquote>
 <h2 id="what-makes-it-different">What Makes It Different<a class="headerlink" href="#what-makes-it-different" title="Permanent link">&para;</a></h2>
@@ -1252,7 +1252,7 @@
 </tr>
 <tr>
 <td>Success is judged after seeing a demo.</td>
-<td>The eval gate is defined before model search or training.</td>
+<td>The success check is defined before model search or training.</td>
 </tr>
 <tr>
 <td>Training starts before a baseline is measured.</td>
@@ -1273,7 +1273,7 @@
 </tbody>
 </table>
 <h2 id="cv-economics">CV Economics<a class="headerlink" href="#cv-economics" title="Permanent link">&para;</a></h2>
-<p>After a model passes the eval gate, invoke the economics recipe:</p>
+<p>After a model passes the success check, invoke the economics recipe:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>/vision-delivery:estimate
 </code></pre></div>
 <p><code>estimate-economics</code> reads the project and separates one-time work from run-rate costs:</p>
@@ -1470,6 +1470,10 @@
     
     
       <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@10.9.1/dist/mermaid.min.js"></script>
+      
+        <script src="javascripts/mermaid.js"></script>
       
     
   </body>
