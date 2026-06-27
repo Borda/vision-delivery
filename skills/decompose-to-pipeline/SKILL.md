@@ -3,7 +3,7 @@ name: decompose-to-pipeline
 description: |
   Decompose a complex vision+reasoning requirement into the cheapest end-to-end pipeline that meets it. Covers: feasibility assessment (LLM as oracle), sub-task decomposition (what needs a CV model vs logic vs LLM), LLM-baseline eval generation (pseudo-labels from LLM vision, no human annotation), cheaper-model equivalence proof, and end-to-end cost + latency comparison.
   TRIGGER when: user describes a system-level or ongoing monitoring requirement ("monitor X and alert me", "analyze my footage over time", "build a system that detects X and does Y", "is it even feasible to detect X given my setup", "I want to replace an LLM call with something cheaper", multi-condition requirements combining detection + aggregation + alerting/reporting).
-  SKIP when: single-frame detection or counting with no temporal or system component (→ detect-and-analyze); image-level classification (→ classify-or-flag); deployment cost question only, no unsolved build problem (→ deployment-consultant); task is clearly feasible and pipeline shape is already known.
+  SKIP when: single-frame detection or counting with no temporal or system component (→ detect-and-analyze); image-level classification (→ classify-or-flag); deployment cost question only, no unsolved build problem (→ estimate-economics); task is clearly feasible and pipeline shape is already known.
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 ---
 
@@ -22,7 +22,7 @@ Design and prove the cheapest pipeline that meets the user's vision+reasoning re
 **What this skill does NOT cover:**
 
 - Single-inference detection or counting → `detect-and-analyze`
-- Deployment infrastructure sizing → `deployment-consultant`
+- Deployment infrastructure sizing → `estimate-economics`
 - Annotation tooling → handled inline via `fde-methodology.md` Annotation Unblocking
 
 </objective>

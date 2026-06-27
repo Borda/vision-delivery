@@ -1,0 +1,33 @@
+{
+  "should_fire": [
+    {
+      "prompt": "Count vehicles in these parking lot frames and build a model if needed."
+    },
+    {
+      "prompt": "I have images from a conveyor and want to detect damaged packages."
+    },
+    {
+      "prompt": "Read serial numbers from product labels in my inspection photos."
+    },
+    {
+      "prompt": "Track people through zones in warehouse camera footage."
+    }
+  ],
+  "should_not_fire": [
+    {
+      "prompt": "How much will managed deployment cost for five camera streams?"
+    },
+    {
+      "prompt": "Compare deployment scale economics for self-hosting versus managed Roboflow."
+    },
+    {
+      "prompt": "Estimate annotation and training cost before we label another 2,000 images."
+    },
+    {
+      "prompt": "Show me a pure Roboflow platform how-to for exporting an already-working model."
+    },
+    {
+      "prompt": "/vision-delivery:estimate"
+    }
+  ]
+}

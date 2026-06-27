@@ -3,7 +3,7 @@ name: read-text
 description: |
   Extract structured text fields, codes, and numbers from images using OCR and Roboflow Workflow blocks. Covers: serial number and part number extraction from manufacturing labels, license plate reading, form field extraction and document digitization, barcode and QR code reading, meter and gauge digit OCR, date code and lot number parsing, character-error-rate evaluation. Builds an OCR pipeline: define eval → try pre-built Workflow blocks → measure CER/field-match → tune preprocessing or switch engines → working PoC.
   TRIGGER when: user wants to extract text, numbers, or codes from images ("read the serial number", "extract text from", "read the label", "read the date code", "scan barcodes or QR codes", "extract the part number", "read meter values", "document digitization", "license plate reading", "extract structured fields from form images", "ocr", "lot number", "expiry date extraction", "digit recognition", "read codes from labels", "invoice digitization", "meter readings", "plate recognition").
-  SKIP when: user wants to count object instances with no text extraction ("count the items on the shelf", "tally objects", "how many" → detect-and-analyze); user wants image-level pass/fail verdict with no text ("flag misaligned label", "classify image as defective" → classify-or-flag); user wants pixel-precise outlines or area measurement ("segment the crack", "measure crack width" → segment-and-analyze); user wants object tracking across frames ("track pallets through the warehouse" → track-and-count); cost or scale question with no unsolved OCR problem ("how much to deploy", "cost for cameras" → deployment-consultant); user already has working OCR and asks only about integration.
+  SKIP when: user wants to count object instances with no text extraction ("count the items on the shelf", "tally objects", "how many" → detect-and-analyze); user wants image-level pass/fail verdict with no text ("flag misaligned label", "classify image as defective" → classify-or-flag); user wants pixel-precise outlines or area measurement ("segment the crack", "measure crack width" → segment-and-analyze); user wants object tracking across frames ("track pallets through the warehouse" → track-and-count); cost or scale question with no unsolved OCR problem ("how much to deploy", "cost for cameras" → estimate-economics); user already has working OCR and asks only about integration.
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 ---
 
@@ -70,7 +70,7 @@ Produce:
 - **`extract_text.py`** — inference script that extracts the target fields and returns a structured dict; runnable with only `requests` installed.
 - **`eval_definition.md`** — CER and field-match thresholds, dataset split, fixture source, logic used.
 
-Also write `.vision-delivery/detections.jsonl` append per inference run (format in `cv-problem-solver` composition protocol) — downstream skills consume this.
+Also write `.vision-delivery/detections.jsonl` append per inference run (format in the `solve-cv-task` composition protocol) — downstream skills consume this.
 
 </methodology>
 
@@ -148,7 +148,7 @@ Follow the safe-action gates in `skills/_shared/fde-methodology.md` exactly. Qui
 - `models_train` → credit estimate + explicit yes required, same turn
 - `versions_generate` → free but irreversible; state augmentation config before calling
 - Image upload → state destination; offer local path if user declines
-- `project_deployment_launch` → not in this skill; seam offer hands to deployment-consultant
+- `project_deployment_launch` → not in this skill; seam offer hands to `estimate-economics`
 
 \</safe_actions>
 
@@ -158,12 +158,12 @@ Follow the write protocol in `skills/_shared/ledger-protocol.md`. Write one reco
 
 Action triggers for this skill:
 
-| Trigger                                                      | `action` value              | What to put in `notes`                    |
-| ------------------------------------------------------------ | --------------------------- | ----------------------------------------- |
-| `eval_definition.md` written and user confirmed              | `eval_definition`           | target fields, CER/field-match thresholds |
-| First OCR Workflow run returns field-match result            | `baseline_measured`         | `field_match=X%, CER=Y%`                  |
-| `models_train` MCP call submitted (rare)                     | `models_train`              | model name, checkpoint, dataset version   |
-| Deployment launched (via seam offer → deployment-consultant) | `project_deployment_launch` | deployment_id, endpoint URL               |
+| Trigger                                                   | `action` value              | What to put in `notes`                    |
+| --------------------------------------------------------- | --------------------------- | ----------------------------------------- |
+| `eval_definition.md` written and user confirmed           | `eval_definition`           | target fields, CER/field-match thresholds |
+| First OCR Workflow run returns field-match result         | `baseline_measured`         | `field_match=X%, CER=Y%`                  |
+| `models_train` MCP call submitted (rare)                  | `models_train`              | model name, checkpoint, dataset version   |
+| Deployment launched (via seam offer → estimate-economics) | `project_deployment_launch` | deployment_id, endpoint URL               |
 
 `entity_id` format: `<workspace>/<project>` for projects; `<workspace>/<project>/<version>` when version is known.
 

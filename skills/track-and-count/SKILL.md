@@ -3,7 +3,7 @@ name: track-and-count
 description: |
   Track object identity across video frames and produce counts, dwell times, and line-cross events. Covers: identity-linked tracking with ByteTrack, zone dwell time (time an object spends in a defined polygon), line-cross counting (entry/exit direction across a virtual line), RTSP one-call deploy (build a Roboflow Workflow with ByteTrack and deploy to a managed endpoint in one call). Builds a tracking pipeline: define eval → select detection backbone → add ByteTrack → measure → tune or train if needed → working PoC.
   TRIGGER when: user wants to track object identity across frames ("track X as it moves", "follow this person/vehicle", "how long does X spend in zone Y", "count how many X cross line Z", "dwell time", "line-cross counting", "people counting at entrance", "shopper path", "RTSP tracking", "video analytics with identity", "track the forklift", "follow each detected person across video frames", "measure their path", "alert when vehicle enters zone", "how many vehicles crossed", "track how long shoppers spend")
-  SKIP when: per-frame count with no identity needed ("count how many cars are in the parking lot", "how many objects in this image", "number of items per frame" → detect-and-analyze); pixel-precise segmentation or area measurement ("measure the crack area", "segment the lesion" → segment-and-analyze); image-level verdict with no instance tracking ("is this product defective", "classify this image as pass/fail", "flag the whole image" → classify-or-flag); text reading or extraction ("read the serial number", "extract text from label" → read-text); cost/scale/deployment question with no unsolved tracking problem ("how much does managed deployment cost", "self-hosting vs managed comparison" → deployment-consultant); user already has working tracker and asks only about export or optimization
+  SKIP when: per-frame count with no identity needed ("count how many cars are in the parking lot", "how many objects in this image", "number of items per frame" → detect-and-analyze); pixel-precise segmentation or area measurement ("measure the crack area", "segment the lesion" → segment-and-analyze); image-level verdict with no instance tracking ("is this product defective", "classify this image as pass/fail", "flag the whole image" → classify-or-flag); text reading or extraction ("read the serial number", "extract text from label" → read-text); cost/scale/deployment question with no unsolved tracking problem ("how much does managed deployment cost", "self-hosting vs managed comparison" → estimate-economics); user already has working tracker and asks only about export or optimization
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 ---
 
@@ -64,7 +64,7 @@ Same generic order as `fde-methodology.md` (confidence-threshold sweep → fine-
 When the user has an RTSP stream, this is the highest-value path:
 
 1. Build a Roboflow Workflow spec: detection block (RF-DETR Nano by default) + ByteTrack block + zone/line polygon defined from user-supplied coordinates.
-2. Deploy via `workflows_create` + `project_deployment_launch` — or confirm with the user and hand to deployment-consultant for managed endpoint selection.
+2. Deploy via `workflows_create` + `project_deployment_launch` — or confirm with the user and hand to `estimate-economics` for managed endpoint selection.
 3. Return the endpoint URL. The user points their RTSP consumer at the endpoint.
 
 State clearly before deployment: deployment costs credits; show the estimate and wait for explicit yes before calling `project_deployment_launch`. If user declines, produce the `track_count.py` local-inference script instead (recorded video only — RTSP via local inference is out of scope without the managed endpoint).
@@ -126,7 +126,7 @@ Dataset: <N> seconds of footage, source: <fixture or user data>
 Threshold logic: max(baseline metric, business floor)
 ```
 
-Also write a `.vision-delivery/detections.jsonl` append per inference run (format in `cv-problem-solver` composition protocol) — downstream skills consume this.
+Also write a `.vision-delivery/detections.jsonl` append per inference run (format in the `solve-cv-task` composition protocol) — downstream skills consume this.
 
 </artifact>
 
@@ -153,7 +153,7 @@ Follow the safe-action gates in `skills/_shared/fde-methodology.md` exactly. Qui
 - `models_train` → credit estimate + explicit yes required, same turn
 - `versions_generate` → free but irreversible; state augmentation config before calling
 - Image upload → state destination; offer local path if user declines
-- `project_deployment_launch` → credit-spending; show estimate, wait for explicit yes; this IS in scope for this skill (RTSP Workflow deploy path) — do not silently defer to deployment-consultant without offering first
+- `project_deployment_launch` → credit-spending; show estimate, wait for explicit yes; this IS in scope for this skill (RTSP Workflow deploy path) — do not silently defer to `estimate-economics` without offering first
 
 \</safe_actions>
 

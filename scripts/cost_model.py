@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Deployment cost crossover estimator: DIY self-hosting vs Roboflow managed.
 
-Invoked by the ``deployment-consultant`` agent to compute a back-of-envelope
+Invoked by the ``estimate-economics`` recipe to compute a back-of-envelope
 comparison between self-hosting computer-vision inference on cloud GPUs and a
 Roboflow managed endpoint. Always reports a fully-loaded DIY option (5 cost
 components) and a managed option, then picks a recommendation.

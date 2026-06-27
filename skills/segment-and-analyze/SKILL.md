@@ -3,7 +3,7 @@ name: segment-and-analyze
 description: |
   Produce pixel-precise instance masks and area/shape measurements from images. Covers: instance segmentation (one mask per object), area measurement (mask pixel count → physical area), shape analysis (perimeter, aspect ratio, compactness), crack width measurement via skeleton cross-section, defect area quantification, and calibration (known reference object → px/mm conversion). Builds a segmentation pipeline: define eval → SAM zero-shot → measure IoU → fine-tune if needed → working PoC.
   TRIGGER when: user needs pixel-precise outlines or area measurements ("segment the X", "measure exact area of", "measure crack width", "measure corrosion area", "pixel-precise outline", "instance mask", "measure in millimeters from image", "calibrated measurement", "defect area in mm²", "contour of", "shape analysis", "count pixels", "tumor area", "lesion boundary", "bridge inspection measurement", "corrosion patch", "crack segment", "segment tumor", "mask defect", "outline corrosion", "measure lesion", "segment corrosion", "hull corrosion", "solar panel defect area", "assembly part dimensions", "defect outline", "precise contour", "area measurement", "pixel mask").
-  SKIP when: user wants a simple per-instance count without area measurement (→ detect-and-analyze); user wants image-level verdict with no masks ("is this image defective?", "flag as pass/fail", "classify whole image" → classify-or-flag); user wants text extraction ("read serial number", "extract text", "OCR" → read-text); user wants identity-linked tracking across frames ("track worker", "follow person", "track object" → track-and-count); cost/scale question, self-hosting vs managed comparison ("deployment cost", "managed endpoint cost" → deployment-consultant); user already has masks and asks only about post-processing.
+  SKIP when: user wants a simple per-instance count without area measurement (→ detect-and-analyze); user wants image-level verdict with no masks ("is this image defective?", "flag as pass/fail", "classify whole image" → classify-or-flag); user wants text extraction ("read serial number", "extract text", "OCR" → read-text); user wants identity-linked tracking across frames ("track worker", "follow person", "track object" → track-and-count); cost/scale question, self-hosting vs managed comparison ("deployment cost", "managed endpoint cost" → estimate-economics); user already has masks and asks only about post-processing.
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 ---
 
@@ -224,7 +224,7 @@ Follow the safe-action gates in `skills/_shared/fde-methodology.md` exactly. Qui
 - `models_train` → credit estimate + explicit yes required, same turn
 - `versions_generate` → free but irreversible; state augmentation config before calling
 - Image upload → state destination; offer local path if user declines
-- `project_deployment_launch` → not in this skill; seam offer hands to deployment-consultant
+- `project_deployment_launch` → not in this skill; seam offer hands to `estimate-economics`
 
 \</safe_actions>
 
@@ -234,12 +234,12 @@ Follow the write protocol in `skills/_shared/ledger-protocol.md`. Write one reco
 
 Action triggers for this skill:
 
-| Trigger                                                      | `action` value              | What to put in `notes`                            |
-| ------------------------------------------------------------ | --------------------------- | ------------------------------------------------- |
-| `eval_definition.md` written and user confirmed              | `eval_definition`           | target classes, IoU threshold, calibration method |
-| First SAM zero-shot or `models_infer` returns IoU result     | `baseline_measured`         | `mean_IoU=X, area_error=Y%`                       |
-| `models_train` MCP call submitted                            | `models_train`              | model name, checkpoint, dataset version           |
-| Deployment launched (via seam offer → deployment-consultant) | `project_deployment_launch` | deployment_id, endpoint URL                       |
+| Trigger                                                   | `action` value              | What to put in `notes`                            |
+| --------------------------------------------------------- | --------------------------- | ------------------------------------------------- |
+| `eval_definition.md` written and user confirmed           | `eval_definition`           | target classes, IoU threshold, calibration method |
+| First SAM zero-shot or `models_infer` returns IoU result  | `baseline_measured`         | `mean_IoU=X, area_error=Y%`                       |
+| `models_train` MCP call submitted                         | `models_train`              | model name, checkpoint, dataset version           |
+| Deployment launched (via seam offer → estimate-economics) | `project_deployment_launch` | deployment_id, endpoint URL                       |
 
 `entity_id` format: `<workspace>/<project>` for projects; `<workspace>/<project>/<version>` when version is known.
 

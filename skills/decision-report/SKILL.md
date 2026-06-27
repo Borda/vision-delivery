@@ -3,7 +3,7 @@ name: decision-report
 description: |
   Generate a portable stakeholder decision report for a CV deployment decision.
   TRIGGER when: user explicitly asks for a decision report, manager report, or stakeholder doc after a cost crossover has been computed; phrases: "write me a decision report", "generate a report for my manager", "I need a stakeholder doc", "produce the decision doc", "decision-report skill", "report for my team".
-  SKIP when: no cost crossover exists yet — deployment-consultant must run first and deliver a crossover number; user is still in build work; user wants a one-paragraph summary (answer inline instead).
+  SKIP when: no cost crossover exists yet — estimate-economics must run first and deliver a crossover number; user is still in build work; user wants a one-paragraph summary (answer inline instead).
 allowed-tools: Read, Write, Bash, Glob
 ---
 

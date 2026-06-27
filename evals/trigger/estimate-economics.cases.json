@@ -1,0 +1,36 @@
+{
+  "should_fire": [
+    {
+      "prompt": "/vision-delivery:estimate"
+    },
+    {
+      "prompt": "Estimate managed vs self-hosted cost for eight inspection streams."
+    },
+    {
+      "prompt": "Estimate annotation and training cost before we label another 2,000 images."
+    },
+    {
+      "prompt": "What is the economics of labeling, training, and deploying this CV workflow?"
+    },
+    {
+      "prompt": "Give me the deployment crossover for running this CV model at scale."
+    },
+    {
+      "prompt": "I need a build-vs-buy decision for this computer vision deployment."
+    }
+  ],
+  "should_not_fire": [
+    {
+      "prompt": "I need to build a detector for damaged boxes from sample images."
+    },
+    {
+      "prompt": "Help me finish the PoC before we talk about deployment."
+    },
+    {
+      "prompt": "How do I use this pure platform feature on an already-working model?"
+    },
+    {
+      "prompt": "The eval has not passed yet, but I want to keep improving the model."
+    }
+  ]
+}

@@ -3,7 +3,7 @@ name: classify-or-flag
 description: |
   Produce an image-level verdict (pass/fail, category label, anomaly flag) for the user's images. Covers: binary classification (defect/no-defect, compliant/non-compliant), multi-class image labels (product category, defect type, scene type), PPE/safety compliance (hard hat, vest, gloves), anomaly detection at image level. Builds a classification pipeline: define eval → foundation-model-first (CLIP zero-shot) → measure F1 → fine-tune if needed → working PoC.
   TRIGGER when: user wants an image-level verdict ("is this defective", "flag bad parts", "pass/fail inspection", "classify this image as X or Y", "detect whether the whole image shows Z", "quality control", "anomaly detection at image level", "hard hat compliance", "PPE check", "does this image contain X", "binary classification", "multi-class image label", "flag workers not wearing", "safety vest check", "flag the whole image", "classify each product image", "build a pass/fail", "welding quality", "compliance check", "flag non-compliant").
-  SKIP when: user wants per-instance count of detected objects ("count the X", "how many X in the image", "number of defects per frame") → detect-and-analyze; user needs pixel-precise segmentation masks ("segment the defect area", "measure exact area") → segment-and-analyze; user wants to track objects across frames ("track workers as they move", "follow this person") → track-and-count; user needs to read text or serial numbers from images ("read the date code", "extract serial number", "OCR") → read-text; cost/scale/deployment question with no unsolved classification problem ("how much does Roboflow cost", "self-hosting vs managed") → deployment-consultant; user already has a working classifier and asks only about export or optimization.
+  SKIP when: user wants per-instance count of detected objects ("count the X", "how many X in the image", "number of defects per frame") → detect-and-analyze; user needs pixel-precise segmentation masks ("segment the defect area", "measure exact area") → segment-and-analyze; user wants to track objects across frames ("track workers as they move", "follow this person") → track-and-count; user needs to read text or serial numbers from images ("read the date code", "extract serial number", "OCR") → read-text; cost/scale/deployment question with no unsolved classification problem ("how much does Roboflow cost", "self-hosting vs managed") → estimate-economics; user already has a working classifier and asks only about export or optimization.
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 ---
 
@@ -125,7 +125,7 @@ Threshold logic: max(zero-shot baseline, business floor)
 Note: recall ≥ floor on the failure class takes precedence over overall accuracy
 ```
 
-Also write a `.vision-delivery/detections.jsonl` append per inference run (format in `cv-problem-solver` composition protocol) — downstream skills consume this.
+Also write a `.vision-delivery/detections.jsonl` append per inference run (format in the `solve-cv-task` composition protocol) — downstream skills consume this.
 
 </methodology>
 
@@ -149,7 +149,7 @@ Follow the safe-action gates in `skills/_shared/fde-methodology.md` exactly. Qui
 - `models_train` → credit estimate + explicit yes required, same turn
 - `versions_generate` → free but irreversible; state augmentation config before calling
 - Image upload → state destination; offer local path if user declines
-- `project_deployment_launch` → not in this skill; seam offer hands to deployment-consultant
+- `project_deployment_launch` → not in this skill; seam offer hands to `estimate-economics`
 
 \</safe_actions>
 
@@ -164,7 +164,7 @@ Action triggers for this skill:
 | `eval_definition.md` written and user confirmed                        | `eval_definition`           | target classes, F1/recall threshold     |
 | First zero-shot CLIP or `models_infer` call returns F1/accuracy result | `baseline_measured`         | `F1=X, Recall=Y, Precision=Z`           |
 | `models_train` MCP call submitted                                      | `models_train`              | model name, checkpoint, dataset version |
-| Deployment launched (via seam offer → deployment-consultant)           | `project_deployment_launch` | deployment_id, endpoint URL             |
+| Deployment launched (via seam offer → estimate-economics)              | `project_deployment_launch` | deployment_id, endpoint URL             |
 
 `entity_id` format: `<workspace>/<project>` for projects; `<workspace>/<project>/<version>` when version is known.
 

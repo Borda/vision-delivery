@@ -3,7 +3,7 @@ name: recognize-pose-or-gesture
 description: |
   Keypoint-based human pose estimation, gesture recognition, and action classification. Covers: body skeleton tracking (17-keypoint COCO), gesture classification from keypoints (hand raise, squat, fall, bend), ergonomics and posture analysis via joint angles, action recognition from keypoint sequences, fall detection.
   TRIGGER when: user wants keypoint-based analysis ("detect pose", "recognize gesture", "hand gesture", "body pose", "action recognition", "is the worker bending", "ergonomics", "posture analysis", "fall detection", "sign language", "raise hand detection", "squat detection", "skeleton tracking", "joint angle", "keypoints", "posture compliance", "bend detection", "gesture control", "body landmark", "person falling", "falls in footage", "raising hand", "raise their hand", "worker bending", "posture ergonomics", "squat form", "sign language detection", "skeleton", "joint angles", "keypoint"); build a pose or gesture pipeline for any of the above.
-  SKIP when: user wants pixel-precise segmentation or body contour area measurement (→ segment-and-analyze); user wants image-level classification without keypoints, e.g. detecting whether a person is wearing PPE or hard hat, pass/fail image verdict (→ classify-or-flag); user wants identity tracking or path tracking across frames without pose analysis (→ track-and-count); user wants text or label extraction from images, e.g. safety sign reading (→ read-text); cost, scale, or self-hosting vs managed deployment question with no unsolved pose problem (→ deployment-consultant); user already has a working pose model and asks only about export, optimization, active learning, or integration.
+  SKIP when: user wants pixel-precise segmentation or body contour area measurement (→ segment-and-analyze); user wants image-level classification without keypoints, e.g. detecting whether a person is wearing PPE or hard hat, pass/fail image verdict (→ classify-or-flag); user wants identity tracking or path tracking across frames without pose analysis (→ track-and-count); user wants text or label extraction from images, e.g. safety sign reading (→ read-text); cost, scale, or self-hosting vs managed deployment question with no unsolved pose problem (→ estimate-economics); user already has a working pose model and asks only about export, optimization, active learning, or integration.
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 ---
 
@@ -205,7 +205,7 @@ Keypoint confidence cutoff: <N> (default 0.4)
 Threshold logic: max(baseline OKS mAP, business recall floor)
 ```
 
-Also write a `.vision-delivery/detections.jsonl` append per inference run (format in `cv-problem-solver` composition protocol) — downstream skills consume this.
+Also write a `.vision-delivery/detections.jsonl` append per inference run (format in the `solve-cv-task` composition protocol) — downstream skills consume this.
 
 </artifact>
 
@@ -229,7 +229,7 @@ Follow the safe-action gates in `skills/_shared/fde-methodology.md` exactly. Qui
 - `models_train` → credit estimate + explicit yes required, same turn; note: pose training requires keypoint-annotated data, not box annotations
 - `versions_generate` → free but irreversible; state augmentation config before calling
 - Image upload → state destination; offer local path if user declines
-- `project_deployment_launch` → not in this skill; seam offer hands to deployment-consultant
+- `project_deployment_launch` → not in this skill; seam offer hands to `estimate-economics`
 
 \</safe_actions>
 
@@ -239,12 +239,12 @@ Follow the write protocol in `skills/_shared/ledger-protocol.md`. Write one reco
 
 Action triggers for this skill:
 
-| Trigger                                                      | `action` value              | What to put in `notes`                                  |
-| ------------------------------------------------------------ | --------------------------- | ------------------------------------------------------- |
-| `eval_definition.md` written and user confirmed              | `eval_definition`           | action classes, OKS mAP threshold, gesture recall floor |
-| First `models_infer` call returns OKS mAP result             | `baseline_measured`         | `OKS mAP=X%, gesture_recall=Y%`                         |
-| `models_train` MCP call submitted                            | `models_train`              | model name, checkpoint, dataset version                 |
-| Deployment launched (via seam offer → deployment-consultant) | `project_deployment_launch` | deployment_id, endpoint URL                             |
+| Trigger                                                   | `action` value              | What to put in `notes`                                  |
+| --------------------------------------------------------- | --------------------------- | ------------------------------------------------------- |
+| `eval_definition.md` written and user confirmed           | `eval_definition`           | action classes, OKS mAP threshold, gesture recall floor |
+| First `models_infer` call returns OKS mAP result          | `baseline_measured`         | `OKS mAP=X%, gesture_recall=Y%`                         |
+| `models_train` MCP call submitted                         | `models_train`              | model name, checkpoint, dataset version                 |
+| Deployment launched (via seam offer → estimate-economics) | `project_deployment_launch` | deployment_id, endpoint URL                             |
 
 `entity_id` format: `<workspace>/<project>` for projects; `<workspace>/<project>/<version>` when version is known.
 

@@ -1,8 +1,10 @@
-# 🛠️ vision-delivery: solve real CV problems with measured proof
+# 🛠️ vision-delivery: solve real CV with measured proof
 
-`vision-delivery` is a Claude Code plugin for the messy part of computer vision: turning a vague operational request into a scoped Roboflow proof of concept with an eval gate, local artifacts, and a concrete deployment decision.
+[![Docs](https://img.shields.io/badge/docs-online-0F766E.svg)](https://borda.github.io/vision-delivery/) [![docs](https://github.com/Borda/vision-delivery/actions/workflows/docs.yml/badge.svg)](https://github.com/Borda/vision-delivery/actions/workflows/docs.yml) [![evals](https://github.com/Borda/vision-delivery/actions/workflows/evals.yml/badge.svg)](https://github.com/Borda/vision-delivery/actions/workflows/evals.yml) [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-It is built for the moment when someone says, "Can AI count this from camera footage?" and the real work is still undefined: what object is being counted, what failure rate is acceptable, whether a pretrained model is enough, what a miss costs, and whether deployment economics make sense. The plugin keeps that work in order so the session does not drift into model shopping before the problem is actually measured.
+`vision-delivery` is a Codex and Claude Code plugin for the messy part of computer vision: turning a vague operational request into a scoped Roboflow proof of concept with an eval gate, local artifacts, and a concrete economics decision.
+
+It is built for the moment when someone says, "Can AI count this from camera footage?" and the real work is still undefined: what object is being counted, what failure rate is acceptable, whether a pretrained model is enough, what a miss costs, how much labeling or training is justified, and whether the project economics make sense. The plugin keeps that work in order so the session does not drift into model shopping before the problem is actually measured.
 
 ```mermaid
 flowchart LR
@@ -15,16 +17,31 @@ flowchart LR
     F -->|no| H[Try cheapest improvement first]
     H --> I[Confirm before credit spend]
     I --> E
-    G --> J[Estimate deployment economics]
+    G --> J[Estimate project economics]
     J --> K[Leave an audit trail]
 ```
 
 ## ⚡ Quick Start
 
-Install the Claude Code plugin, put your Roboflow key in a local `.env`, restart Claude Code, then ask for a concrete detection or counting task. The restart matters because the MCP server reads environment variables when Claude Code starts.
+Install the plugin in either host, make `ROBOFLOW_API_KEY` available to the app that starts the Roboflow MCP server, then ask for a concrete detection or counting task. The restart matters because the MCP server reads environment variables at startup.
+
+### For Codex
 
 ```bash
-# Install the Claude Code plugin from this repository
+# Add this repository as a Codex plugin marketplace
+codex plugin marketplace add https://github.com/Borda/vision-delivery
+
+# Install the plugin from that marketplace
+codex plugin add vision-delivery@vision-delivery
+
+# Launch Codex with the Roboflow key in its environment
+export ROBOFLOW_API_KEY=your_key_here
+```
+
+### For Claude Code
+
+```bash
+# Install the plugin from this repository
 claude plugin install https://github.com/Borda/vision-delivery
 
 # Keep the Roboflow key local; never paste it in chat
@@ -32,7 +49,7 @@ echo "ROBOFLOW_API_KEY=your_key_here" >> .env
 echo ".env" >> .gitignore
 ```
 
-Get a key at `app.roboflow.com/settings/api`, restart Claude Code, and start with the camera, object, and output you need:
+Get a key at `app.roboflow.com/settings/api`, restart Codex or Claude Code, and start with the camera, object, and output you need:
 
 ```text
 I have an overhead camera above a parking lot. I need to count vehicles in view.
@@ -48,14 +65,14 @@ Find parked vehicles in drone imagery and write a local inference script.
 
 ## ✨ Features
 
-- **Problem-first routing:** `@cv-problem-solver` separates object-instance detection and counting from other CV intents before any model search starts.
+- **Problem-first routing:** `solve-cv-task` separates object-instance detection and counting from other CV intents before any model search starts. Claude Code exposes the same recipe through the `cv-problem-solver` role.
 - **Eval-first workflow:** the plugin asks for a success threshold, records the eval definition, and uses that threshold as the gate for model choice, tuning, training, and deployment advice.
 - **Pretrained baseline before training:** Roboflow MCP and Universe candidates are checked before labeling or training so an existing model can win quickly when it is good enough.
 - **Cheapest improvement first:** when a baseline misses the eval gate, the workflow tries threshold tuning before fine-tuning, and fine-tuning before larger data work.
 - **Explicit credit gate:** training and deployment-class actions require confirmation with a cost preview in the same session.
 - **Local proof artifacts:** the detection workflow is designed to leave a runnable `detect_analyze.py`, an `eval_definition.md`, and `.vision-delivery/` records instead of only a chat transcript.
 - **Audit trail:** `hooks/cta.js` records selected Roboflow train, eval, and deploy events to `.vision-delivery/ledger.jsonl` for later reporting.
-- **Deployment economics:** `@deployment-consultant` and `scripts/cost_model.py` compare managed deployment against self-hosting assumptions using committed pricing snapshots and explicit inputs.
+- **CV economics:** `estimate-economics` frames annotation, training, deployment, and build-vs-buy costs as one decision. `scripts/cost_model.py` provides the reproducible deployment run-rate using committed pricing snapshots and explicit inputs. Claude Code exposes the same recipe through the `economics-consultant` role.
 
 ## 🧭 Why It Exists
 
@@ -63,14 +80,14 @@ Computer-vision failures are often process failures before they are model failur
 
 `vision-delivery` adds guardrails around those decisions. It does not promise magical accuracy. A careful human using the same Roboflow tools can reach the same model metrics. The value is that the careful sequence becomes the default: read the project, classify the task, define success, measure a baseline, improve only where needed, and make the deployment choice with numbers in front of you.
 
-| Common failure mode                            | What `vision-delivery` enforces                                      |
-| ---------------------------------------------- | -------------------------------------------------------------------- |
-| The user asks for "AI" instead of a CV task.   | The router narrows the request to a concrete detection/counting job. |
-| Success is judged after seeing a demo.         | The eval gate is defined before model search or training.            |
-| Training starts before a baseline is measured. | Pretrained candidates are measured first.                            |
-| Paid actions happen too casually.              | Credit use requires explicit confirmation.                           |
-| Results live only in chat history.             | Artifacts and ledger entries are written locally.                    |
-| Deployment advice is based on memory or vibes. | Cost estimates come from a script and dated pricing snapshots.       |
+| Common failure mode                            | What `vision-delivery` enforces                                                                                     |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| The user asks for "AI" instead of a CV task.   | The router narrows the request to a concrete detection/counting job.                                                |
+| Success is judged after seeing a demo.         | The eval gate is defined before model search or training.                                                           |
+| Training starts before a baseline is measured. | Pretrained candidates are measured first.                                                                           |
+| Paid actions happen too casually.              | Credit use requires explicit confirmation.                                                                          |
+| Results live only in chat history.             | Artifacts and ledger entries are written locally.                                                                   |
+| Economic advice is based on memory or vibes.   | Deployment run-rate comes from a script and dated pricing snapshots; annotation and training assumptions are named. |
 
 ## 🔁 How The Solver Works
 
@@ -82,7 +99,7 @@ The workflow is intentionally conservative because the expensive mistake is solv
 4. **Measure a baseline:** try pretrained or Universe candidates and report exact metrics against the gate.
 5. **Improve in cost order:** tune confidence thresholds, then consider fine-tuning with confirmation, then recommend data work only when needed.
 6. **Write the PoC:** produce local inference and eval artifacts the user can inspect or run.
-7. **Estimate deployment:** compare managed deployment with self-hosting assumptions when the model is worth deploying.
+7. **Estimate economics:** compare annotation, training, managed deployment, and self-hosting assumptions when the model is worth taking further.
 8. **Record provenance:** append ledger rows for train, eval, and deploy events so reporting can reconstruct what happened.
 
 ## 💬 Example Session
@@ -111,21 +128,21 @@ The benchmark suite anchors the landing page claims in reproducible CV work. The
 
 See [benchmark docs](docs/benchmarks/index.md) for the benchmark definitions and evidence files.
 
-## 💸 Deployment Economics
+## 💸 CV Economics
 
-After a model passes the eval gate, invoke the deployment consultant directly:
+After a model passes the eval gate, invoke the economics consultant directly:
 
 ```text
 /vision-delivery:estimate
 ```
 
-The consultant reads the project, asks for missing deployment inputs such as stream count, FPS, uptime, and region, then runs:
+The consultant reads the project and separates one-time project costs from run-rate costs. Annotation and training estimates must come from project evidence or explicit user assumptions. Deployment run-rate uses missing inputs such as stream count, FPS, uptime, and region, then runs:
 
 ```bash
 python scripts/cost_model.py --streams 5 --fps 10 --model-size medium --uptime 24x7 --region us-east-1
 ```
 
-The cost model uses `scripts/PRICING_SNAPSHOT.json` and explicit overrides. It probes source reachability, but it does not scrape live pricing pages into the result. That keeps the estimate reproducible and makes stale pricing visible instead of burying it in prose.
+The cost model uses `scripts/PRICING_SNAPSHOT.json` and explicit overrides. It probes source reachability, but it does not scrape live pricing pages into the result. That keeps deployment estimates reproducible and makes stale pricing visible instead of burying it in prose. Labeling and training costs remain visible assumptions unless the repository already contains measured evidence for them.
 
 ## 🔐 Security
 
@@ -140,18 +157,32 @@ See [.github/SECURITY.md](SECURITY.md).
 
 ## 🗂️ Repository Map
 
-| Path                              | Purpose                                                  |
-| --------------------------------- | -------------------------------------------------------- |
-| `.claude-plugin/plugin.json`      | Claude plugin manifest.                                  |
-| `.mcp.json`                       | Roboflow MCP server configuration.                       |
-| `agents/cv-problem-solver.md`     | CV request router and detection/counting workflow entry. |
-| `agents/deployment-consultant.md` | Managed-vs-self-hosted deployment economics consultant.  |
-| `skills/detect-and-analyze/`      | Eval-first object detection and counting instructions.   |
-| `hooks/cta.js`                    | PostToolUse ledger hook.                                 |
-| `scripts/cost_model.py`           | Deployment economics calculator.                         |
-| `scripts/ledger_report.py`        | Ledger reporting helper.                                 |
-| `docs/benchmarks/`                | Benchmark documentation and evidence.                    |
-| `evals/trigger/`                  | Trigger coverage checks for skill frontmatter.           |
+```text
+vision-delivery/
+├── .codex-plugin/plugin.json          # Codex plugin manifest
+├── .agents/plugins/marketplace.json   # Codex marketplace entry
+├── .claude-plugin/plugin.json         # Claude Code plugin manifest
+├── .mcp.json                          # Roboflow MCP server configuration
+├── agents/
+│   ├── cv-problem-solver.md           # Claude adapter for the CV router
+│   └── economics-consultant.md        # Claude adapter for CV economics
+├── skills/
+│   ├── solve-cv-task/                 # Canonical CV task-solving recipe
+│   ├── estimate-economics/            # Canonical CV economics recipe
+│   ├── detect-and-analyze/            # Object detection and counting
+│   ├── classify-or-flag/              # Image-level pass/fail workflows
+│   ├── track-and-count/               # Video tracking and line-cross counts
+│   ├── read-text/                     # OCR and structured text extraction
+│   ├── segment-and-analyze/           # Masks, contours, and area measurement
+│   ├── recognize-pose-or-gesture/     # Keypoints, posture, and gestures
+│   └── _shared/                       # Shared protocols and methodology
+├── hooks/cta.js                       # PostToolUse ledger hook
+├── scripts/
+│   ├── cost_model.py                  # Deployment run-rate calculator
+│   └── ledger_report.py               # Ledger reporting helper
+├── docs/benchmarks/                   # Benchmark definitions and evidence
+└── evals/trigger/                     # Trigger coverage checks
+```
 
 ## 🤝 Contributing
 

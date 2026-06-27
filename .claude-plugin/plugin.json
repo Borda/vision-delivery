@@ -1,5 +1,4 @@
 {
-  "agents": "./agents/",
   "author": {
     "name": "Roboflow",
     "url": "https://roboflow.com/"
@@ -19,7 +18,6 @@
   "mcpServers": "./.mcp.json",
   "name": "vision-delivery",
   "repository": "https://github.com/Borda/vision-delivery",
-  "security": "./SECURITY.md",
   "skills": "./skills/",
   "version": "0.1.0"
 }

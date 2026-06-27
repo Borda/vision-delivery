@@ -127,7 +127,7 @@ Skill checks `.vision-delivery/session-<id>.offered`. If absent: fires offer onc
 
 If user picks (a): skill shows credit estimate, waits for explicit yes, then calls `workflows_create` + `project_deployment_launch` and returns the endpoint URL. User points RTSP consumer at the endpoint.
 
-If user picks (b): skill hands off to deployment-consultant.
+If user picks (b): skill hands off to economics-consultant.
 
 **Asserts:** offer fires exactly once across a session (sentinel written after first offer; not re-offered on second pass).
 

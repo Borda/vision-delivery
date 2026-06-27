@@ -1,0 +1,20 @@
+{
+  "interface": {
+    "displayName": "vision-delivery"
+  },
+  "name": "vision-delivery",
+  "plugins": [
+    {
+      "category": "Developer Tools",
+      "name": "vision-delivery",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": ".",
+        "source": "local"
+      }
+    }
+  ]
+}

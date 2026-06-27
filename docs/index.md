@@ -1,15 +1,15 @@
 # vision-delivery
 
-Claude Code plugin — solve a CV problem end-to-end, then get an honest build-vs-buy estimate.
+Codex and Claude Code plugin — solve a CV task end-to-end, then get an honest project economics estimate.
 
-`vision-delivery` adds an eval-first workflow around Roboflow MCP tools: it chooses the right CV modality, commits the success threshold before model search, measures a pretrained baseline before training, and gates credit-spending actions on explicit confirmation.
+`vision-delivery` adds an eval-first workflow around Roboflow MCP tools: it chooses the right CV modality, commits the success threshold before model search, measures a pretrained baseline before training, gates credit-spending actions on explicit confirmation, and keeps annotation, training, and deployment economics visible.
 
 ## What it does
 
 Two modes:
 
-- **Problem-solver** (`@cv-problem-solver`) — cold prompt → eval-passing model → deployable Roboflow Workflow
-- **Deployment consultant** (`@deployment-consultant`) — fully-loaded DIY cost vs managed, with cited sources
+- **Problem-solver** (`solve-cv-task`) — cold prompt → eval-passing model → deployable Roboflow Workflow
+- **CV economics** (`estimate-economics`) — annotation, training, and deployment cost assumptions with cited deployment sources
 
 ## Skills
 
@@ -38,6 +38,18 @@ B1 has measured evidence. B2-B5 define benchmark fixtures and acceptance criteri
 
 ## Install
 
+Install in either host, then make `ROBOFLOW_API_KEY` available to the host process that starts the Roboflow MCP server.
+
+### For Codex
+
+```bash
+codex plugin marketplace add https://github.com/Borda/vision-delivery
+codex plugin add vision-delivery@vision-delivery
+export ROBOFLOW_API_KEY=your_key_here
+```
+
+### For Claude Code
+
 ```bash
 claude plugin install https://github.com/Borda/vision-delivery
 echo "ROBOFLOW_API_KEY=your_key_here" >> .env
@@ -45,5 +57,3 @@ echo ".env" >> .gitignore
 ```
 
 Get your key at [app.roboflow.com/settings/api](https://app.roboflow.com/settings/api). Never paste it in chat.
-
-For Codex: use the `dist/` adapter — the root `plugin.json` targets Claude Code.

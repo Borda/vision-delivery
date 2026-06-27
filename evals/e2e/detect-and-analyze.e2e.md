@@ -124,7 +124,7 @@ ______________________________________________________________________
 
 ### Step 9 — [Acceptance — live deploy, not part of this automated spec]
 
-If user selected (b) in Step 7: deployment-consultant is invoked. `project_deployment_launch` NOT called without explicit credit confirmation. This step is a manual acceptance test only — a Roboflow deployment is created and the URL is returned.
+If user selected (b) in Step 7: economics-consultant is invoked. `project_deployment_launch` NOT called without explicit credit confirmation. This step is a manual acceptance test only — a Roboflow deployment is created and the URL is returned.
 
 **[Credit-spending step — requires explicit user confirmation in session]**
 

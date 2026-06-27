@@ -8,7 +8,7 @@ Every skill references these generic steps. Skills add only their modality-speci
 
 **Exit criterion.** A model or pretrained candidate that passes the user's own eval, plus a portable runnable artifact the user owns. Not a conversation.
 
-**Never open with cost.** Cost talk belongs in the deployment-decision flow. "Pricing" and "managed deployment" do not appear in build output until the seam offer fires — exactly once.
+**Never open with cost.** Cost talk belongs in the economics-decision flow. "Pricing" and "managed deployment" do not appear in build output until the seam offer fires — exactly once.
 
 ## Generic 9-Step Sequence (Step 0 + Steps 1–8)
 
@@ -65,7 +65,7 @@ Never jump to "label 500 images" when threshold tuning might close the gap.
  (c) Skip for now"
 ```
 
-If user picks (b): hand off to deployment-consultant. Do not re-engage as builder after this point.
+If user picks (b): hand off to `estimate-economics`. Do not re-engage as builder after this point.
 
 **Step 8 — Write the ledger.** On every solve action (eval defined, model tested, threshold tuned, PoC exported, seam offered), append to `.vision-delivery/ledger.jsonl` as JSON; present to user as YAML (see `skills/_shared/ledger-protocol.md`):
 
@@ -175,4 +175,4 @@ Every credit-spending or data-movement action requires explicit confirmation wit
 - **`models_train`** — state credit estimate, show confirmation prompt, wait for explicit yes in current turn. Never start speculatively.
 - **`versions_generate`** — free but irreversible. State preprocessing/augmentation applied before calling.
 - **Image upload** — state what leaves the machine, to where. Offer local-only path if user declines.
-- **`project_deployment_launch`** — not in build skills; seam offer hands to deployment-consultant.
+- **`project_deployment_launch`** — not in build skills; seam offer hands to `estimate-economics`.

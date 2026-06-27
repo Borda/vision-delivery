@@ -34,13 +34,13 @@ notes: free-form; include key numbers (mAP, model name, etc.)
 | ----------- | ------------------------------------- | ------------------------------------------------------------------------- |
 | `ts`        | ISO 8601 UTC (`YYYY-MM-DDTHH:MM:SSZ`) | Current wall-clock at write time                                          |
 | `session`   | Short slug                            | Descriptive name for the work session; `YYYY-MM-DD-<topic>` convention    |
-| `skill`     | Skill or agent name                   | e.g. `detect-and-analyze`, `deployment-consultant`                        |
+| `skill`     | Skill or agent name                   | e.g. `detect-and-analyze`, `estimate-economics`                           |
 | `action`    | Action name (see below)               | Lowercase snake_case                                                      |
 | `entity_id` | Roboflow path                         | `workspace/project` or `workspace/project/version`                        |
 | `version`   | Plugin version                        | `0.1.0` until major release                                               |
 | `notes`     | String                                | Key metrics, model name, decision rationale — whatever later review needs |
 
-Skills may add **skill-specific optional fields** (e.g. `streams`, `decision` for deployment-consultant). Required fields must always be present.
+Skills may add **skill-specific optional fields** (e.g. `streams`, `decision` for estimate-economics). Required fields must always be present.
 
 ## Canonical action names
 

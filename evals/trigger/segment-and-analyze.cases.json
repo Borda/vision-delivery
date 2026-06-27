@@ -53,7 +53,7 @@
     },
     {
       "prompt": "What does managed deployment cost for 3 camera streams running 24/7?",
-      "reason": "Cost/scale question with no unsolved segmentation problem \u2014 routes to deployment-consultant"
+      "reason": "Cost/scale question with no unsolved segmentation problem \u2014 routes to economics-consultant"
     },
     {
       "prompt": "I already have masks from my annotation tool \u2014 how do I post-process them to count objects?",

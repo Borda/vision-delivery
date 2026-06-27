@@ -3,7 +3,7 @@ name: detect-and-analyze
 description: |
   Detect object instances and analyze them from bounding boxes. Covers: spatial counts per frame, measurements derived from bbox geometry (size, aspect ratio, relative position), per-object crops and ROI extraction, per-class metadata. Builds a detection pipeline: define eval → find pretrained model → measure → train if needed → working PoC.
   TRIGGER when: user wants to count object instances ("count the X", "how many X in image/frame", "detect and count", "counts trucks/people/items", "tally objects on a conveyor/line/belt", "number of X", "object tally", "build a detection model"); measure objects from their bounding boxes ("how wide are the boxes", "estimate size of items", "relative dimensions of parts", "bbox diagonal"); extract crops or regions of interest per detected object ("crop each detected face", "extract ROI per defect", "save each detected item separately"); get per-object metadata from detection output ("per-box confidence", "class breakdown by region", "which objects are in zone A"); build a detection pipeline for any of the above.
-  SKIP when: user wants an image-level verdict with no per-instance count (("is this product defective?", "classify this image as pass/fail", "flag the whole image") → classify-or-flag); tracking object identities across frames ("track X as it moves through the scene", "follow this person", line-cross counting → track-and-count); pixel-precise outlines or area measurements requiring masks ("segment the tumor", "measure exact area of corrosion" → segment-and-analyze); reading or extracting text, labels, serial numbers from images (→ read-text); cost/scale/deployment question, self-hosting vs managed comparison, build-vs-buy analysis with no unsolved detection problem (→ deployment-consultant); user already has a working model and asks only about export, optimization, or active learning.
+  SKIP when: user wants an image-level verdict with no per-instance count (("is this product defective?", "classify this image as pass/fail", "flag the whole image") → classify-or-flag); tracking object identities across frames ("track X as it moves through the scene", "follow this person", line-cross counting → track-and-count); pixel-precise outlines or area measurements requiring masks ("segment the tumor", "measure exact area of corrosion" → segment-and-analyze); reading or extracting text, labels, serial numbers from images (→ read-text); cost/scale/deployment question, self-hosting vs managed comparison, build-vs-buy analysis with no unsolved detection problem (→ estimate-economics); user already has a working model and asks only about export, optimization, or active learning.
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 ---
 
@@ -159,7 +159,7 @@ Dataset split: <N> images, source: <fixture or user data>
 Threshold logic: max(baseline mAP, business floor)
 ```
 
-Also write a `.vision-delivery/detections.jsonl` append per inference run (format in `cv-problem-solver` composition protocol) — downstream skills consume this.
+Also write a `.vision-delivery/detections.jsonl` append per inference run (format in the `solve-cv-task` composition protocol) — downstream skills consume this.
 
 </artifact>
 
@@ -184,7 +184,7 @@ Follow the safe-action gates in `skills/_shared/fde-methodology.md` exactly. Qui
 - `models_train` → credit estimate + explicit yes required, same turn
 - `versions_generate` → free but irreversible; state augmentation config before calling
 - Image upload → state destination; offer local path if user declines
-- `project_deployment_launch` → not in this skill; seam offer hands to deployment-consultant
+- `project_deployment_launch` → not in this skill; seam offer hands to `estimate-economics`
 
 \</safe_actions>
 
@@ -194,12 +194,12 @@ Follow the write protocol in `skills/_shared/ledger-protocol.md`. Write one reco
 
 Action triggers for this skill:
 
-| Trigger                                                      | `action` value              | What to put in `notes`                  |
-| ------------------------------------------------------------ | --------------------------- | --------------------------------------- |
-| `eval_definition.md` written and user confirmed              | `eval_definition`           | target classes, threshold               |
-| First `models_infer` call returns mAP result                 | `baseline_measured`         | `mAP@50=X%, MAE=Y`                      |
-| `models_train` MCP call submitted                            | `models_train`              | model name, checkpoint, dataset version |
-| Deployment launched (via seam offer → deployment-consultant) | `project_deployment_launch` | deployment_id, endpoint URL             |
+| Trigger                                                   | `action` value              | What to put in `notes`                  |
+| --------------------------------------------------------- | --------------------------- | --------------------------------------- |
+| `eval_definition.md` written and user confirmed           | `eval_definition`           | target classes, threshold               |
+| First `models_infer` call returns mAP result              | `baseline_measured`         | `mAP@50=X%, MAE=Y`                      |
+| `models_train` MCP call submitted                         | `models_train`              | model name, checkpoint, dataset version |
+| Deployment launched (via seam offer → estimate-economics) | `project_deployment_launch` | deployment_id, endpoint URL             |
 
 `entity_id` format: `<workspace>/<project>` for projects; `<workspace>/<project>/<version>` when version is known.
 

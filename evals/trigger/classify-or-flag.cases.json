@@ -53,11 +53,11 @@
     },
     {
       "prompt": "How much does Roboflow cost for my 8 inspection streams running 24/7?",
-      "reason": "Cost/scale question with no unsolved classification problem \u2014 routes to deployment-consultant"
+      "reason": "Cost/scale question with no unsolved classification problem \u2014 routes to economics-consultant"
     },
     {
       "prompt": "Compare self-hosting vs managed Roboflow for our production deployment",
-      "reason": "Build-vs-buy / deployment analysis \u2014 routes to deployment-consultant"
+      "reason": "Build-vs-buy / deployment analysis \u2014 routes to economics-consultant"
     },
     {
       "prompt": "I already have a trained classifier. How do I export it to ONNX?",

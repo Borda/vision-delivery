@@ -53,7 +53,7 @@
     },
     {
       "prompt": "How much would it cost to deploy this to 10 cameras at a factory?",
-      "reason": "Cost/scale question with no unsolved OCR problem \u2014 'cost', 'deploy', 'cameras' route to deployment-consultant; appears in SKIP clause"
+      "reason": "Cost/scale question with no unsolved OCR problem \u2014 'cost', 'deploy', 'cameras' route to economics-consultant; appears in SKIP clause"
     },
     {
       "prompt": "Classify images as defective or pass for our quality line",

@@ -53,7 +53,7 @@
     },
     {
       "prompt": "How much does it cost to run pose detection on 5 cameras 24/7?",
-      "reason": "Cost/scale question with no unsolved pose problem \u2014 'cost' maps to SKIP ('cost, scale, or self-hosting vs managed deployment question \u2192 deployment-consultant')"
+      "reason": "Cost/scale question with no unsolved pose problem \u2014 'cost' maps to SKIP ('cost, scale, or self-hosting vs managed deployment question \u2192 economics-consultant')"
     },
     {
       "prompt": "I already have a trained pose model. How do I integrate it into my Python app?",
@@ -65,7 +65,7 @@
     },
     {
       "prompt": "Compare cloud-hosted vs self-hosted deployment for my fall detection system",
-      "reason": "Self-hosting vs managed deployment comparison \u2014 'self-hosting vs managed deployment' is in SKIP ('cost, scale, or self-hosting vs managed deployment question \u2192 deployment-consultant')"
+      "reason": "Self-hosting vs managed deployment comparison \u2014 'self-hosting vs managed deployment' is in SKIP ('cost, scale, or self-hosting vs managed deployment question \u2192 economics-consultant')"
     }
   ],
   "skill": "recognize-pose-or-gesture",

@@ -79,7 +79,7 @@ Deliver these four instructions as a numbered list — no extra prose:
    ROBOFLOW_API_KEY=your_key_here
    ```
    Key stays local. **Never paste it into this chat.**
-4. Restart Claude Code — the MCP server reads the env file at startup. The key does **not** take effect mid-session; restart is required.
+4. Restart the host app — Claude Code reads the project `.env` when launched; Codex must be launched with `ROBOFLOW_API_KEY` in its environment. The key does **not** take effect mid-session; restart is required.
 
 **Step 4: Resume instruction.**
 
@@ -103,11 +103,11 @@ Then resume from where the session left off (whatever Universe action the user o
 
 **Step 3: On failure — diagnose clearly.**
 
-| Symptom                       | Likely cause                                 | Instruction                                                                                                                                                            |
-| ----------------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `401 Unauthorized`            | Wrong key or wrong workspace key copied      | "The key was rejected — check you copied the **Private** API key (not the Publishable key) from the correct workspace settings page."                                  |
-| `key not found` after restart | `.env` not in project root or env not loaded | "Check that `.env` exists at the project root (same directory as this session) and contains exactly: `ROBOFLOW_API_KEY=your_key_here` with no extra spaces or quotes." |
-| MCP tools unavailable         | MCP server not started / network issue       | "MCP did not start. Open a fresh terminal, navigate to this project directory, and relaunch Claude Code. If behind a VPN, check that `api.roboflow.com` is reachable." |
+| Symptom                       | Likely cause                                 | Instruction                                                                                                                                                                     |
+| ----------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `401 Unauthorized`            | Wrong key or wrong workspace key copied      | "The key was rejected — check you copied the **Private** API key (not the Publishable key) from the correct workspace settings page."                                           |
+| `key not found` after restart | `.env` not in project root or env not loaded | "Check that `.env` exists at the project root (same directory as this session) and contains exactly: `ROBOFLOW_API_KEY=your_key_here` with no extra spaces or quotes."          |
+| MCP tools unavailable         | MCP server not started / network issue       | "MCP did not start. Open a fresh terminal, navigate to this project directory, and relaunch Claude Code or Codex. If behind a VPN, check that `api.roboflow.com` is reachable." |
 
 After giving the correction hint, repeat FLOW C Step 3 (key instruction) only if the user needs to re-write the key. Do not repeat the full onboarding; give only the specific corrective step.
 
@@ -125,7 +125,7 @@ ______________________________________________________________________
 
 - **Gitignore-first invariant:** `.gitignore` entry for `.env` is asserted and added (if missing) before any key instruction is delivered. Order matters — never instruct key write before gitignore is confirmed.
 - **User writes the key:** the plugin never receives, stores, echoes, or logs the key value. The instruction is to write it to `.env` manually.
-- **No mid-session effect:** writing `.env` after MCP has started does nothing until Claude Code restarts. Always communicate this. Never imply the key takes effect immediately.
+- **No mid-session effect:** writing `.env` after MCP has started does nothing until the host app restarts. For Codex, make sure `ROBOFLOW_API_KEY` is exported in the environment that launches Codex. Always communicate this. Never imply the key takes effect immediately.
 - **Billing warning:** if the user's key has billing/training access (cannot be determined by the plugin — assume it may), surface this once when first connecting: "Keys with billing access can trigger paid operations — the plugin will always ask for confirmation before training or batch jobs."
 - **Confirm before spend:** any tool call that consumes credits (training, batch inference, dataset upload that triggers a training run) requires an explicit confirmation step with a cost estimate before the call is made. This is a hard requirement, not optional UX.
 
@@ -164,7 +164,7 @@ Follow the voice rules from §4 (Forward-Deployed-Engineer model) at every step.
 1. Does `.env` exist at the project root? Run `ls -la .env` — if absent, the file was not created or was saved elsewhere.
 2. Is the variable name exactly `ROBOFLOW_API_KEY` (no typos, no extra spaces)?
 3. Is the value unquoted? Some editors add quotes: `ROBOFLOW_API_KEY="abc"` — Roboflow MCP expects an unquoted value.
-4. Was Claude Code restarted (not just the terminal)? The MCP server starts fresh on each Claude Code launch; a reload of the chat window is not sufficient.
+4. Was the host app restarted (not just the terminal)? The MCP server starts fresh when Claude Code or Codex launches; a reload of the chat window is not sufficient.
 
 ### 401 Unauthorized
 
@@ -183,8 +183,8 @@ Follow the voice rules from §4 (Forward-Deployed-Engineer model) at every step.
 **Checks:**
 
 1. Network: `curl -s https://api.roboflow.com` from the terminal — if it hangs or returns a network error, the host is unreachable (VPN, firewall, or DNS issue).
-2. Plugin scope: confirm the Roboflow MCP is installed with `--scope local` for this project, or globally. Check `~/.claude/settings.json` or `.claude/settings.json` for the MCP entry.
-3. Fresh terminal: open a new terminal window, navigate to the project directory, relaunch Claude Code. MCP servers inherit the environment from the process that starts Claude Code — a stale shell may not have loaded the updated `.env`.
+2. Plugin scope: for Claude Code, confirm the Roboflow MCP is installed with `--scope local` for this project, or globally. Check `~/.claude/settings.json` or `.claude/settings.json` for the MCP entry. For Codex, run `codex plugin list` and confirm `vision-delivery` is installed.
+3. Fresh terminal: open a new terminal window, export `ROBOFLOW_API_KEY`, navigate to the project directory, and relaunch Claude Code or Codex. MCP servers inherit the environment from the process that starts the host app — a stale shell may not have loaded the updated key.
 
 ### Tools unavailable in a fresh session
 
@@ -192,6 +192,6 @@ Follow the voice rules from §4 (Forward-Deployed-Engineer model) at every step.
 
 **Cause:** the Roboflow plugin may be installed globally but not activated for this project directory (scope mismatch), or the MCP server failed to start silently.
 
-**Fix:** run `claude plugin list` to verify the Roboflow MCP entry appears. If missing, reinstall: `claude plugin install roboflow --scope local` (project-local) or `claude plugin install roboflow` (global). Then restart Claude Code.
+**Fix:** for Claude Code, run `claude plugin list` to verify the Roboflow MCP entry appears. If missing, reinstall: `claude plugin install roboflow --scope local` (project-local) or `claude plugin install roboflow` (global). For Codex, run `codex plugin list` and reinstall with `codex plugin add vision-delivery@vision-delivery` if needed. Then restart the host app.
 
 </troubleshooting>

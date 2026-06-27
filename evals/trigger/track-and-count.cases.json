@@ -53,7 +53,7 @@
     },
     {
       "prompt": "How much does managed deployment cost for five RTSP streams running 24/7?",
-      "reason": "Cost/scale question \u2014 'how much does managed deployment cost' matches SKIP clause; routes to deployment-consultant"
+      "reason": "Cost/scale question \u2014 'how much does managed deployment cost' matches SKIP clause; routes to economics-consultant"
     },
     {
       "prompt": "Classify this whole image as pass or fail for the quality gate",

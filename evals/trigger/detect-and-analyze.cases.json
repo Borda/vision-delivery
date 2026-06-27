@@ -65,7 +65,7 @@
     },
     {
       "prompt": "How much does Roboflow's managed deployment cost for 5 streams running 24/7?",
-      "reason": "Cost/scale question with no unsolved detection problem \u2014 routes to deployment-consultant"
+      "reason": "Cost/scale question with no unsolved detection problem \u2014 routes to economics-consultant"
     },
     {
       "prompt": "I already have a trained YOLOv8 model. How do I export it to TensorRT?",
@@ -73,7 +73,7 @@
     },
     {
       "prompt": "Compare self-hosting vs managed Roboflow for my 10-stream production setup",
-      "reason": "Build-vs-buy analysis \u2014 routes to deployment-consultant"
+      "reason": "Build-vs-buy analysis \u2014 routes to economics-consultant"
     },
     {
       "prompt": "Help me set up active learning on my existing defect detection model",
