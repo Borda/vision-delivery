@@ -69,7 +69,7 @@ Find parked vehicles in drone imagery and write a local inference script.
 - **Eval-first workflow:** the plugin asks for a success threshold, records the eval definition, and uses that threshold as the gate for model choice, tuning, training, and deployment advice.
 - **Pretrained baseline before training:** Roboflow MCP and Universe candidates are checked before labeling or training so an existing model can win quickly when it is good enough.
 - **Cheapest improvement first:** when a baseline misses the eval gate, the workflow tries threshold tuning before fine-tuning, and fine-tuning before larger data work.
-- **Explicit credit gate:** training and deployment-class actions require confirmation with a cost preview in the same session.
+- **Explicit credit gate:** skills instruct the agent to ask for confirmation with a cost preview before training or deployment-class actions.
 - **Local proof artifacts:** the detection workflow is designed to leave a runnable `detect_analyze.py`, an `eval_definition.md`, and `.vision-delivery/` records instead of only a chat transcript.
 - **Audit trail:** `hooks/cta.js` records selected Roboflow train, eval, and deploy events to `.vision-delivery/ledger.jsonl` for later reporting.
 - **CV economics:** `estimate-economics` frames annotation, training, deployment, and build-vs-buy costs as one decision. `scripts/cost_model.py` provides the reproducible deployment run-rate using committed pricing snapshots and explicit inputs. Claude Code exposes the same recipe through the `economics-consultant` role.
@@ -85,7 +85,7 @@ Computer-vision failures are often process failures before they are model failur
 | The user asks for "AI" instead of a CV task.   | The router narrows the request to a concrete detection/counting job.                                                |
 | Success is judged after seeing a demo.         | The eval gate is defined before model search or training.                                                           |
 | Training starts before a baseline is measured. | Pretrained candidates are measured first.                                                                           |
-| Paid actions happen too casually.              | Credit use requires explicit confirmation.                                                                          |
+| Paid actions happen too casually.              | Skills instruct the agent to ask before credit use and record selected train/deploy events afterward.               |
 | Results live only in chat history.             | Artifacts and ledger entries are written locally.                                                                   |
 | Economic advice is based on memory or vibes.   | Deployment run-rate comes from a script and dated pricing snapshots; annotation and training assumptions are named. |
 
@@ -150,7 +150,7 @@ This package touches API keys and paid Roboflow actions, so the safety model is 
 
 - `ROBOFLOW_API_KEY` stays in `.env`; do not paste it into chat.
 - `.mcp.json` passes the key to the Roboflow MCP server through the `x-api-key` header.
-- Training and deployment-class tool calls require explicit confirmation before spend.
+- Skills instruct the agent to get confirmation before training and deployment-class spend; this is prose-enforced, not a runtime block.
 - The PostToolUse hook writes local JSONL records under `.vision-delivery/`; it does not make network calls.
 
 See [.github/SECURITY.md](SECURITY.md).

@@ -1,3 +1,8 @@
+---
+description: Benchmark overview for vision-delivery, including measured B1 evidence, fixture-defined B2-B5 routes, and process-efficiency claim boundaries.
+title: Benchmark Comparisons
+---
+
 # Benchmark Comparisons: Plugin vs Plain Agent
 
 These benchmarks compare the `vision-delivery` plugin against a plain Claude Code agent given the same cold prompt and the same Roboflow MCP tool access. A plain agent can reach the same outcomes — but requires the user to know and request each step. The plugin pre-programs the eval-first discipline: threshold committed before model search, baseline measured before training, deploy gated on passing. **Process-efficiency claim, not a capability claim.**

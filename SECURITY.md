@@ -51,7 +51,7 @@ You can inspect, truncate, or delete the ledger at any time with no effect on pl
 The Roboflow MCP server at `https://mcp.roboflow.com/mcp` is operated by Roboflow, not by this plugin.
 
 - This plugin does not control what the MCP server can access. Its scope equals whatever your Roboflow API key permits.
-- Credit-spending calls (train, deploy, autolabel) are gated by explicit user confirmation inside each skill before any MCP tool is invoked. See the individual `SKILL.md` files for details.
+- Credit-spending calls (train, deploy, autolabel) are gated by skill instructions that ask for explicit user confirmation before any MCP tool is invoked. This is prose-enforced rather than a runtime block; see Known Limitations below.
 - The plugin declares the MCP server in `.mcp.json`; all HTTP communication is handled by Claude Code.
 
 ## Permissions Model

@@ -1,3 +1,8 @@
+---
+description: Fixture-defined B4 benchmark for vision-delivery read-text, covering OCR extraction, field match accuracy, latency, and pending live measurement status.
+title: B4 Read Text OCR Benchmark
+---
+
 # B4 Benchmark — Read Text: OCR Extraction
 
 **Problem:** read serial numbers off circuit boards in a manufacturing line using OCR. **Vertical:** `read-text` skill. **Evidence:** benchmark fixture defined; live measurements pending. **Last updated:** 2026-06-25.

@@ -1,3 +1,8 @@
+---
+description: Fixture-defined B3 benchmark for vision-delivery track-and-count, covering shopper dwell time, RTSP tracking, and pending live measurement status.
+title: B3 Track And Count Benchmark
+---
+
 # B3 Benchmark — Track and Count: Shopper Dwell Time
 
 **Problem:** track shoppers across RTSP streams and measure dwell time per aisle zone. **Vertical:** `track-and-count` skill. **Evidence:** benchmark fixture defined; live measurements pending. **Last updated:** 2026-06-25.

@@ -1,0 +1,48 @@
+# vision-delivery
+
+> Eval-first Codex and Claude Code plugin for turning vague computer-vision requests into measured Roboflow proofs, local artifacts, paid-action guardrails, and CV economics decisions.
+
+Use this file to orient LLMs and coding agents. Prefer the docs and repository links below over inferred behavior. The project is a plugin, not a model. Its claim is process discipline: define the eval first, measure a baseline before training, confirm before paid actions, and record provenance.
+
+## Primary Docs
+
+- [Documentation home](https://borda.github.io/vision-delivery/): Value proposition, quick start, features, workflow, use cases, economics, security, and agent map.
+- [Quick start](https://borda.github.io/vision-delivery/quickstart/): Codex and Claude Code install, key setup, first prompt, and expected first-session behavior.
+- [Use cases](https://borda.github.io/vision-delivery/use-cases/): Route selection for detection, classification, tracking, OCR, segmentation, pose, pipelines, and economics.
+- [Workflow](https://borda.github.io/vision-delivery/workflow/): Eval-first sequence from context reading through baseline, proof artifacts, economics, and ledger records.
+- [CV economics](https://borda.github.io/vision-delivery/economics/): Annotation, training, deployment, and managed-vs-DIY economics with assumption boundaries.
+- [Trust and safety](https://borda.github.io/vision-delivery/trust/): API keys, prose-enforced paid-action gates, local ledger behavior, pricing provenance, and evidence boundaries.
+- [FAQ](https://borda.github.io/vision-delivery/faq/): Short answers for humans, search engines, and agents.
+- [Benchmark overview](https://borda.github.io/vision-delivery/benchmarks/): Evidence matrix and claim boundaries.
+- [B1 measured benchmark](https://borda.github.io/vision-delivery/benchmarks/b1-conveyor-detect/): Measured object detection/counting path with post-train result and caveats.
+- [Repository](https://github.com/Borda/vision-delivery): Source code, plugin manifests, skills, hooks, scripts, and evals.
+
+## Install
+
+- [Codex plugin source](https://github.com/Borda/vision-delivery/tree/main/.codex-plugin): Codex plugin manifest.
+- [Claude plugin source](https://github.com/Borda/vision-delivery/tree/main/.claude-plugin): Claude Code plugin manifest.
+- [Roboflow MCP config](https://github.com/Borda/vision-delivery/blob/main/.mcp.json): MCP server configuration; requires `ROBOFLOW_API_KEY` in the host environment.
+
+## Canonical Skills
+
+- [solve-cv-task](https://github.com/Borda/vision-delivery/tree/main/skills/solve-cv-task): Canonical CV task router and orchestrator.
+- [estimate-economics](https://github.com/Borda/vision-delivery/tree/main/skills/estimate-economics): CV economics recipe for annotation, training, deployment run-rate, and managed-vs-DIY decisions.
+- [detect-and-analyze](https://github.com/Borda/vision-delivery/tree/main/skills/detect-and-analyze): Object detection, counting, per-class metrics, and local proof artifacts.
+- [classify-or-flag](https://github.com/Borda/vision-delivery/tree/main/skills/classify-or-flag): Image-level pass/fail and compliance workflows.
+- [track-and-count](https://github.com/Borda/vision-delivery/tree/main/skills/track-and-count): Video tracking, dwell time, and line-cross counts.
+- [read-text](https://github.com/Borda/vision-delivery/tree/main/skills/read-text): OCR and structured text extraction.
+- [segment-and-analyze](https://github.com/Borda/vision-delivery/tree/main/skills/segment-and-analyze): Masks, contours, and area/width measurement.
+- [recognize-pose-or-gesture](https://github.com/Borda/vision-delivery/tree/main/skills/recognize-pose-or-gesture): Keypoints, posture, gesture, and action recognition.
+
+## Evidence Boundaries
+
+- B1 has measured evidence.
+- B2-B5 are fixture-defined and pending live measurements.
+- Plugin-vs-plain-agent comparison is a process-efficiency claim, not a model-quality claim.
+- Deployment run-rate comes from `scripts/cost_model.py` and committed pricing snapshots; annotation and training costs must be project-backed or explicitly marked as assumptions.
+
+## Optional
+
+- [Full LLM context](https://borda.github.io/vision-delivery/llms-full.txt): Longer project-convention context file for agents with larger context windows.
+- [Security policy](https://github.com/Borda/vision-delivery/blob/main/SECURITY.md): Vulnerability reporting and key-handling expectations.
+- [Trigger evals](https://github.com/Borda/vision-delivery/tree/main/evals/trigger): Structural trigger coverage for skill frontmatter.

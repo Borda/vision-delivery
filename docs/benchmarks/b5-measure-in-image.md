@@ -1,3 +1,8 @@
+---
+description: Fixture-defined B5 benchmark for vision-delivery segment-and-analyze, covering crack width measurement, mask quality, calibration, and pending live status.
+title: B5 Measure In Image Benchmark
+---
+
 # B5 Benchmark — Segment and Analyze: Crack Width Measurement
 
 **Problem:** measure crack width in bridge inspection photos for engineering maintenance reports. **Vertical:** `segment-and-analyze` skill. **Evidence:** benchmark fixture defined; live measurements pending. **Last updated:** 2026-06-25.

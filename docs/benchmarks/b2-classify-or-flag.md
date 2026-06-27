@@ -1,3 +1,8 @@
+---
+description: Fixture-defined B2 benchmark for vision-delivery classify-or-flag, covering PPE compliance, recall threshold, and pending live measurement status.
+title: B2 Classify Or Flag Benchmark
+---
+
 # B2 Benchmark — Classify or Flag: PPE Compliance
 
 **Problem:** detect workers not wearing hard hats in construction site images and flag non-compliant frames. **Vertical:** `classify-or-flag` skill. **Evidence:** benchmark fixture defined; live measurements pending. **Last updated:** 2026-06-25.

@@ -1,3 +1,8 @@
+---
+description: Measured B1 benchmark for vision-delivery detect-and-analyze, covering aerial vehicle counting, pretrained baseline, post-train result, and evidence caveats.
+title: B1 Conveyor Detect Benchmark
+---
+
 # B1 Benchmark — Detect and Analyze: Vehicle Detection
 
 **Problem:** detect and count cars, motorcycles, and trucks in aerial/overhead view images. **Vertical:** `detect-and-analyze` skill. **Last updated:** 2026-06-25.
@@ -146,5 +151,5 @@ ______________________________________________________________________
 ## Notes
 
 - Baseline mAP is from the fixture's existing pretrained Snap model — no custom training, no credit spend.
-- Post-training requires fine-tuning RF-DETR on the fixture data (credit-spending step, requires explicit confirmation in session per plugin safe-actions rule).
+- Post-training requires fine-tuning RF-DETR on the fixture data. This is a credit-spending step, so the skill instructs the agent to ask for explicit confirmation in session.
 - B2-B5 benchmarks (classify-or-flag, track-in-video, read-text-ocr, measure-in-image) define the remaining comparison fixtures.
