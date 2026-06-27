@@ -15,6 +15,7 @@ title: Solve real CV tasks with measured proof
     <a class="vd-button" href="#quick-start">Quick start</a>
     <a class="vd-button" href="#features">See features</a>
     <a class="vd-button" href="benchmarks/">Benchmark evidence</a>
+    <a class="vd-button vd-button-primary" href="https://github.com/Borda/vision-delivery/issues/new?template=use-case.yml">Share your use case</a>
   </p>
 </section>
 
@@ -75,6 +76,10 @@ Track shoppers through aisle zones and estimate dwell time from RTSP footage.
 ```
 
 Read the full [Quick Start](quickstart.md) for setup, key handling, first prompts, and expected first-session behavior.
+
+!!! tip "Share your use case"
+
+    Have a real camera, image, or video problem? [Create a use-case issue](https://github.com/Borda/vision-delivery/issues/new?template=use-case.yml) to get help turning it into a concrete route, eval gate, and first proof. If your work is public, link your project, dataset, company, paper, demo, or field problem so others can discover it. Do not include secrets, API keys, private customer data, faces, license plates, medical data, or media you are not allowed to share.
 
 ## Features
 

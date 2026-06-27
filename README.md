@@ -65,6 +65,12 @@ Detect cracks in product photos and report the count per image.
 Find parked vehicles in drone imagery and write a local inference script.
 ```
 
+## 📣 Share Your Use Case
+
+Have a real camera, image, or video problem? [Share your use case](https://github.com/Borda/vision-delivery/issues/new?template=use-case.yml) to get help turning it into a concrete CV route, eval gate, and first proof. If your work is public, the issue can also point back to your project, dataset, company, paper, demo, or field problem so others can discover it.
+
+Use the template to describe what you need to inspect, count, read, track, measure, or decide from images and video. Keep the issue public-safe: do not include secrets, API keys, private customer data, faces, license plates, medical data, or media you are not allowed to share.
+
 ## ✨ Features
 
 - **Problem-first routing:** `solve-cv-task` separates object-instance detection and counting from other CV intents before any model search starts. Claude Code exposes the same recipe through the `cv-problem-solver` role.

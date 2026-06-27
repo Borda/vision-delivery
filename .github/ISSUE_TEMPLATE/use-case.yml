@@ -1,0 +1,95 @@
+name: Share a computer-vision use case
+description: Get help shaping a CV problem or share public work others can discover.
+title: "[Use case] "
+labels:
+  - use-case
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Share a real computer-vision problem to get help shaping it into a concrete route, eval gate, and first proof. If your work is public, this issue can also point back to your project, dataset, company, paper, demo, or field problem so others can discover it.
+
+        Do not include secrets, API keys, private customer data, faces, license plates, medical data, or images you are not allowed to share. Link only to data you are allowed to make public.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      description: Describe the operational problem in plain language.
+      placeholder: "Example: Count pallets on a conveyor and alert when the count differs from the packing slip."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: cv_route
+    attributes:
+      label: Expected CV route
+      description: Pick the closest output type. Guessing is fine.
+      options:
+        - Object detection or counting
+        - Image-level classification or pass/fail flag
+        - Video tracking, dwell time, or line-cross counting
+        - OCR, barcode, serial number, or text extraction
+        - Segmentation, masks, area, or contour measurement
+        - Pose, keypoint, gesture, or action recognition
+        - Multi-step visual workflow
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: inputs
+    attributes:
+      label: What inputs do you have?
+      description: Mention image/video type, camera angle, sample count, annotation status, and whether examples can be shared publicly.
+      placeholder: "Example: 120 overhead JPG frames, no labels yet, objects are 30-80 px wide, public sample frame link available."
+    validations:
+      required: true
+
+  - type: textarea
+    id: output
+    attributes:
+      label: What output would be useful?
+      description: Describe the result you need the model or workflow to produce.
+      placeholder: "Example: Count per frame, CSV output, one bounding box per pallet, confidence threshold, optional annotated preview."
+    validations:
+      required: true
+
+  - type: textarea
+    id: success
+    attributes:
+      label: What would count as success?
+      description: Include a metric or decision threshold if you know it.
+      placeholder: "Example: >=90% recall on damaged pallets, count MAE <= 1 per frame, false alarms under 2 per hour."
+    validations:
+      required: true
+
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints and deployment context
+      description: Mention speed, hardware, privacy, latency, budget, annotation, or deployment limits.
+      placeholder: "Example: Runs on 4 RTSP cameras, 10 FPS, factory network only, no cloud storage of raw frames."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: reuse
+    attributes:
+      label: May this use case be reused to improve vision-delivery?
+      description: This does not grant rights to private data. Only share details you are allowed to publish.
+      options:
+        - "Yes, public issue text may be used for docs, evals, and fine-tuning examples."
+        - "Anonymized only: use the pattern, but remove identifying details."
+        - "No: discuss the problem, but do not reuse it as an example or dataset item."
+    validations:
+      required: true
+
+  - type: textarea
+    id: links
+    attributes:
+      label: Public links or sample artifacts
+      description: Optional. Link to public sample images, videos, annotation exports, repos, or docs only if you have permission to share them.
+      placeholder: "https://..."
+    validations:
+      required: false

@@ -1,0 +1,3 @@
+- name: use-case
+  color: "0F766E"
+  description: Real CV problem shared for docs, evals, routing examples, or reusable learning cases.
