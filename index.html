@@ -361,6 +361,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Install">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#for-codex" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For Codex
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#for-claude-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For Claude Code
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -661,6 +689,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Install">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#for-codex" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For Codex
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#for-claude-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For Claude Code
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -684,13 +740,13 @@
 
 
 <h1 id="vision-delivery">vision-delivery<a class="headerlink" href="#vision-delivery" title="Permanent link">&para;</a></h1>
-<p>Claude Code plugin — solve a CV problem end-to-end, then get an honest build-vs-buy estimate.</p>
-<p><code>vision-delivery</code> adds an eval-first workflow around Roboflow MCP tools: it chooses the right CV modality, commits the success threshold before model search, measures a pretrained baseline before training, and gates credit-spending actions on explicit confirmation.</p>
+<p>Codex and Claude Code plugin — solve a CV task end-to-end, then get an honest project economics estimate.</p>
+<p><code>vision-delivery</code> adds an eval-first workflow around Roboflow MCP tools: it chooses the right CV modality, commits the success threshold before model search, measures a pretrained baseline before training, gates credit-spending actions on explicit confirmation, and keeps annotation, training, and deployment economics visible.</p>
 <h2 id="what-it-does">What it does<a class="headerlink" href="#what-it-does" title="Permanent link">&para;</a></h2>
 <p>Two modes:</p>
 <ul>
-<li><strong>Problem-solver</strong> (<code>@cv-problem-solver</code>) — cold prompt → eval-passing model → deployable Roboflow Workflow</li>
-<li><strong>Deployment consultant</strong> (<code>@deployment-consultant</code>) — fully-loaded DIY cost vs managed, with cited sources</li>
+<li><strong>Problem-solver</strong> (<code>solve-cv-task</code>) — cold prompt → eval-passing model → deployable Roboflow Workflow</li>
+<li><strong>CV economics</strong> (<code>estimate-economics</code>) — annotation, training, and deployment cost assumptions with cited deployment sources</li>
 </ul>
 <h2 id="skills">Skills<a class="headerlink" href="#skills" title="Permanent link">&para;</a></h2>
 <table>
@@ -780,12 +836,18 @@
 </table>
 <p>→ <a href="benchmarks/">Full benchmark docs</a></p>
 <h2 id="install">Install<a class="headerlink" href="#install" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>claude<span class="w"> </span>plugin<span class="w"> </span>install<span class="w"> </span>https://github.com/Borda/vision-delivery
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;ROBOFLOW_API_KEY=your_key_here&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>.env
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;.env&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>.gitignore
+<p>Install in either host, then make <code>ROBOFLOW_API_KEY</code> available to the host process that starts the Roboflow MCP server.</p>
+<h3 id="for-codex">For Codex<a class="headerlink" href="#for-codex" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>codex<span class="w"> </span>plugin<span class="w"> </span>marketplace<span class="w"> </span>add<span class="w"> </span>https://github.com/Borda/vision-delivery
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>codex<span class="w"> </span>plugin<span class="w"> </span>add<span class="w"> </span>vision-delivery@vision-delivery
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">ROBOFLOW_API_KEY</span><span class="o">=</span>your_key_here
+</code></pre></div>
+<h3 id="for-claude-code">For Claude Code<a class="headerlink" href="#for-claude-code" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>claude<span class="w"> </span>plugin<span class="w"> </span>install<span class="w"> </span>https://github.com/Borda/vision-delivery
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;ROBOFLOW_API_KEY=your_key_here&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>.env
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;.env&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>.gitignore
 </code></pre></div>
 <p>Get your key at <a href="https://app.roboflow.com/settings/api">app.roboflow.com/settings/api</a>. Never paste it in chat.</p>
-<p>For Codex: use the <code>dist/</code> adapter — the root <code>plugin.json</code> targets Claude Code.</p>
 
 
 
