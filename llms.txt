@@ -11,6 +11,7 @@ Use this file to orient LLMs and coding agents. Prefer the docs and repository l
 - [Use cases](https://borda.github.io/vision-delivery/use-cases/): Route selection for detection, classification, tracking, OCR, segmentation, pose, pipelines, and economics.
 - [Workflow](https://borda.github.io/vision-delivery/workflow/): Eval-first sequence from context reading through baseline, proof artifacts, economics, and ledger records.
 - [CV economics](https://borda.github.io/vision-delivery/economics/): Annotation, training, deployment, and managed-vs-DIY economics with assumption boundaries.
+- [Roboflow skills integration](https://borda.github.io/vision-delivery/roboflow-skills/): When to use vision-delivery, Roboflow MCP tools, Roboflow's official computer-vision-skills plugin, or MCP skill resources, and why platform recipes should not be copied here.
 - [Trust and safety](https://borda.github.io/vision-delivery/trust/): API keys, prose-enforced paid-action gates, local ledger behavior, pricing provenance, and evidence boundaries.
 - [FAQ](https://borda.github.io/vision-delivery/faq/): Short answers for humans, search engines, and agents.
 - [Benchmark overview](https://borda.github.io/vision-delivery/benchmarks/): Evidence matrix and claim boundaries.
@@ -22,6 +23,7 @@ Use this file to orient LLMs and coding agents. Prefer the docs and repository l
 - [Codex plugin source](https://github.com/Borda/vision-delivery/tree/main/.codex-plugin): Codex plugin manifest.
 - [Claude plugin source](https://github.com/Borda/vision-delivery/tree/main/.claude-plugin): Claude Code plugin manifest.
 - [Roboflow MCP config](https://github.com/Borda/vision-delivery/blob/main/.mcp.json): MCP server configuration; requires `ROBOFLOW_API_KEY` in the host environment.
+- [Roboflow official skills](https://github.com/roboflow/computer-vision-skills): Use installed local skills first for product/API truth, platform navigation, Workflows, model IDs, inference modes, training options, plans, and pricing references. If not installed, use Roboflow MCP skill resources such as `roboflow://skills/...` when the client exposes them.
 
 ## Canonical Skills
 
@@ -39,6 +41,7 @@ Use this file to orient LLMs and coding agents. Prefer the docs and repository l
 - B1 has measured evidence.
 - B2-B5 are fixture-defined and pending live measurements.
 - Plugin-vs-plain-agent comparison is a process-efficiency claim, not a model-quality claim.
+- vision-delivery can replace delivery-workflow guidance, but it should defer to installed Roboflow skills or MCP skill resources for platform-reference details.
 - Deployment run-rate comes from `scripts/cost_model.py` and committed pricing snapshots; annotation and training costs must be project-backed or explicitly marked as assumptions.
 
 ## Optional

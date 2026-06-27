@@ -6,17 +6,17 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Frequently asked questions about vision-delivery, eval-first CV delivery, Codex and Claude Code installation, Roboflow MCP usage, prose-enforced paid-action gates, and benchmark evidence.">
+        <meta name="description" content="Critical comparison between vision-delivery, Roboflow MCP, and Roboflow computer-vision-skills, including when to use local skills, MCP skill resources, and why platform recipes should not be copied.">
       
       
       
-        <link rel="canonical" href="https://borda.github.io/vision-delivery/faq/">
+        <link rel="canonical" href="https://borda.github.io/vision-delivery/roboflow-skills/">
       
       
-        <link rel="prev" href="../trust/">
+        <link rel="prev" href="../economics/">
       
       
-        <link rel="next" href="../benchmarks/">
+        <link rel="next" href="../trust/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>FAQ - vision-delivery</title>
+        <title>Roboflow Skills Integration - vision-delivery</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#faq" class="md-skip">
+        <a href="#roboflow-skills-integration" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              FAQ
+              Roboflow Skills Integration
             
           </span>
         </div>
@@ -394,10 +394,37 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../roboflow-skills/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roboflow Skills
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -413,6 +440,136 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-roboflow-mcp-ships" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Roboflow MCP Ships
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#thin-adapter-recipes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Thin Adapter Recipes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-adapter-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example Adapter Flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authenticated-mcp-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authenticated MCP Verification
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#when-vision-delivery-is-enough" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When vision-delivery Is Enough
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#when-to-use-roboflows-skills" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When To Use Roboflow's Skills
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#replacement-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Replacement Matrix
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#should-we-port-roboflow-skills" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Should We Port Roboflow Skills?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#install-guidance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install Guidance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#agent-routing-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agent Routing Rule
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -448,37 +605,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    FAQ
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
         
   
   
@@ -494,158 +624,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#what-is-vision-delivery" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What Is vision-delivery?
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#is-this-a-model" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Is This A Model?
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#does-this-replace-roboflow-mcp-or-computer-vision-skills" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Does This Replace Roboflow MCP Or computer-vision-skills?
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#should-this-repository-port-roboflows-skills" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Should This Repository Port Roboflow's Skills?
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#does-it-guarantee-better-model-accuracy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Does It Guarantee Better Model Accuracy?
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#which-hosts-are-supported" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Which Hosts Are Supported?
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-should-my-first-prompt-look-like" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What Should My First Prompt Look Like?
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#does-it-spend-roboflow-credits-automatically" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Does It Spend Roboflow Credits Automatically?
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#where-does-the-api-key-go" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Where Does The API Key Go?
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-files-does-it-write" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What Files Does It Write?
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-is-measured-today" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What Is Measured Today?
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-is-llmstxt" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What Is llms.txt?
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -899,10 +877,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#what-is-vision-delivery" class="md-nav__link">
+  <a href="#what-roboflow-mcp-ships" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What Is vision-delivery?
+        What Roboflow MCP Ships
       
     </span>
   </a>
@@ -910,10 +888,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#is-this-a-model" class="md-nav__link">
+  <a href="#thin-adapter-recipes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Is This A Model?
+        Thin Adapter Recipes
       
     </span>
   </a>
@@ -921,10 +899,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#does-this-replace-roboflow-mcp-or-computer-vision-skills" class="md-nav__link">
+  <a href="#example-adapter-flow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Does This Replace Roboflow MCP Or computer-vision-skills?
+        Example Adapter Flow
       
     </span>
   </a>
@@ -932,10 +910,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#should-this-repository-port-roboflows-skills" class="md-nav__link">
+  <a href="#authenticated-mcp-verification" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Should This Repository Port Roboflow's Skills?
+        Authenticated MCP Verification
       
     </span>
   </a>
@@ -943,10 +921,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#does-it-guarantee-better-model-accuracy" class="md-nav__link">
+  <a href="#when-vision-delivery-is-enough" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Does It Guarantee Better Model Accuracy?
+        When vision-delivery Is Enough
       
     </span>
   </a>
@@ -954,10 +932,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#which-hosts-are-supported" class="md-nav__link">
+  <a href="#when-to-use-roboflows-skills" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Which Hosts Are Supported?
+        When To Use Roboflow's Skills
       
     </span>
   </a>
@@ -965,10 +943,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-should-my-first-prompt-look-like" class="md-nav__link">
+  <a href="#replacement-matrix" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What Should My First Prompt Look Like?
+        Replacement Matrix
       
     </span>
   </a>
@@ -976,10 +954,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#does-it-spend-roboflow-credits-automatically" class="md-nav__link">
+  <a href="#should-we-port-roboflow-skills" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Does It Spend Roboflow Credits Automatically?
+        Should We Port Roboflow Skills?
       
     </span>
   </a>
@@ -987,10 +965,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#where-does-the-api-key-go" class="md-nav__link">
+  <a href="#install-guidance" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Where Does The API Key Go?
+        Install Guidance
       
     </span>
   </a>
@@ -998,32 +976,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-files-does-it-write" class="md-nav__link">
+  <a href="#agent-routing-rule" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What Files Does It Write?
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-is-measured-today" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What Is Measured Today?
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-is-llmstxt" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What Is llms.txt?
+        Agent Routing Rule
       
     </span>
   </a>
@@ -1050,45 +1006,235 @@
   
 
 
-<h1 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h1>
-<h2 id="what-is-vision-delivery">What Is vision-delivery?<a class="headerlink" href="#what-is-vision-delivery" title="Permanent link">&para;</a></h2>
-<p><code>vision-delivery</code> is a Codex and Claude Code plugin for eval-first computer-vision delivery. It turns vague image, video, or camera requests into scoped Roboflow proofs of concept with eval gates, local artifacts, paid-action guardrails, and CV economics decisions.</p>
-<h2 id="is-this-a-model">Is This A Model?<a class="headerlink" href="#is-this-a-model" title="Permanent link">&para;</a></h2>
-<p>No. It is a plugin and workflow layer around Roboflow MCP tools and local scripts. Its value is process discipline: classify the task, define the eval, measure a baseline, improve in cost order, and record provenance.</p>
-<h2 id="does-this-replace-roboflow-mcp-or-computer-vision-skills">Does This Replace Roboflow MCP Or computer-vision-skills?<a class="headerlink" href="#does-this-replace-roboflow-mcp-or-computer-vision-skills" title="Permanent link">&para;</a></h2>
-<p>No for MCP, partially for skills. <code>vision-delivery</code> bundles Roboflow MCP configuration because it needs live Roboflow operations. It can replace generic "what should we build and how do we prove it?" guidance because it owns task framing, eval gates, local artifacts, ledger records, and economics. It should not replace Roboflow's product-reference guidance for model IDs, Workflows, platform navigation, pricing pages, or exact MCP tool behavior.</p>
-<p>Read <a href="../roboflow-skills/">Roboflow Skills Integration</a> for the recommended split.</p>
-<h2 id="should-this-repository-port-roboflows-skills">Should This Repository Port Roboflow's Skills?<a class="headerlink" href="#should-this-repository-port-roboflows-skills" title="Permanent link">&para;</a></h2>
-<p>No, not wholesale. Porting Roboflow's platform recipes would create stale duplicate guidance. Prefer this order for platform-specific questions: installed <a href="https://github.com/roboflow/computer-vision-skills"><code>roboflow/computer-vision-skills</code></a> skills, then MCP skill resources such as <code>roboflow://skills/inference/...</code> when the client exposes them, then ask the user to install Roboflow's official plugin or mark the answer unverified. Return to <code>vision-delivery</code> for eval-gated proof and economics decisions.</p>
-<h2 id="does-it-guarantee-better-model-accuracy">Does It Guarantee Better Model Accuracy?<a class="headerlink" href="#does-it-guarantee-better-model-accuracy" title="Permanent link">&para;</a></h2>
-<p>No. The docs intentionally do not claim a model-quality advantage. A plain agent with the same Roboflow MCP tools can reach comparable model metrics if it performs the same sequence. The plugin makes that careful sequence the default.</p>
-<h2 id="which-hosts-are-supported">Which Hosts Are Supported?<a class="headerlink" href="#which-hosts-are-supported" title="Permanent link">&para;</a></h2>
-<p>The plugin is structured for both Codex and Claude Code:</p>
+<h1 id="roboflow-skills-integration">Roboflow Skills Integration<a class="headerlink" href="#roboflow-skills-integration" title="Permanent link">&para;</a></h1>
+<p><code>vision-delivery</code> overlaps with <a href="https://github.com/roboflow/computer-vision-skills"><code>roboflow/computer-vision-skills</code></a>, but it should not try to become a copy of that project. It also bundles the Roboflow MCP server config, and Roboflow's own skill files say related skill content may be exposed through <code>roboflow://skills/...</code> MCP resources as a fallback for clients without the plugin.</p>
+<p>The clean split is:</p>
 <ul>
-<li>Codex uses <code>.codex-plugin/plugin.json</code> and <code>skills/</code>.</li>
-<li>Claude Code uses <code>.claude-plugin/plugin.json</code> plus thin adapters in <code>agents/</code>.</li>
+<li><strong>Roboflow's source owns product truth:</strong> MCP tool usage, platform navigation, model families, model IDs, Workflows, inference modes, training options, Universe, account plans, and pricing references. The freshest form is the local <code>roboflow/computer-vision-skills</code> plugin when installed; the MCP-hosted <code>roboflow://skills/...</code> resources are a useful fallback when available.</li>
+<li><strong><code>vision-delivery</code> owns delivery discipline:</strong> task framing, eval gates, baseline-first proof, local artifacts, consent prompts before spend, ledger records, and project economics.</li>
 </ul>
-<h2 id="what-should-my-first-prompt-look-like">What Should My First Prompt Look Like?<a class="headerlink" href="#what-should-my-first-prompt-look-like" title="Permanent link">&para;</a></h2>
-<p>Use an operational task:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Count vehicles in these parking-lot camera frames and report the count per image.
+<p>That boundary matters because product guidance ages quickly. If this repository ports Roboflow's API and platform recipes, it becomes a stale duplicate of the source users should trust.</p>
+<h2 id="what-roboflow-mcp-ships">What Roboflow MCP Ships<a class="headerlink" href="#what-roboflow-mcp-ships" title="Permanent link">&para;</a></h2>
+<p>Direct unauthenticated probing of <code>https://mcp.roboflow.com/mcp</code> returns an OAuth-protected-resource challenge, so this repository cannot publicly enumerate a live resource list without a Roboflow-authenticated session. The protected-resource metadata confirms the MCP server is scoped for live Roboflow operations across workspaces, projects, folders, images, annotations, versions, training jobs, model inference/deployment/management/evaluation, Workflows, devices, vision events, data staging, batch processing, credentials, and integrations.</p>
+<p>Roboflow's official plugin README describes the MCP server as the live tool layer for projects, images, annotations, versions, models, Workflows, Universe, and feedback. The official skill files add an important detail for agents: the canonical skills are local plugin files when installed, while the same content served as <code>roboflow://skills/&lt;name&gt;/...</code> MCP resources is a fallback for clients without the plugin and may lag the repository.</p>
+<p>So the practical lookup order is:</p>
+<ol>
+<li><strong>Local Roboflow plugin skill</strong> such as <code>roboflow:inference</code>, <code>roboflow:training-and-evaluation</code>, or <code>roboflow:data-management</code>, when installed.</li>
+<li><strong>Roboflow MCP skill resource</strong> such as <code>roboflow://skills/inference/...</code>, when the client exposes MCP resources and the user is authenticated.</li>
+<li><strong>Minimal stable fallback</strong> in <code>vision-delivery</code>, limited to delivery workflow and clearly marked assumptions.</li>
+</ol>
+<h2 id="thin-adapter-recipes">Thin Adapter Recipes<a class="headerlink" href="#thin-adapter-recipes" title="Permanent link">&para;</a></h2>
+<p>Instead of porting Roboflow skills, <code>vision-delivery</code> should carry thin adapters that know where to look and when to return to the eval gate.</p>
+<table>
+<thead>
+<tr>
+<th>Platform-specific need</th>
+<th>First local skill</th>
+<th>MCP skill-resource fallback</th>
+<th>Live MCP tools usually involved</th>
+<th><code>vision-delivery</code> keeps owning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Model IDs, architectures, checkpoints, model eval</td>
+<td><code>roboflow:training-and-evaluation</code></td>
+<td><code>roboflow://skills/training-and-evaluation/...</code></td>
+<td><code>models_train</code>, <code>models_get_training_status</code>, <code>models_get</code>, <code>versions_generate</code></td>
+<td>whether training is justified by the eval gap and user confirmation</td>
+</tr>
+<tr>
+<td>Inference, deployment options, Workflows, batch</td>
+<td><code>roboflow:inference</code></td>
+<td><code>roboflow://skills/inference/...</code></td>
+<td><code>models_infer</code>, <code>workflows_run</code>, <code>workflow_specs_validate</code>, batch/data-staging</td>
+<td>eval fit, latency tradeoff, local PoC artifacts, economics handoff</td>
+</tr>
+<tr>
+<td>Uploads, projects, annotation organization, exports</td>
+<td><code>roboflow:data-management</code></td>
+<td><code>roboflow://skills/data-management/...</code></td>
+<td><code>projects_create</code>, <code>image_upload</code>, <code>images_search</code>, <code>versions_generate/export</code></td>
+<td>dataset actions tied to the eval plan</td>
+</tr>
+<tr>
+<td>REST/API hosts, auth, SDK snippets, response shapes</td>
+<td><code>roboflow:api-reference</code></td>
+<td><code>roboflow://skills/api-reference/...</code></td>
+<td>typed MCP tools first; raw REST only for gaps</td>
+<td>key safety and avoiding unverifiable protocol claims</td>
+</tr>
+<tr>
+<td>Universe datasets, public models, forks</td>
+<td><code>roboflow:universe</code></td>
+<td><code>roboflow://skills/universe/...</code></td>
+<td><code>universe_search</code>, Universe app/resource flows</td>
+<td>relevance, license risk, and measurement on user samples</td>
+</tr>
+<tr>
+<td>Plans, credits, billing, current pricing references</td>
+<td><code>roboflow:plans-and-pricing</code></td>
+<td><code>roboflow://skills/plans-and-pricing/...</code></td>
+<td>usage/billing tools if exposed</td>
+<td><code>scripts/cost_model.py</code>, assumptions, one-time vs run-rate split</td>
+</tr>
+<tr>
+<td>UI paths and handoff links</td>
+<td><code>roboflow:product-navigation</code></td>
+<td><code>roboflow://skills/product-navigation/...</code></td>
+<td>usually none</td>
+<td>only the next useful handoff path</td>
+</tr>
+</tbody>
+</table>
+<p>The response pattern should be explicit:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>This is platform-specific. I will verify it from &lt;local skill or MCP resource&gt;, use MCP tools only for live operations, then return to the eval gate.
 </code></pre></div>
-<p>Avoid starting with a model name unless you already know the model is the right abstraction.</p>
-<h2 id="does-it-spend-roboflow-credits-automatically">Does It Spend Roboflow Credits Automatically?<a class="headerlink" href="#does-it-spend-roboflow-credits-automatically" title="Permanent link">&para;</a></h2>
-<p>The skills instruct the agent to ask before training or deployment-class spend. Correct behavior is to state what will happen, why the evidence justifies it, and what the cost impact may be. This is not a hard runtime-enforced block; check the ledger afterward for selected train and deploy events.</p>
-<h2 id="where-does-the-api-key-go">Where Does The API Key Go?<a class="headerlink" href="#where-does-the-api-key-go" title="Permanent link">&para;</a></h2>
-<p>Set <code>ROBOFLOW_API_KEY</code> in the host environment or <code>.env</code>. Do not paste API keys into chat. Restart Codex or Claude Code after changing the key because MCP servers read environment variables at startup.</p>
-<h2 id="what-files-does-it-write">What Files Does It Write?<a class="headerlink" href="#what-files-does-it-write" title="Permanent link">&para;</a></h2>
-<p>Depending on the route, expected local files include:</p>
+<p>If neither local skills nor MCP skill resources are available, continue only with delivery workflow and mark exact platform details unverified before paid actions.</p>
+<h2 id="example-adapter-flow">Example Adapter Flow<a class="headerlink" href="#example-adapter-flow" title="Permanent link">&para;</a></h2>
+<p>User request:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Count hard hats in these construction-site images. If the baseline fails, tell me which Roboflow model to train.
+</code></pre></div>
+<p>Correct flow:</p>
+<ol>
+<li><code>vision-delivery</code> owns the task: route to detection, define the recall/count threshold, and measure a pretrained baseline on the user's images.</li>
+<li>If training becomes justified, the agent verifies model IDs and training options from <code>roboflow:training-and-evaluation</code> or <code>roboflow://skills/training-and-evaluation/...</code>.</li>
+<li>The agent uses live MCP tools such as <code>versions_generate</code>, <code>models_train</code>, and <code>models_get_training_status</code> only after explaining the spend and getting explicit confirmation.</li>
+<li><code>vision-delivery</code> resumes ownership after the platform action: compare results to the eval gate, write proof artifacts, append ledger rows, and decide whether economics should run.</li>
+</ol>
+<p>Incorrect flow:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Pick a model ID from memory, start training, then decide afterward whether it helped.
+</code></pre></div>
+<p>That skips both source-backed platform lookup and the eval-first delivery contract.</p>
+<h2 id="authenticated-mcp-verification">Authenticated MCP Verification<a class="headerlink" href="#authenticated-mcp-verification" title="Permanent link">&para;</a></h2>
+<p>This repository can verify the unauthenticated MCP metadata, but a live Roboflow-authenticated agent session should verify the exact exposed resources and tools before relying on MCP-hosted skill content.</p>
+<p>In an authenticated session, check:</p>
 <ul>
-<li><code>eval_definition.md</code>,</li>
-<li>local inference scripts,</li>
-<li><code>.vision-delivery/detections.jsonl</code>,</li>
-<li><code>.vision-delivery/ledger.jsonl</code>.</li>
+<li>the Roboflow MCP server is connected and authenticated</li>
+<li>live tools cover the operation you need, such as project, image, version, model, Workflow, Universe, data-staging, or batch actions</li>
+<li>MCP resources include the relevant <code>roboflow://skills/...</code> entries if local Roboflow skills are not installed</li>
+<li>local Roboflow plugin skills take precedence when both local skills and MCP skill resources exist</li>
 </ul>
-<h2 id="what-is-measured-today">What Is Measured Today?<a class="headerlink" href="#what-is-measured-today" title="Permanent link">&para;</a></h2>
-<p>B1 has measured evidence. B2-B5 are fixture-defined and pending live measurements. Read <a href="../benchmarks/">Benchmarks</a> for the exact status and caveats.</p>
-<h2 id="what-is-llmstxt">What Is llms.txt?<a class="headerlink" href="#what-is-llmstxt" title="Permanent link">&para;</a></h2>
-<p><code>llms.txt</code> is an emerging Markdown convention for giving LLMs and coding agents a compact map of a site. It is not a formal ranking standard. This project publishes <a href="../llms.txt"><code>llms.txt</code></a> and a longer <a href="../llms-full.txt"><code>llms-full.txt</code></a> as agent-friendly discovery aids.</p>
+<p>If those checks fail, install or consult <a href="https://github.com/roboflow/computer-vision-skills"><code>roboflow/computer-vision-skills</code></a> before committing to exact platform-specific choices.</p>
+<h2 id="when-vision-delivery-is-enough">When vision-delivery Is Enough<a class="headerlink" href="#when-vision-delivery-is-enough" title="Permanent link">&para;</a></h2>
+<p>Use only <code>vision-delivery</code> when the user has a concrete operational CV problem and needs the agent to drive a proof:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Count pallets from these 80 warehouse images and tell me whether a pretrained model is enough.
+</code></pre></div>
+<p>This plugin should be enough when the work is mostly:</p>
+<ul>
+<li>clarify the target object, output, and failure consequence</li>
+<li>choose the CV route: detection, classification, OCR, tracking, segmentation, pose, or pipeline</li>
+<li>define the eval gate before model search</li>
+<li>measure a pretrained or Universe baseline</li>
+<li>improve in cost order</li>
+<li>write local proof artifacts</li>
+<li>decide whether annotation, training, deployment, or self-hosting is justified</li>
+</ul>
+<p>In this mode, <code>vision-delivery</code> can partially replace Roboflow's delivery guidance because the user is not asking for deep platform navigation. The agent needs enough Roboflow MCP access to test the workflow, but the main value is the disciplined sequence.</p>
+<h2 id="when-to-use-roboflows-skills">When To Use Roboflow's Skills<a class="headerlink" href="#when-to-use-roboflows-skills" title="Permanent link">&para;</a></h2>
+<p>Use Roboflow's official local skills or MCP skill resources when the user's request is platform-specific:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Which Roboflow model ID should I train for this dataset?
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>How do I run this as a Roboflow Workflow?
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>What is the difference between serverless, dedicated, self-hosted, and batch inference?
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>Where do I find this in the Roboflow UI?
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>Which pricing or plan limit applies?
+</code></pre></div>
+<p>Those questions belong close to Roboflow's source of truth. The local Roboflow plugin has the strongest claim because it is read fresh from the installed repository. MCP skill resources are the next-best fallback for clients that can read them. <code>vision-delivery</code> should not pretend to be the platform reference.</p>
+<h2 id="replacement-matrix">Replacement Matrix<a class="headerlink" href="#replacement-matrix" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Need</th>
+<th style="text-align: center;"><code>vision-delivery</code></th>
+<th style="text-align: center;">Roboflow MCP tools</th>
+<th style="text-align: center;">Roboflow local/MCP skills</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Turn a vague CV ask into a scoped task</td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;">Partial</td>
+<td style="text-align: center;">Partial</td>
+</tr>
+<tr>
+<td>Define eval metrics and pass/fail gates</td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;">Partial</td>
+<td style="text-align: center;">Partial</td>
+</tr>
+<tr>
+<td>Decide whether a pretrained baseline is enough</td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;">Yes</td>
+</tr>
+<tr>
+<td>Execute live project/image/model/workflow operations</td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;">Partial</td>
+</tr>
+<tr>
+<td>Pick exact Roboflow model IDs or product paths</td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;">Partial</td>
+<td style="text-align: center;">Yes</td>
+</tr>
+<tr>
+<td>Explain Workflows, Universe, plans, and platform navigation</td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;">Partial</td>
+<td style="text-align: center;">Yes</td>
+</tr>
+<tr>
+<td>Estimate annotation, training, deployment, and DIY crossover</td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;">Partial</td>
+<td style="text-align: center;">Partial</td>
+</tr>
+<tr>
+<td>Produce local proof artifacts and ledger records</td>
+<td style="text-align: center;">Yes</td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;">No</td>
+</tr>
+<tr>
+<td>Keep current Roboflow platform reference material</td>
+<td style="text-align: center;">No</td>
+<td style="text-align: center;">Partial</td>
+<td style="text-align: center;">Yes</td>
+</tr>
+</tbody>
+</table>
+<p>The important point is not which package is "bigger." The important point is ownership. <code>vision-delivery</code> can replace the parts of Roboflow's skill set that are about delivery judgment, but it should defer on platform reference to local Roboflow skills or MCP skill resources.</p>
+<h2 id="should-we-port-roboflow-skills">Should We Port Roboflow Skills?<a class="headerlink" href="#should-we-port-roboflow-skills" title="Permanent link">&para;</a></h2>
+<p>No, not wholesale.</p>
+<p>Porting Roboflow's <code>inference</code>, <code>training-and-evaluation</code>, <code>plans-and-pricing</code>, <code>product-navigation</code>, <code>api-reference</code>, <code>data-management</code>, or <code>universe</code> skills into this repository would create three problems:</p>
+<ol>
+<li><strong>Drift:</strong> model IDs, plans, tool names, and UI paths can change. A copied skill becomes stale faster than a delivery recipe.</li>
+<li><strong>Confused authority:</strong> users should not have to decide whether Borda's copy or Roboflow's source is correct.</li>
+<li><strong>Diluted value:</strong> this package becomes another product manual instead of the proof-and-economics layer it is good at.</li>
+</ol>
+<p>Selective borrowing of stable routing patterns is fine. For example, <code>vision-delivery</code> can say "prefer Workflows when hosted replay and observability matter" if that is part of a delivery decision. It should read or defer when the user needs exact Workflow authoring instructions, product navigation, plan limits, model IDs, MCP tool schemas, or current pricing rules.</p>
+<h2 id="install-guidance">Install Guidance<a class="headerlink" href="#install-guidance" title="Permanent link">&para;</a></h2>
+<p>For most users, start with <code>vision-delivery</code> if the first problem is unclear, operational, or economics-driven. The bundled Roboflow MCP config is enough to connect the agent to live Roboflow operations once the user authenticates.</p>
+<p>When the work shifts into Roboflow-specific implementation detail, prefer this order:</p>
+<ol>
+<li>Use installed Roboflow skills from <a href="https://github.com/roboflow/computer-vision-skills"><code>roboflow/computer-vision-skills</code></a>, if available.</li>
+<li>Otherwise read Roboflow MCP skill resources such as <code>roboflow://skills/inference/...</code>, if the client exposes them.</li>
+<li>Otherwise ask the user to install the official Roboflow plugin or mark the platform-specific answer as unverified.</li>
+</ol>
+<p>Avoid blindly installing two full plugins if the host merges MCP server definitions by name. Both plugins may define a Roboflow MCP server, so a duplicate <code>roboflow</code> server entry can be confusing in clients that do not deduplicate plugin MCP configuration cleanly. If the host can install individual skills, selective Roboflow skills plus this plugin can be cleaner than two full plugin bundles.</p>
+<h2 id="agent-routing-rule">Agent Routing Rule<a class="headerlink" href="#agent-routing-rule" title="Permanent link">&para;</a></h2>
+<p>When <code>vision-delivery</code>, Roboflow MCP, and Roboflow skills are available:</p>
+<ol>
+<li>Start with <code>vision-delivery</code> for problem framing, route choice, eval definition, proof artifacts, economics, and ledger records.</li>
+<li>Use Roboflow MCP tools for live project, image, version, model, Workflow, Universe, and batch operations.</li>
+<li>Use local Roboflow skills or MCP skill resources for platform-specific implementation guidance.</li>
+<li>Return to <code>vision-delivery</code> to decide whether the result passes the eval gate and what economic decision follows.</li>
+</ol>
+<p>This keeps Roboflow as the platform authority while letting <code>vision-delivery</code> own the customer-facing delivery workflow.</p>
 
 
 

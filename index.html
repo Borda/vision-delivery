@@ -574,6 +574,33 @@
   
   
     <li class="md-nav__item">
+      <a href="roboflow-skills/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roboflow Skills
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="trust/" class="md-nav__link">
         
   
@@ -636,10 +663,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
         
           
-          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
             
   
   
@@ -657,8 +684,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_8">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1029,7 +1056,7 @@
     <strong>vision-delivery</strong> turns a vague camera, image, or video request into a scoped Roboflow proof of concept with an eval gate, local artifacts, paid-action guardrails, and a concrete economics decision.
   </p>
   <p class="vd-actions">
-    <a class="vd-button vd-button-primary" href="#quick-start">Quick start</a>
+    <a class="vd-button" href="#quick-start">Quick start</a>
     <a class="vd-button" href="#features">See features</a>
     <a class="vd-button" href="benchmarks/">Benchmark evidence</a>
   </p>
@@ -1048,6 +1075,10 @@
 <div class="admonition note">
 <p class="admonition-title">The value proposition</p>
 <p>A plain agent with Roboflow MCP access can train, evaluate, and deploy. The plugin's value is not magic accuracy. The value is that eval-first discipline, cost ordering, provenance, and safety gates are built into the workflow instead of depending on the user to ask for them.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">How this relates to Roboflow MCP and official skills</p>
+<p>Roboflow's source should own product truth: live MCP tools, MCP-provided skill resources when available, local <a href="https://github.com/roboflow/computer-vision-skills"><code>computer-vision-skills</code></a> plugin skills when installed, platform navigation, Workflows, model IDs, inference modes, training options, and pricing references. <code>vision-delivery</code> owns delivery discipline: problem framing, eval gates, local proof artifacts, provenance, and economics. Read <a href="roboflow-skills/">Roboflow Skills Integration</a> before treating one package as a full replacement for the other.</p>
 </div>
 <h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
 <p>Install the plugin in either host, make <code>ROBOFLOW_API_KEY</code> available to the host process that starts the Roboflow MCP server, then begin with an operational CV task.</p>
@@ -1335,6 +1366,10 @@
 <tr>
 <td><a href="economics/">CV Economics</a></td>
 <td>annotation, training, deployment, and DIY/managed tradeoff</td>
+</tr>
+<tr>
+<td><a href="roboflow-skills/">Roboflow Skills</a></td>
+<td>when to use this plugin, Roboflow MCP, local skills, or MCP resources</td>
 </tr>
 <tr>
 <td><a href="trust/">Trust</a></td>
