@@ -6,17 +6,17 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Benchmark overview for vision-delivery, including measured B1 evidence, fixture-defined B2-B5 routes, and process-efficiency claim boundaries.">
+        <meta name="description" content="Install vision-delivery in Codex or Claude Code, configure the Roboflow API key, and run the first eval-first computer-vision task.">
       
       
       
-        <link rel="canonical" href="https://borda.github.io/vision-delivery/benchmarks/">
+        <link rel="canonical" href="https://borda.github.io/vision-delivery/quickstart/">
       
       
-        <link rel="prev" href="../faq/">
+        <link rel="prev" href="..">
       
       
-        <link rel="next" href="b1-conveyor-detect/">
+        <link rel="next" href="../use-cases/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Benchmark Comparisons - vision-delivery</title>
+        <title>Quick Start - vision-delivery</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#benchmark-comparisons-plugin-vs-plain-agent" class="md-skip">
+        <a href="#quick-start" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Benchmark Comparisons
+              Quick Start
             
           </span>
         </div>
@@ -286,10 +286,37 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../quickstart/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -305,6 +332,103 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before You Start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#install-in-codex" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install In Codex
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#install-in-claude-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install In Claude Code
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#first-prompt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        First Prompt
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-the-plugin-should-do-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What The Plugin Should Do First
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#good-starter-prompts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Good Starter Prompts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -448,20 +572,18 @@
       
   
   
-    
   
   
-  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
         
           
           <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
@@ -482,7 +604,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_8">
             <span class="md-nav__icon md-icon"></span>
             
@@ -497,37 +619,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Overview
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../benchmarks/" class="md-nav__link">
         
   
   
@@ -543,70 +638,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#summary-table" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Summary table
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#per-benchmark-links" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Per-benchmark links
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#reproduce-all" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Reproduce all
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-the-plugin-adds-structurally" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What the plugin adds structurally
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -619,7 +650,7 @@
   
   
     <li class="md-nav__item">
-      <a href="b1-conveyor-detect/" class="md-nav__link">
+      <a href="../benchmarks/b1-conveyor-detect/" class="md-nav__link">
         
   
   
@@ -647,7 +678,7 @@
   
   
     <li class="md-nav__item">
-      <a href="b2-classify-or-flag/" class="md-nav__link">
+      <a href="../benchmarks/b2-classify-or-flag/" class="md-nav__link">
         
   
   
@@ -675,7 +706,7 @@
   
   
     <li class="md-nav__item">
-      <a href="b3-track-in-video/" class="md-nav__link">
+      <a href="../benchmarks/b3-track-in-video/" class="md-nav__link">
         
   
   
@@ -703,7 +734,7 @@
   
   
     <li class="md-nav__item">
-      <a href="b4-read-text-ocr/" class="md-nav__link">
+      <a href="../benchmarks/b4-read-text-ocr/" class="md-nav__link">
         
   
   
@@ -731,7 +762,7 @@
   
   
     <li class="md-nav__item">
-      <a href="b5-measure-in-image/" class="md-nav__link">
+      <a href="../benchmarks/b5-measure-in-image/" class="md-nav__link">
         
   
   
@@ -786,10 +817,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#summary-table" class="md-nav__link">
+  <a href="#before-you-start" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Summary table
+        Before You Start
       
     </span>
   </a>
@@ -797,10 +828,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#per-benchmark-links" class="md-nav__link">
+  <a href="#install-in-codex" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Per-benchmark links
+        Install In Codex
       
     </span>
   </a>
@@ -808,10 +839,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#reproduce-all" class="md-nav__link">
+  <a href="#install-in-claude-code" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Reproduce all
+        Install In Claude Code
       
     </span>
   </a>
@@ -819,10 +850,43 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-the-plugin-adds-structurally" class="md-nav__link">
+  <a href="#first-prompt" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What the plugin adds structurally
+        First Prompt
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-the-plugin-should-do-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What The Plugin Should Do First
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#good-starter-prompts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Good Starter Prompts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
       
     </span>
   </a>
@@ -849,96 +913,67 @@
   
 
 
-<h1 id="benchmark-comparisons-plugin-vs-plain-agent">Benchmark Comparisons: Plugin vs Plain Agent<a class="headerlink" href="#benchmark-comparisons-plugin-vs-plain-agent" title="Permanent link">&para;</a></h1>
-<p>These benchmarks compare the <code>vision-delivery</code> plugin against a plain Claude Code agent given the same cold prompt and the same Roboflow MCP tool access. A plain agent can reach the same outcomes — but requires the user to know and request each step. The plugin pre-programs the eval-first discipline: threshold committed before model search, baseline measured before training, deploy gated on passing. <strong>Process-efficiency claim, not a capability claim.</strong></p>
-<p>B1 has measured evidence. B2-B5 define benchmark fixtures and acceptance criteria for the other skill routes.</p>
-<hr />
-<h2 id="summary-table">Summary table<a class="headerlink" href="#summary-table" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>#</th>
-<th>Problem</th>
-<th>Cold prompt</th>
-<th>Skill</th>
-<th>Evidence</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>B1</td>
-<td>Conveyor / aerial vehicle count</td>
-<td>"Count vehicles in this overhead camera view"</td>
-<td><code>detect-and-analyze</code></td>
-<td>Measured</td>
-</tr>
-<tr>
-<td>B2</td>
-<td>PPE compliance</td>
-<td>"Flag workers not wearing hard hats on this construction site footage"</td>
-<td><code>classify-or-flag</code></td>
-<td>Fixture defined</td>
-</tr>
-<tr>
-<td>B3</td>
-<td>Shopper dwell tracking</td>
-<td>"Track how long shoppers spend in each aisle — I have RTSP streams"</td>
-<td><code>track-and-count</code></td>
-<td>Fixture defined</td>
-</tr>
-<tr>
-<td>B4</td>
-<td>OCR extraction</td>
-<td>"Read serial numbers off circuit boards in my manufacturing line"</td>
-<td><code>read-text</code></td>
-<td>Fixture defined</td>
-</tr>
-<tr>
-<td>B5</td>
-<td>Measurement</td>
-<td>"Measure crack width in these bridge inspection photos for our maintenance report"</td>
-<td><code>segment-and-analyze</code></td>
-<td>Fixture defined</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="per-benchmark-links">Per-benchmark links<a class="headerlink" href="#per-benchmark-links" title="Permanent link">&para;</a></h2>
+<h1 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h1>
+<p>Install <code>vision-delivery</code>, expose your Roboflow API key to the host process, restart the host, then start with a concrete operational CV task.</p>
+<h2 id="before-you-start">Before You Start<a class="headerlink" href="#before-you-start" title="Permanent link">&para;</a></h2>
+<p>You need:</p>
 <ul>
-<li><a href="b1-conveyor-detect/">B1 — Conveyor / aerial vehicle count</a></li>
-<li><a href="b2-classify-or-flag/">B2 — PPE compliance (hard hat detection)</a></li>
-<li><a href="b3-track-in-video/">B3 — Shopper dwell tracking (RTSP)</a></li>
-<li><a href="b4-read-text-ocr/">B4 — Serial number OCR extraction</a></li>
-<li><a href="b5-measure-in-image/">B5 — Crack width measurement</a></li>
+<li>Codex or Claude Code.</li>
+<li>A Roboflow account and API key from <a href="https://app.roboflow.com/settings/api">app.roboflow.com/settings/api</a>.</li>
+<li>A real CV task: camera, image/video source, target object or field, and the output you need.</li>
 </ul>
-<hr />
-<h2 id="reproduce-all">Reproduce all<a class="headerlink" href="#reproduce-all" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Borda/vision-delivery
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>vision-delivery
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">ROBOFLOW_API_KEY</span><span class="o">=</span>&lt;your-key&gt;
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>claude<span class="w"> </span>--plugin-dir<span class="w"> </span>.<span class="w"> </span><span class="s2">&quot;I have an overhead camera above a parking lot. I need to count vehicles in view.&quot;</span>
+<div class="admonition warning">
+<p class="admonition-title">Key handling</p>
+<p>Keep <code>ROBOFLOW_API_KEY</code> in the shell environment or <code>.env</code>. Do not paste API keys into chat.</p>
+</div>
+<h2 id="install-in-codex">Install In Codex<a class="headerlink" href="#install-in-codex" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>codex<span class="w"> </span>plugin<span class="w"> </span>marketplace<span class="w"> </span>add<span class="w"> </span>https://github.com/Borda/vision-delivery
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>codex<span class="w"> </span>plugin<span class="w"> </span>add<span class="w"> </span>vision-delivery@vision-delivery
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">ROBOFLOW_API_KEY</span><span class="o">=</span>your_key_here
 </code></pre></div>
-<p><code>--plugin-dir .</code> must be set. Without it, the skill does not load and the session falls back to the plain-agent path, which is the intended comparison baseline.</p>
-<p>For plain-agent comparison runs:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>claude<span class="w">   </span><span class="c1"># no --plugin-dir flag</span>
+<p>Restart Codex after setting the key so the Roboflow MCP server starts with the right environment.</p>
+<h2 id="install-in-claude-code">Install In Claude Code<a class="headerlink" href="#install-in-claude-code" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>claude<span class="w"> </span>plugin<span class="w"> </span>install<span class="w"> </span>https://github.com/Borda/vision-delivery
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;ROBOFLOW_API_KEY=your_key_here&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>.env
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;.env&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>.gitignore
 </code></pre></div>
-<p>Send the same cold prompt. Record whether eval was defined, whether a threshold was set, and whether a deployable artifact was produced.</p>
-<hr />
-<h2 id="what-the-plugin-adds-structurally">What the plugin adds structurally<a class="headerlink" href="#what-the-plugin-adds-structurally" title="Permanent link">&para;</a></h2>
-<p>Three steps the plugin automates without requiring the user to ask:</p>
+<p>Restart Claude Code after writing <code>.env</code>.</p>
+<h2 id="first-prompt">First Prompt<a class="headerlink" href="#first-prompt" title="Permanent link">&para;</a></h2>
+<p>Start with the operational job, not the model name:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>I have an overhead camera above a parking lot. I need to count vehicles in view.
+</code></pre></div>
+<p>Better prompts include:</p>
+<ul>
+<li>input source: images, video, RTSP, camera, folder, dataset</li>
+<li>target: object, defect, text field, person, pose, area</li>
+<li>output: count, pass/fail, CSV, alert, endpoint, local script</li>
+<li>success threshold: recall, precision, field match, latency, IoU, count error</li>
+</ul>
+<h2 id="what-the-plugin-should-do-first">What The Plugin Should Do First<a class="headerlink" href="#what-the-plugin-should-do-first" title="Permanent link">&para;</a></h2>
+<p>The first useful response should not be a model shopping list. It should:</p>
 <ol>
-<li>
-<p><strong>Eval loop execution</strong> — each skill defines a measurable threshold before model selection, runs the eval in-session, and only advances to deploy if the threshold is met.</p>
-</li>
-<li>
-<p><strong>Workflow deploy</strong> — deploy-capable paths can produce a Roboflow endpoint after the eval passes and the user confirms any paid action.</p>
-</li>
-<li>
-<p><strong>Ledger write</strong> — the workflow writes <code>eval_definition.md</code> (threshold + rationale) and result records to <code>.vision-delivery/</code> before deploy. This auditable trail — threshold committed before training, result committed before production — is produced automatically, not on user request.</p>
-</li>
+<li>classify the CV task,</li>
+<li>clarify ambiguity if needed,</li>
+<li>define or ask for the eval gate,</li>
+<li>measure a baseline before training,</li>
+<li>confirm before any paid training or deployment action.</li>
 </ol>
-<p><strong>What this is not:</strong> a capability advantage. Both the plugin and a plain agent with the Roboflow MCP can train, eval, and deploy. The plugin's value is that the discipline is automatic. A live controlled experiment measuring turn-count difference has not yet been run.</p>
+<h2 id="good-starter-prompts">Good Starter Prompts<a class="headerlink" href="#good-starter-prompts" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Count pallets on a conveyor from these 60 sample frames.
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Detect cracks in product photos and report the count per image.
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Read serial numbers from circuit board images and write a local inference script.
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Track shoppers through aisle zones and estimate dwell time from RTSP footage.
+</code></pre></div>
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Read <a href="../use-cases/">Use Cases</a> to choose the right CV route.</li>
+<li>Read <a href="../workflow/">Workflow</a> to understand the eval-first sequence.</li>
+<li>Read <a href="../economics/">CV Economics</a> when the proof is good enough to price.</li>
+<li>Read <a href="../trust/">Trust And Safety</a> for key handling, prose-enforced paid-action gates, and ledger behavior.</li>
+</ul>
 
 
 

@@ -6,17 +6,17 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Benchmark overview for vision-delivery, including measured B1 evidence, fixture-defined B2-B5 routes, and process-efficiency claim boundaries.">
+        <meta name="description" content="How vision-delivery estimates annotation, training, deployment, and managed-vs-DIY computer-vision economics without hiding assumptions.">
       
       
       
-        <link rel="canonical" href="https://borda.github.io/vision-delivery/benchmarks/">
+        <link rel="canonical" href="https://borda.github.io/vision-delivery/economics/">
       
       
-        <link rel="prev" href="../faq/">
+        <link rel="prev" href="../workflow/">
       
       
-        <link rel="next" href="b1-conveyor-detect/">
+        <link rel="next" href="../trust/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Benchmark Comparisons - vision-delivery</title>
+        <title>CV Economics - vision-delivery</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#benchmark-comparisons-plugin-vs-plain-agent" class="md-skip">
+        <a href="#cv-economics" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Benchmark Comparisons
+              CV Economics
             
           </span>
         </div>
@@ -367,10 +367,37 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../economics/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CV Economics
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -386,6 +413,92 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#when-to-invoke" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When To Invoke
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-it-reads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What It Reads
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-it-prices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What It Prices
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deployment-run-rate-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deployment Run-Rate Command
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Rules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision Report
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -448,20 +561,18 @@
       
   
   
-    
   
   
-  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
         
           
           <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
@@ -482,7 +593,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_8">
             <span class="md-nav__icon md-icon"></span>
             
@@ -497,37 +608,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Overview
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../benchmarks/" class="md-nav__link">
         
   
   
@@ -543,70 +627,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#summary-table" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Summary table
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#per-benchmark-links" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Per-benchmark links
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#reproduce-all" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Reproduce all
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-the-plugin-adds-structurally" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What the plugin adds structurally
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -619,7 +639,7 @@
   
   
     <li class="md-nav__item">
-      <a href="b1-conveyor-detect/" class="md-nav__link">
+      <a href="../benchmarks/b1-conveyor-detect/" class="md-nav__link">
         
   
   
@@ -647,7 +667,7 @@
   
   
     <li class="md-nav__item">
-      <a href="b2-classify-or-flag/" class="md-nav__link">
+      <a href="../benchmarks/b2-classify-or-flag/" class="md-nav__link">
         
   
   
@@ -675,7 +695,7 @@
   
   
     <li class="md-nav__item">
-      <a href="b3-track-in-video/" class="md-nav__link">
+      <a href="../benchmarks/b3-track-in-video/" class="md-nav__link">
         
   
   
@@ -703,7 +723,7 @@
   
   
     <li class="md-nav__item">
-      <a href="b4-read-text-ocr/" class="md-nav__link">
+      <a href="../benchmarks/b4-read-text-ocr/" class="md-nav__link">
         
   
   
@@ -731,7 +751,7 @@
   
   
     <li class="md-nav__item">
-      <a href="b5-measure-in-image/" class="md-nav__link">
+      <a href="../benchmarks/b5-measure-in-image/" class="md-nav__link">
         
   
   
@@ -786,10 +806,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#summary-table" class="md-nav__link">
+  <a href="#when-to-invoke" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Summary table
+        When To Invoke
       
     </span>
   </a>
@@ -797,10 +817,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#per-benchmark-links" class="md-nav__link">
+  <a href="#what-it-reads" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Per-benchmark links
+        What It Reads
       
     </span>
   </a>
@@ -808,10 +828,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#reproduce-all" class="md-nav__link">
+  <a href="#what-it-prices" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Reproduce all
+        What It Prices
       
     </span>
   </a>
@@ -819,10 +839,32 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-the-plugin-adds-structurally" class="md-nav__link">
+  <a href="#deployment-run-rate-command" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What the plugin adds structurally
+        Deployment Run-Rate Command
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Rules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decision Report
       
     </span>
   </a>
@@ -849,96 +891,94 @@
   
 
 
-<h1 id="benchmark-comparisons-plugin-vs-plain-agent">Benchmark Comparisons: Plugin vs Plain Agent<a class="headerlink" href="#benchmark-comparisons-plugin-vs-plain-agent" title="Permanent link">&para;</a></h1>
-<p>These benchmarks compare the <code>vision-delivery</code> plugin against a plain Claude Code agent given the same cold prompt and the same Roboflow MCP tool access. A plain agent can reach the same outcomes — but requires the user to know and request each step. The plugin pre-programs the eval-first discipline: threshold committed before model search, baseline measured before training, deploy gated on passing. <strong>Process-efficiency claim, not a capability claim.</strong></p>
-<p>B1 has measured evidence. B2-B5 define benchmark fixtures and acceptance criteria for the other skill routes.</p>
-<hr />
-<h2 id="summary-table">Summary table<a class="headerlink" href="#summary-table" title="Permanent link">&para;</a></h2>
+<h1 id="cv-economics">CV Economics<a class="headerlink" href="#cv-economics" title="Permanent link">&para;</a></h1>
+<p><code>estimate-economics</code> answers the business question behind the proof:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Is this computer-vision workflow worth labeling, training, deploying, or self-hosting?
+</code></pre></div>
+<p>It is deliberately not a sales flow. It can recommend managed deployment, DIY self-hosting, more measurement, or no further spend.</p>
+<h2 id="when-to-invoke">When To Invoke<a class="headerlink" href="#when-to-invoke" title="Permanent link">&para;</a></h2>
+<p>Invoke economics directly:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>/vision-delivery:estimate
+</code></pre></div>
+<p>Use it when:</p>
+<ul>
+<li>the eval has passed,</li>
+<li>the build scope is clear,</li>
+<li>the user wants annotation or training cost,</li>
+<li>the user wants managed-vs-DIY deployment economics,</li>
+<li>the user explicitly accepts a rough estimate before proof is complete.</li>
+</ul>
+<h2 id="what-it-reads">What It Reads<a class="headerlink" href="#what-it-reads" title="Permanent link">&para;</a></h2>
+<p>The economics recipe should inspect:</p>
+<ul>
+<li>sample count,</li>
+<li>labeled/unlabeled split,</li>
+<li>class count,</li>
+<li>annotation format,</li>
+<li>model architecture and size,</li>
+<li>training history,</li>
+<li>stream or request count,</li>
+<li>input resolution,</li>
+<li>uptime requirement,</li>
+<li>existing GPU hardware,</li>
+<li>region preference.</li>
+</ul>
+<h2 id="what-it-prices">What It Prices<a class="headerlink" href="#what-it-prices" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>#</th>
-<th>Problem</th>
-<th>Cold prompt</th>
-<th>Skill</th>
-<th>Evidence</th>
+<th>Cost area</th>
+<th>Source of truth</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>B1</td>
-<td>Conveyor / aerial vehicle count</td>
-<td>"Count vehicles in this overhead camera view"</td>
-<td><code>detect-and-analyze</code></td>
-<td>Measured</td>
+<td>Annotation and QA</td>
+<td>project evidence or user-provided assumption</td>
 </tr>
 <tr>
-<td>B2</td>
-<td>PPE compliance</td>
-<td>"Flag workers not wearing hard hats on this construction site footage"</td>
-<td><code>classify-or-flag</code></td>
-<td>Fixture defined</td>
+<td>Training iterations</td>
+<td>project evidence, previous run history, or explicit input</td>
 </tr>
 <tr>
-<td>B3</td>
-<td>Shopper dwell tracking</td>
-<td>"Track how long shoppers spend in each aisle — I have RTSP streams"</td>
-<td><code>track-and-count</code></td>
-<td>Fixture defined</td>
+<td>Deployment run-rate</td>
+<td><code>scripts/cost_model.py</code> and pricing snapshot</td>
 </tr>
 <tr>
-<td>B4</td>
-<td>OCR extraction</td>
-<td>"Read serial numbers off circuit boards in my manufacturing line"</td>
-<td><code>read-text</code></td>
-<td>Fixture defined</td>
+<td>Managed option</td>
+<td>cost model output or explicit override</td>
 </tr>
 <tr>
-<td>B5</td>
-<td>Measurement</td>
-<td>"Measure crack width in these bridge inspection photos for our maintenance report"</td>
-<td><code>segment-and-analyze</code></td>
-<td>Fixture defined</td>
+<td>DIY option</td>
+<td>GPU, setup, ops, drift, retraining, scaling cliff</td>
 </tr>
 </tbody>
 </table>
-<hr />
-<h2 id="per-benchmark-links">Per-benchmark links<a class="headerlink" href="#per-benchmark-links" title="Permanent link">&para;</a></h2>
+<h2 id="deployment-run-rate-command">Deployment Run-Rate Command<a class="headerlink" href="#deployment-run-rate-command" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python<span class="w"> </span>scripts/cost_model.py<span class="w"> </span>--streams<span class="w"> </span><span class="m">5</span><span class="w"> </span>--fps<span class="w"> </span><span class="m">10</span><span class="w"> </span>--model-size<span class="w"> </span>medium<span class="w"> </span>--uptime<span class="w"> </span>24x7<span class="w"> </span>--region<span class="w"> </span>us-east-1
+</code></pre></div>
+<p>The script uses the committed <code>scripts/PRICING_SNAPSHOT.json</code>. It probes source URL reachability but does not scrape live pricing pages into the result.</p>
+<h2 id="output-rules">Output Rules<a class="headerlink" href="#output-rules" title="Permanent link">&para;</a></h2>
+<p>Every material number should be one of:</p>
 <ul>
-<li><a href="b1-conveyor-detect/">B1 — Conveyor / aerial vehicle count</a></li>
-<li><a href="b2-classify-or-flag/">B2 — PPE compliance (hard hat detection)</a></li>
-<li><a href="b3-track-in-video/">B3 — Shopper dwell tracking (RTSP)</a></li>
-<li><a href="b4-read-text-ocr/">B4 — Serial number OCR extraction</a></li>
-<li><a href="b5-measure-in-image/">B5 — Crack width measurement</a></li>
+<li>sourced and dated,</li>
+<li>derived from the cost model,</li>
+<li>supplied by the user,</li>
+<li>marked as unknown.</li>
 </ul>
-<hr />
-<h2 id="reproduce-all">Reproduce all<a class="headerlink" href="#reproduce-all" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Borda/vision-delivery
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>vision-delivery
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">ROBOFLOW_API_KEY</span><span class="o">=</span>&lt;your-key&gt;
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>claude<span class="w"> </span>--plugin-dir<span class="w"> </span>.<span class="w"> </span><span class="s2">&quot;I have an overhead camera above a parking lot. I need to count vehicles in view.&quot;</span>
-</code></pre></div>
-<p><code>--plugin-dir .</code> must be set. Without it, the skill does not load and the session falls back to the plain-agent path, which is the intended comparison baseline.</p>
-<p>For plain-agent comparison runs:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>claude<span class="w">   </span><span class="c1"># no --plugin-dir flag</span>
-</code></pre></div>
-<p>Send the same cold prompt. Record whether eval was defined, whether a threshold was set, and whether a deployable artifact was produced.</p>
-<hr />
-<h2 id="what-the-plugin-adds-structurally">What the plugin adds structurally<a class="headerlink" href="#what-the-plugin-adds-structurally" title="Permanent link">&para;</a></h2>
-<p>Three steps the plugin automates without requiring the user to ask:</p>
-<ol>
-<li>
-<p><strong>Eval loop execution</strong> — each skill defines a measurable threshold before model selection, runs the eval in-session, and only advances to deploy if the threshold is met.</p>
-</li>
-<li>
-<p><strong>Workflow deploy</strong> — deploy-capable paths can produce a Roboflow endpoint after the eval passes and the user confirms any paid action.</p>
-</li>
-<li>
-<p><strong>Ledger write</strong> — the workflow writes <code>eval_definition.md</code> (threshold + rationale) and result records to <code>.vision-delivery/</code> before deploy. This auditable trail — threshold committed before training, result committed before production — is produced automatically, not on user request.</p>
-</li>
-</ol>
-<p><strong>What this is not:</strong> a capability advantage. Both the plugin and a plain agent with the Roboflow MCP can train, eval, and deploy. The plugin's value is that the discipline is automatic. A live controlled experiment measuring turn-count difference has not yet been run.</p>
+<p>The result should say which assumption changes the recommendation. If labeling is the bottleneck, say that. If self-hosting wins, say that. If managed wins only until a stream-count crossover, state the crossover.</p>
+<h2 id="decision-report">Decision Report<a class="headerlink" href="#decision-report" title="Permanent link">&para;</a></h2>
+<p>After the crossover, the recipe can emit a stakeholder decision report. The report should include:</p>
+<ul>
+<li>recommendation,</li>
+<li>do-nothing baseline,</li>
+<li>managed option,</li>
+<li>DIY option,</li>
+<li>assumptions register,</li>
+<li>source list,</li>
+<li>risk analysis,</li>
+<li>next steps.</li>
+</ul>
 
 
 

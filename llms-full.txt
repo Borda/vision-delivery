@@ -1,0 +1,140 @@
+# vision-delivery full LLM context
+
+> `vision-delivery` is an eval-first Codex and Claude Code plugin for computer-vision delivery. It turns vague image, video, or camera requests into scoped Roboflow proofs of concept with an eval gate, local artifacts, paid-action guardrails, provenance records, and a concrete CV economics decision.
+
+This file is optimized for LLMs and coding agents that need a longer single-file description of the public project. It intentionally excludes secrets, private paths, and unpublished behavior. Use repository files as the source of truth when behavior matters.
+
+## Core Positioning
+
+`vision-delivery` exists for the moment when a user asks something like:
+
+```text
+Can AI count vehicles from this overhead camera?
+```
+
+The plugin does not begin with model shopping. It first clarifies the task, output shape, acceptable failure rate, available samples, and consequence of mistakes. It then defines an eval threshold before model search, measures a pretrained baseline before training, and only proposes paid actions after the evidence says they are needed.
+
+The plugin's value is process discipline:
+
+1. Read the project and sample data.
+2. Classify the CV task.
+3. Define the eval before model selection.
+4. Measure a pretrained or Universe baseline.
+5. Improve in cost order.
+6. Ask for explicit user confirmation before training or deployment spend.
+7. Write local proof artifacts.
+8. Estimate project economics when the model is worth taking further.
+9. Record provenance in `.vision-delivery/ledger.jsonl`.
+
+## Install Summary
+
+Codex:
+
+```bash
+codex plugin marketplace add https://github.com/Borda/vision-delivery
+codex plugin add vision-delivery@vision-delivery
+export ROBOFLOW_API_KEY=your_key_here
+```
+
+Claude Code:
+
+```bash
+claude plugin install https://github.com/Borda/vision-delivery
+echo "ROBOFLOW_API_KEY=your_key_here" >> .env
+echo ".env" >> .gitignore
+```
+
+The Roboflow API key must be available to the process that starts the Roboflow MCP server. Never paste the key into chat.
+
+## Canonical Entry Points
+
+`skills/solve-cv-task/` is the canonical CV task router. Claude Code exposes the same behavior through `agents/cv-problem-solver.md`, which is intentionally a thin adapter.
+
+`skills/estimate-economics/` is the canonical CV economics recipe. Claude Code exposes the same behavior through `agents/economics-consultant.md`, also as a thin adapter.
+
+## Specialist Skill Routes
+
+| Skill                       | Use when the user asks for                 | Primary measurements                      |
+| --------------------------- | ------------------------------------------ | ----------------------------------------- |
+| `detect-and-analyze`        | object detection, counting, per-box crops  | mAP@50, count MAE                         |
+| `classify-or-flag`          | image-level pass/fail, compliance, defects | precision, recall, F1                     |
+| `track-and-count`           | identity tracking, dwell time, line-cross  | MOTA, dwell time MAE, line-cross counts   |
+| `read-text`                 | OCR, serial numbers, labels, barcodes      | field match rate, CER, latency            |
+| `segment-and-analyze`       | masks, contours, area/width measurement    | mask mAP, IoU, area or width error        |
+| `recognize-pose-or-gesture` | keypoints, posture, gestures, actions      | OKS mAP, gesture recall                   |
+| `decompose-to-pipeline`     | multi-step visual monitoring or pipelines  | typed artifacts between specialist routes |
+
+## Workflow Details
+
+The solver starts by reading relevant files, sample data, annotation exports, and user constraints. It classifies the output modality before selecting a route:
+
+- boxes: object instances, counts, crops, per-box metadata
+- masks: pixel-precise outlines, area, shape
+- tracks: identity-linked trajectories, line-cross, dwell time
+- keypoints: pose, posture, gestures, action
+- label: image-level category or pass/fail verdict
+- text: OCR and structured field extraction
+
+Each route defines its eval metric and threshold before model search. If a pretrained model passes, the plugin stops early and writes the proof. If it fails, the route tries the cheapest next lever first. Skills instruct the agent to ask for explicit confirmation before training and deployment-class actions; this is not a hard runtime block.
+
+## CV Economics
+
+Invoke economics with:
+
+```text
+/vision-delivery:estimate
+```
+
+The economics recipe separates one-time project effort from run-rate costs:
+
+- annotation and QA assumptions
+- training/eval iteration assumptions
+- deployment run-rate from streams, FPS, uptime, region, model size, and existing GPU availability
+- managed-vs-DIY recommendation and crossover
+
+Deployment run-rate is calculated by `scripts/cost_model.py` using committed pricing snapshots. The script probes source reachability but does not scrape live pricing pages into the result. Annotation and training costs must come from project evidence, user-provided assumptions, or be marked unknown.
+
+## Artifacts And Provenance
+
+Expected local artifacts include:
+
+- `eval_definition.md`: eval threshold and rationale
+- `.vision-delivery/detections.jsonl`: detection handoff records
+- `.vision-delivery/ledger.jsonl`: train, eval, deployment, and economics records
+- generated local PoC scripts when the active skill produces them
+
+The PostToolUse hook in `hooks/cta.js` records selected Roboflow train, eval, and deploy events. It writes local JSONL records and does not make network calls.
+
+## Benchmarks And Evidence
+
+Benchmarks live under `docs/benchmarks/`.
+
+- B1: measured `detect-and-analyze` vehicle-counting path. The benchmark includes a pretrained baseline and post-train result.
+- B2: fixture-defined PPE compliance route, live measurements pending.
+- B3: fixture-defined shopper tracking / dwell route, live measurements pending.
+- B4: fixture-defined OCR extraction route, live measurements pending.
+- B5: fixture-defined crack measurement route, live measurements pending.
+
+Important caveat: the plugin-vs-plain-agent comparison is a process-efficiency claim, not a model-quality claim. A plain agent with the same Roboflow MCP tools can reach comparable model metrics if it performs the same steps. The plugin makes the careful sequence automatic.
+
+## Security And Safety
+
+- Keep `ROBOFLOW_API_KEY` out of chat.
+- Store keys in the host environment or `.env`.
+- Skills instruct the agent to ask before paid Roboflow training and deployment-class calls; the consent gate is prose-enforced, not runtime-enforced.
+- Pricing claims must be sourced, dated, or clearly labeled as assumptions.
+- `llms.txt` and `llms-full.txt` are public and must never include secrets, customer data, private paths, or unpublished internal behavior.
+
+## Important Public URLs
+
+- Documentation: https://borda.github.io/vision-delivery/
+- Quick start: https://borda.github.io/vision-delivery/quickstart/
+- Use cases: https://borda.github.io/vision-delivery/use-cases/
+- Workflow: https://borda.github.io/vision-delivery/workflow/
+- CV economics: https://borda.github.io/vision-delivery/economics/
+- Trust and safety: https://borda.github.io/vision-delivery/trust/
+- FAQ: https://borda.github.io/vision-delivery/faq/
+- Benchmarks: https://borda.github.io/vision-delivery/benchmarks/
+- Compact LLM map: https://borda.github.io/vision-delivery/llms.txt
+- Repository: https://github.com/Borda/vision-delivery
+- Security policy: https://github.com/Borda/vision-delivery/blob/main/SECURITY.md
