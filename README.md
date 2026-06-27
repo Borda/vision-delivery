@@ -6,6 +6,8 @@
 
 It is built for the moment when someone says, "Can AI count this from camera footage?" and the real work is still undefined: what object is being counted, what failure rate is acceptable, whether a pretrained model is enough, what a miss costs, how much labeling or training is justified, and whether the project economics make sense. The plugin keeps that work in order so the session does not drift into model shopping before the problem is actually measured.
 
+It is intentionally not a replacement for Roboflow's platform source of truth. Use Roboflow's local skills or MCP-provided skill resources when the question is "how do I use this Roboflow API, model family, Workflow, or platform page?" Use `vision-delivery` when the question is "what should we build, how do we prove it works, and what decision does the proof support?"
+
 ```mermaid
 flowchart LR
     A[Messy CV request] --> B[Read project and samples]
@@ -79,6 +81,10 @@ Find parked vehicles in drone imagery and write a local inference script.
 Computer-vision failures are often process failures before they are model failures. A team can spend credits, label data, or deploy infrastructure while still being unclear about the target object, the pass/fail metric, or the cost of mistakes.
 
 `vision-delivery` adds guardrails around those decisions. It does not promise magical accuracy. A careful human using the same Roboflow tools can reach the same model metrics. The value is that the careful sequence becomes the default: read the project, classify the task, define success, measure a baseline, improve only where needed, and make the deployment choice with numbers in front of you.
+
+This is the main difference from [`roboflow/computer-vision-skills`](https://github.com/roboflow/computer-vision-skills). Roboflow's source should own product truth: live MCP tools, MCP skill resources when available, local plugin skills when installed, platform navigation, model IDs, Workflows, inference modes, training options, and current pricing guidance. `vision-delivery` should own delivery discipline: task framing, eval gates, local proof artifacts, provenance, and project economics. Duplicating Roboflow's platform recipes here would make this package less useful, not more useful, because the copied guidance would drift from the source that users should trust.
+
+See the docs page [Roboflow Skills Integration](https://borda.github.io/vision-delivery/roboflow-skills/) for when this plugin can partially replace Roboflow's skills and when it should defer to them.
 
 | Common failure mode                            | What `vision-delivery` enforces                                                                                     |
 | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |

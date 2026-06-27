@@ -26,6 +26,21 @@ The plugin's value is process discipline:
 8. Estimate project economics when the model is worth taking further.
 9. Record provenance in `.vision-delivery/ledger.jsonl`.
 
+## Relationship To Roboflow MCP And computer-vision-skills
+
+`vision-delivery` overlaps with Roboflow MCP and Roboflow's official [`computer-vision-skills`](https://github.com/roboflow/computer-vision-skills) plugin, but it should not copy that repository's platform-reference skills.
+
+The intended split is:
+
+- Roboflow's source owns product truth: live MCP tools, MCP-provided skill resources when available, local plugin skills when installed, platform navigation, model families, model IDs, Workflows, inference modes, training options, Universe, account plans, and pricing references.
+- `vision-delivery` owns delivery discipline: task framing, eval gates, baseline-first proof, local artifacts, consent prompts before spend, ledger records, and project economics.
+
+`vision-delivery` can partially replace Roboflow's skills when the user needs problem-solving workflow rather than product navigation. It should defer to Roboflow's local skills or MCP skill resources for platform-specific questions such as exact model IDs, Workflow authoring, current plan limits, UI paths, and MCP tool semantics.
+
+Platform lookup order: use local Roboflow plugin skills first, then Roboflow MCP skill resources such as `roboflow://skills/inference/...` when the client exposes them, then ask the user to install Roboflow's official plugin or mark platform-specific guidance unverified.
+
+If both skill sets are available, start with `vision-delivery` for framing, eval definition, proof artifacts, and economics. Use Roboflow MCP tools for live operations. Use local Roboflow skills or MCP skill resources for platform-specific implementation details. Return to `vision-delivery` to judge whether the result passes the eval gate and what decision follows.
+
 ## Install Summary
 
 Codex:
@@ -134,6 +149,7 @@ Important caveat: the plugin-vs-plain-agent comparison is a process-efficiency c
 - CV economics: https://borda.github.io/vision-delivery/economics/
 - Trust and safety: https://borda.github.io/vision-delivery/trust/
 - FAQ: https://borda.github.io/vision-delivery/faq/
+- Roboflow skills integration: https://borda.github.io/vision-delivery/roboflow-skills/
 - Benchmarks: https://borda.github.io/vision-delivery/benchmarks/
 - Compact LLM map: https://borda.github.io/vision-delivery/llms.txt
 - Repository: https://github.com/Borda/vision-delivery

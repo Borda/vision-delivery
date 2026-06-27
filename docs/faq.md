@@ -13,6 +13,16 @@ title: FAQ
 
 No. It is a plugin and workflow layer around Roboflow MCP tools and local scripts. Its value is process discipline: classify the task, define the eval, measure a baseline, improve in cost order, and record provenance.
 
+## Does This Replace Roboflow MCP Or computer-vision-skills?
+
+No for MCP, partially for skills. `vision-delivery` bundles Roboflow MCP configuration because it needs live Roboflow operations. It can replace generic "what should we build and how do we prove it?" guidance because it owns task framing, eval gates, local artifacts, ledger records, and economics. It should not replace Roboflow's product-reference guidance for model IDs, Workflows, platform navigation, pricing pages, or exact MCP tool behavior.
+
+Read [Roboflow Skills Integration](roboflow-skills.md) for the recommended split.
+
+## Should This Repository Port Roboflow's Skills?
+
+No, not wholesale. Porting Roboflow's platform recipes would create stale duplicate guidance. Prefer this order for platform-specific questions: installed [`roboflow/computer-vision-skills`](https://github.com/roboflow/computer-vision-skills) skills, then MCP skill resources such as `roboflow://skills/inference/...` when the client exposes them, then ask the user to install Roboflow's official plugin or mark the answer unverified. Return to `vision-delivery` for eval-gated proof and economics decisions.
+
 ## Does It Guarantee Better Model Accuracy?
 
 No. The docs intentionally do not claim a model-quality advantage. A plain agent with the same Roboflow MCP tools can reach comparable model metrics if it performs the same sequence. The plugin makes that careful sequence the default.

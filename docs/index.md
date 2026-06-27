@@ -35,9 +35,9 @@ Computer-vision projects often fail before the model fails. The request starts a
 
     A plain agent with Roboflow MCP access can train, evaluate, and deploy. The plugin's value is not magic accuracy. The value is that eval-first discipline, cost ordering, provenance, and safety gates are built into the workflow instead of depending on the user to ask for them.
 
-!!! tip "How this relates to Roboflow's official skills"
+!!! tip "How this relates to Roboflow MCP and official skills"
 
-    Roboflow's [`computer-vision-skills`](https://github.com/roboflow/computer-vision-skills) plugin should own product truth: platform navigation, Workflows, model IDs, inference modes, training options, and pricing references. `vision-delivery` owns delivery discipline: problem framing, eval gates, local proof artifacts, provenance, and economics. Read [Roboflow Skills Integration](roboflow-skills.md) before treating one package as a full replacement for the other.
+    Roboflow's source should own product truth: live MCP tools, MCP-provided skill resources when available, local [`computer-vision-skills`](https://github.com/roboflow/computer-vision-skills) plugin skills when installed, platform navigation, Workflows, model IDs, inference modes, training options, and pricing references. `vision-delivery` owns delivery discipline: problem framing, eval gates, local proof artifacts, provenance, and economics. Read [Roboflow Skills Integration](roboflow-skills.md) before treating one package as a full replacement for the other.
 
 ## Quick Start
 
@@ -240,15 +240,15 @@ Read [Trust And Safety](trust.md) for key handling, prose-enforced paid-action g
 
 ## Deep Dives
 
-| Page                         | Use it when you need                                       |
-| ---------------------------- | ---------------------------------------------------------- |
-| [Quick Start](quickstart.md) | install commands, key setup, first prompt examples         |
-| [Use Cases](use-cases.md)    | route selection by output type and eval metric             |
-| [Workflow](workflow.md)      | the eval-first delivery sequence and artifact lifecycle    |
-| [CV Economics](economics.md) | annotation, training, deployment, and DIY/managed tradeoff |
-| [Roboflow Skills](roboflow-skills.md) | when to use this plugin, Roboflow's official skills, or both |
-| [Trust](trust.md)            | API keys, prose-enforced spend gates, ledger behavior      |
-| [FAQ](faq.md)                | fast answers for humans, search engines, and agents        |
+| Page                                  | Use it when you need                                                  |
+| ------------------------------------- | --------------------------------------------------------------------- |
+| [Quick Start](quickstart.md)          | install commands, key setup, first prompt examples                    |
+| [Use Cases](use-cases.md)             | route selection by output type and eval metric                        |
+| [Workflow](workflow.md)               | the eval-first delivery sequence and artifact lifecycle               |
+| [CV Economics](economics.md)          | annotation, training, deployment, and DIY/managed tradeoff            |
+| [Roboflow Skills](roboflow-skills.md) | when to use this plugin, Roboflow MCP, local skills, or MCP resources |
+| [Trust](trust.md)                     | API keys, prose-enforced spend gates, ledger behavior                 |
+| [FAQ](faq.md)                         | fast answers for humans, search engines, and agents                   |
 
 ## Agent-Friendly Map
 

@@ -2,7 +2,15 @@
 
 Skills reference these tables instead of duplicating them. Each skill adds only the modality-specific decision rules in its own SKILL.md.
 
-Do not guess or invent model_id values — training fails silently on a wrong ID. Source of truth: `roboflow://skills/training-and-evaluation`.
+Do not guess or invent `model_id` values — training fails silently on a wrong ID.
+
+Roboflow platform lookup order:
+
+1. Local Roboflow plugin skill `roboflow:training-and-evaluation`, if available.
+2. MCP skill resource `roboflow://skills/training-and-evaluation/...`, if the client exposes MCP resources and the user is authenticated.
+3. This file as a stable fallback only. Validate volatile model IDs before `models_train` or mark them unverified if validation is unavailable.
+
+See `skills/_shared/roboflow-platform-lookup.md` for the full platform adapter table.
 
 ## Object Detection
 

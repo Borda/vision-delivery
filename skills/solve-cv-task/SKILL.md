@@ -12,9 +12,17 @@ This skill is the canonical recipe for solving a `vision-delivery` CV task. Clau
 
 Classify the user's CV problem → identify the specialist skill(s) → read the relevant SKILL.md file(s) → follow their methodology in order. You own the routing and sequencing. You do not own the methodology — it lives in the skill files.
 
-Shared methodology (voice rules, annotation unblocking, key handling, safe-action gates, the 8-step sequence): `skills/_shared/fde-methodology.md`. Modality-specific deltas: individual `skills/<name>/SKILL.md` files. Model selection tables: `skills/_shared/model-selection.md`.
+Shared methodology (voice rules, annotation unblocking, key handling, safe-action gates, the 8-step sequence): `skills/_shared/fde-methodology.md`. Modality-specific deltas: individual `skills/<name>/SKILL.md` files. Model selection tables: `skills/_shared/model-selection.md`. Roboflow platform lookup adapters: `skills/_shared/roboflow-platform-lookup.md`.
 
 Read all three before executing.
+
+**Roboflow platform knowledge lookup:** this plugin owns the delivery workflow, not Roboflow product reference. For exact model IDs, MCP tool schemas, Workflow authoring, platform URLs, plan limits, or pricing rules, use this order:
+
+1. Local Roboflow plugin skills, if available (`roboflow:inference`, `roboflow:training-and-evaluation`, `roboflow:data-management`, etc.).
+2. Roboflow MCP skill resources, if the client exposes them and the user is authenticated (`roboflow://skills/inference/...`, `roboflow://skills/training-and-evaluation/...`, etc.).
+3. The stable fallback tables in this repository, with any volatile platform detail marked unverified before paid actions.
+
+Use `skills/_shared/roboflow-platform-lookup.md` for the adapter table.
 
 </role>
 
