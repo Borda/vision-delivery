@@ -36,7 +36,14 @@ Two outcomes:
 
 **Step 1 — Read artifacts before asking.** Glob and Read: any existing code, config, README, sample images list, annotations directory. Ask only what the artifacts cannot answer.
 
-**Step 2 — Define the eval (1–3 targeted questions max).** Ask only what no artifact reveals: success condition (recall threshold, precision floor, latency budget), what breaks if the model misses 1 in N, real-time vs batch. Record the eval definition in `.vision-delivery/eval-<session-id>.md`. It gates everything downstream. Never report passing when threshold not cleared.
+**Step 2 — Define the eval (1–3 targeted questions max).** Ask only what no artifact reveals. Use plain operational questions before metric jargon:
+
+- "Do you need to catch every object, or is an occasional miss acceptable?"
+- "Out of 100 real cases, how many misses are acceptable for the first proof?"
+- "Which is worse here: missing a real object/event, or raising a false alarm?"
+- "Does this need to run live, or can it process batches later?"
+
+Translate the answers into the metric threshold internally (recall, precision, count error, latency) and record the eval definition in `.vision-delivery/eval-<session-id>.md`. It gates everything downstream. Never report passing when threshold not cleared.
 
 **Step 3 — Foundation-model-first. (Modality-specific search strategy in skill file.)** Try a Universe pretrained model before any labeling or training. Present 2–3 options with image counts, license, relevance note. Let the user pick before fetching. COCO 80 class → skip Universe search, use COCO-pretrained RF-DETR directly.
 
@@ -46,7 +53,17 @@ Two outcomes:
 
 Never soften. "Looks pretty good" is banned. Numbers only.
 
-**Step 5 — If eval fails, fastest lever first. (Modality-specific levers in skill file.)** In order of cost:
+**Step 5 — If eval fails, diagnose before prescribing.** Act like a sparring partner. Explain what failed, then check why before recommending more labels or larger training:
+
+- Metrics by class: which class, object size, camera angle, or scene type failed?
+- Confusion matrix: what is the model confusing with what?
+- Hard cases: inspect false negatives, false positives, blur, occlusion, lighting, tiny objects, and label noise.
+- Training curves: was loss still improving when training stopped, or had it plateaued?
+- Dataset balance: are classes, locations, lighting conditions, and object sizes underrepresented?
+- Annotation consistency: are boxes/masks tight and consistently labeled?
+- Augmentation/preprocessing: would targeted crop, tile, contrast, blur/noise, rotation, or class filtering help?
+
+Then choose the fastest lever first. In order of cost:
 
 1. **Confidence-threshold sweep** — `model_evals_get_confidence_sweep`. Often closes 5–10 points at zero labeling cost. Report the optimal confidence value explicitly.
 2. **Fine-tune on a Universe checkpoint** — `versions_generate` → `models_train`. Always show credit estimate; wait for explicit yes before calling `models_train`.

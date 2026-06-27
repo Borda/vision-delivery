@@ -2,7 +2,7 @@
 
 [![Docs](https://img.shields.io/badge/docs-online-0F766E.svg)](https://borda.github.io/vision-delivery/) [![docs](https://github.com/Borda/vision-delivery/actions/workflows/docs.yml/badge.svg)](https://github.com/Borda/vision-delivery/actions/workflows/docs.yml) [![evals](https://github.com/Borda/vision-delivery/actions/workflows/evals.yml/badge.svg)](https://github.com/Borda/vision-delivery/actions/workflows/evals.yml) [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-`vision-delivery` is a Codex and Claude Code plugin for the messy part of computer vision: turning a vague operational request into a scoped Roboflow proof of concept with an eval gate, local artifacts, and a concrete economics decision.
+`vision-delivery` is a Codex and Claude Code plugin for the messy part of computer vision: turning a vague operational request into a scoped Roboflow proof of concept with a clear success check, local artifacts, and a concrete economics decision.
 
 It is built for the moment when someone says, "Can AI count this from camera footage?" and the real work is still undefined: what object is being counted, what failure rate is acceptable, whether a pretrained model is enough, what a miss costs, how much labeling or training is justified, and whether the project economics make sense. The plugin keeps that work in order so the session does not drift into model shopping before the problem is actually measured.
 
@@ -12,7 +12,7 @@ It is intentionally not a replacement for Roboflow's platform source of truth. U
 flowchart LR
     A[Messy CV request] --> B[Read project and samples]
     B --> C[Classify the task]
-    C --> D[Define the eval gate]
+    C --> D[Define the success check]
     D --> E[Measure a pretrained baseline]
     E --> F{Passes?}
     F -->|yes| G[Write local PoC artifacts]
@@ -67,16 +67,16 @@ Find parked vehicles in drone imagery and write a local inference script.
 
 ## 📣 Share Your Use Case
 
-Have a real camera, image, or video problem? [Share your use case](https://github.com/Borda/vision-delivery/issues/new?template=use-case.yml) to get help turning it into a concrete CV route, eval gate, and first proof. If your work is public, the issue can also point back to your project, dataset, company, paper, demo, or field problem so others can discover it.
+Have a real camera, image, or video problem? [Share your use case](https://github.com/Borda/vision-delivery/issues/new?template=use-case.yml) to get help turning it into a concrete CV route, success check, and first proof. If your work is public, the issue can also point back to your project, dataset, company, paper, demo, or field problem so others can discover it.
 
 Use the template to describe what you need to inspect, count, read, track, measure, or decide from images and video. Keep the issue public-safe: do not include secrets, API keys, private customer data, faces, license plates, medical data, or media you are not allowed to share.
 
 ## ✨ Features
 
 - **Problem-first routing:** `solve-cv-task` separates object-instance detection and counting from other CV intents before any model search starts. Claude Code exposes the same recipe through the `cv-problem-solver` role.
-- **Eval-first workflow:** the plugin asks for a success threshold, records the eval definition, and uses that threshold as the gate for model choice, tuning, training, and deployment advice.
+- **Eval-first workflow:** the plugin asks practical success questions first: do you need to catch every object, how many misses are acceptable, and which error is worse?
 - **Pretrained baseline before training:** Roboflow MCP and Universe candidates are checked before labeling or training so an existing model can win quickly when it is good enough.
-- **Cheapest improvement first:** when a baseline misses the eval gate, the workflow tries threshold tuning before fine-tuning, and fine-tuning before larger data work.
+- **Model-improvement sparring partner:** when a model misses the target, the workflow checks metrics, loss curves, confusion matrix, hard cases, class balance, augmentation, then data or training.
 - **Explicit credit gate:** skills instruct the agent to ask for confirmation with a cost preview before training or deployment-class actions.
 - **Local proof artifacts:** the detection workflow is designed to leave a runnable `detect_analyze.py`, an `eval_definition.md`, and `.vision-delivery/` records instead of only a chat transcript.
 - **Audit trail:** `hooks/cta.js` records selected Roboflow train, eval, and deploy events to `.vision-delivery/ledger.jsonl` for later reporting.
@@ -86,16 +86,16 @@ Use the template to describe what you need to inspect, count, read, track, measu
 
 Computer-vision failures are often process failures before they are model failures. A team can spend credits, label data, or deploy infrastructure while still being unclear about the target object, the pass/fail metric, or the cost of mistakes.
 
-`vision-delivery` adds guardrails around those decisions. It does not promise magical accuracy. A careful human using the same Roboflow tools can reach the same model metrics. The value is that the careful sequence becomes the default: read the project, classify the task, define success, measure a baseline, improve only where needed, and make the deployment choice with numbers in front of you.
+`vision-delivery` adds guardrails around those decisions. It does not promise magical accuracy. A careful human using the same Roboflow tools can reach the same model metrics. The value is that the careful sequence becomes the default: read the project, classify the task, define success, measure a baseline, investigate misses, improve only where needed, and make the deployment choice with numbers in front of you.
 
-This is the main difference from [`roboflow/computer-vision-skills`](https://github.com/roboflow/computer-vision-skills). Roboflow's source should own product truth: live MCP tools, MCP skill resources when available, local plugin skills when installed, platform navigation, model IDs, Workflows, inference modes, training options, and current pricing guidance. `vision-delivery` should own delivery discipline: task framing, eval gates, local proof artifacts, provenance, and project economics. Duplicating Roboflow's platform recipes here would make this package less useful, not more useful, because the copied guidance would drift from the source that users should trust.
+This is the main difference from [`roboflow/computer-vision-skills`](https://github.com/roboflow/computer-vision-skills). Roboflow's source should own product truth: live MCP tools, MCP skill resources when available, local plugin skills when installed, platform navigation, model IDs, Workflows, inference modes, training options, and current pricing guidance. `vision-delivery` should own delivery discipline: task framing, success checks, local proof artifacts, provenance, and project economics. Duplicating Roboflow's platform recipes here would make this package less useful, not more useful, because the copied guidance would drift from the source that users should trust.
 
 See the docs page [Roboflow Skills Integration](https://borda.github.io/vision-delivery/roboflow-skills/) for when this plugin can partially replace Roboflow's skills and when it should defer to them.
 
 | Common failure mode                            | What `vision-delivery` enforces                                                                                     |
 | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | The user asks for "AI" instead of a CV task.   | The router narrows the request to a concrete detection/counting job.                                                |
-| Success is judged after seeing a demo.         | The eval gate is defined before model search or training.                                                           |
+| Success is judged after seeing a demo.         | The success check is defined before model search or training.                                                       |
 | Training starts before a baseline is measured. | Pretrained candidates are measured first.                                                                           |
 | Paid actions happen too casually.              | Skills instruct the agent to ask before credit use and record selected train/deploy events afterward.               |
 | Results live only in chat history.             | Artifacts and ledger entries are written locally.                                                                   |
@@ -107,9 +107,9 @@ The workflow is intentionally conservative because the expensive mistake is solv
 
 1. **Read the context:** inspect relevant files, sample images, annotations, and user constraints.
 2. **Classify the CV job:** decide whether the request is object detection/counting and clarify ambiguous wording.
-3. **Define the eval:** capture the metric, threshold, dataset slice, and consequence of failure.
+3. **Define success:** ask guiding questions: do misses matter more than false alarms, how many misses are acceptable, and how fast does it need to run?
 4. **Measure a baseline:** try pretrained or Universe candidates and report exact metrics against the gate.
-5. **Improve in cost order:** tune confidence thresholds, then consider fine-tuning with confirmation, then recommend data work only when needed.
+5. **Investigate misses:** review metrics, loss curves, confusion matrix, hard cases, class balance, and augmentation before recommending more data or training.
 6. **Write the PoC:** produce local inference and eval artifacts the user can inspect or run.
 7. **Estimate economics:** compare annotation, training, managed deployment, and self-hosting assumptions when the model is worth taking further.
 8. **Record provenance:** append ledger rows for train, eval, and deploy events so reporting can reconstruct what happened.
@@ -120,13 +120,13 @@ The expected interaction is short, concrete, and metric-driven:
 
 > User: "Count cracked items on my packaging line. I have 40 sample images."
 >
-> Plugin: "This is an object-instance detection/counting task: one box per visible crack, count per image. What recall floor do you need?"
+> Plugin: "This is an object-instance detection/counting task: one box per visible crack, count per image. Do you need to catch nearly every crack, or is an occasional miss acceptable?"
 >
-> User: "80% recall. A missed crack reaches the customer."
+> User: "A missed crack reaches the customer. Missing up to 2 in 10 during the first proof is acceptable."
 >
-> Plugin: "Eval defined: recall >= 80% on your 40 images. Measuring a pretrained candidate."
+> Plugin: "Success check defined: catch at least 8 of 10 visible cracks on your 40 images. Measuring a pretrained candidate."
 >
-> Plugin: "Baseline result: 74% recall. Fastest lever is a confidence threshold sweep."
+> Plugin: "Baseline catches about 7 of 10 cracks. That misses the target. First I will check the confidence threshold and hard cases."
 >
 > Plugin: "Best threshold reaches 83% recall. Eval passes. Writing the local PoC and ledger entry."
 
@@ -142,7 +142,7 @@ See [benchmark docs](docs/benchmarks/index.md) for the benchmark definitions and
 
 ## 💸 CV Economics
 
-After a model passes the eval gate, invoke the economics consultant directly:
+After a model passes the success check, invoke the economics consultant directly:
 
 ```text
 /vision-delivery:estimate

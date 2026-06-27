@@ -7,7 +7,7 @@ title: FAQ
 
 ## What Is vision-delivery?
 
-`vision-delivery` is a Codex and Claude Code plugin for eval-first computer-vision delivery. It turns vague image, video, or camera requests into scoped Roboflow proofs of concept with eval gates, local artifacts, paid-action guardrails, and CV economics decisions.
+`vision-delivery` is a Codex and Claude Code plugin for eval-first computer-vision delivery. It turns vague image, video, or camera requests into scoped Roboflow proofs of concept with clear success checks, local artifacts, paid-action guardrails, and CV economics decisions.
 
 ## Is This A Model?
 
@@ -15,17 +15,17 @@ No. It is a plugin and workflow layer around Roboflow MCP tools and local script
 
 ## Does This Replace Roboflow MCP Or computer-vision-skills?
 
-No for MCP, partially for skills. `vision-delivery` bundles Roboflow MCP configuration because it needs live Roboflow operations. It can replace generic "what should we build and how do we prove it?" guidance because it owns task framing, eval gates, local artifacts, ledger records, and economics. It should not replace Roboflow's product-reference guidance for model IDs, Workflows, platform navigation, pricing pages, or exact MCP tool behavior.
+No for MCP, partially for skills. `vision-delivery` bundles Roboflow MCP configuration because it needs live Roboflow operations. It can replace generic "what should we build and how do we prove it?" guidance because it owns task framing, success checks, local artifacts, ledger records, and economics. It should not replace Roboflow's product-reference guidance for model IDs, Workflows, platform navigation, pricing pages, or exact MCP tool behavior.
 
 Read [Roboflow Skills Integration](roboflow-skills.md) for the recommended split.
-
-## Should This Repository Port Roboflow's Skills?
-
-No, not wholesale. Porting Roboflow's platform recipes would create stale duplicate guidance. Prefer this order for platform-specific questions: installed [`roboflow/computer-vision-skills`](https://github.com/roboflow/computer-vision-skills) skills, then MCP skill resources such as `roboflow://skills/inference/...` when the client exposes them, then ask the user to install Roboflow's official plugin or mark the answer unverified. Return to `vision-delivery` for eval-gated proof and economics decisions.
 
 ## Does It Guarantee Better Model Accuracy?
 
 No. The docs intentionally do not claim a model-quality advantage. A plain agent with the same Roboflow MCP tools can reach comparable model metrics if it performs the same sequence. The plugin makes that careful sequence the default.
+
+## What If The Model Does Not Hit The Target?
+
+The plugin should act like a sparring partner, not jump straight to "label more images." First it checks what failed: which classes were confused, which examples were hard, whether training was still improving when it stopped, whether classes are balanced, whether annotations are consistent, and whether targeted augmentation or threshold tuning can close the gap.
 
 ## Which Hosts Are Supported?
 
@@ -64,7 +64,3 @@ Depending on the route, expected local files include:
 ## What Is Measured Today?
 
 B1 has measured evidence. B2-B5 are fixture-defined and pending live measurements. Read [Benchmarks](benchmarks/index.md) for the exact status and caveats.
-
-## What Is llms.txt?
-
-`llms.txt` is an emerging Markdown convention for giving LLMs and coding agents a compact map of a site. It is not a formal ranking standard. This project publishes [`llms.txt`](llms.txt) and a longer [`llms-full.txt`](llms-full.txt) as agent-friendly discovery aids.

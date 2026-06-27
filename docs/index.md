@@ -9,13 +9,13 @@ title: Solve real CV tasks with measured proof
   <p class="vd-kicker">Codex and Claude Code plugin for real computer-vision delivery</p>
   <p class="vd-title">vision-delivery</p>
   <p class="vd-lede">
-    <strong>vision-delivery</strong> turns a vague camera, image, or video request into a scoped Roboflow proof of concept with an eval gate, local artifacts, paid-action guardrails, and a concrete economics decision.
+    <strong>vision-delivery</strong> turns a vague camera, image, or video request into a scoped Roboflow proof of concept with a clear success check, local artifacts, paid-action guardrails, and a concrete economics decision.
   </p>
   <p class="vd-actions">
     <a class="vd-button" href="#quick-start">Quick start</a>
     <a class="vd-button" href="#features">See features</a>
     <a class="vd-button" href="benchmarks/">Benchmark evidence</a>
-    <a class="vd-button vd-button-primary" href="https://github.com/Borda/vision-delivery/issues/new?template=use-case.yml">Share your use case</a>
+    <a class="vd-button" href="https://github.com/Borda/vision-delivery/issues/new?template=use-case.yml">Share your use case</a>
   </p>
 </section>
 
@@ -30,7 +30,7 @@ title: Solve real CV tasks with measured proof
 
 Computer-vision projects often fail before the model fails. The request starts as "Can AI count this?" but the real decision is still missing: which object counts, what error rate is acceptable, whether a pretrained model is enough, what a missed detection costs, and whether labeling, training, or deployment is economically justified.
 
-`vision-delivery` makes that careful sequence the default. It reads the project, classifies the CV task, defines the eval before model search, tries the cheapest useful baseline, confirms before paid actions, writes local proof artifacts, and leaves a ledger so the work can be audited later.
+`vision-delivery` makes that careful sequence the default. It reads the project, classifies the CV task, defines success before model search, tries the cheapest useful baseline, investigates misses like a sparring partner, confirms before paid actions, writes local proof artifacts, and leaves a ledger so the work can be audited later.
 
 !!! note "The value proposition"
 
@@ -38,7 +38,7 @@ Computer-vision projects often fail before the model fails. The request starts a
 
 !!! tip "How this relates to Roboflow MCP and official skills"
 
-    Roboflow's source should own product truth: live MCP tools, MCP-provided skill resources when available, local [`computer-vision-skills`](https://github.com/roboflow/computer-vision-skills) plugin skills when installed, platform navigation, Workflows, model IDs, inference modes, training options, and pricing references. `vision-delivery` owns delivery discipline: problem framing, eval gates, local proof artifacts, provenance, and economics. Read [Roboflow Skills Integration](roboflow-skills.md) before treating one package as a full replacement for the other.
+    Roboflow's source should own product truth: live MCP tools, MCP-provided skill resources when available, local [`computer-vision-skills`](https://github.com/roboflow/computer-vision-skills) plugin skills when installed, platform navigation, Workflows, model IDs, inference modes, training options, and pricing references. `vision-delivery` owns delivery discipline: problem framing, success checks, local proof artifacts, provenance, and economics. Read [Roboflow Skills Integration](roboflow-skills.md) before treating one package as a full replacement for the other.
 
 ## Quick Start
 
@@ -79,7 +79,7 @@ Read the full [Quick Start](quickstart.md) for setup, key handling, first prompt
 
 !!! tip "Share your use case"
 
-    Have a real camera, image, or video problem? [Create a use-case issue](https://github.com/Borda/vision-delivery/issues/new?template=use-case.yml) to get help turning it into a concrete route, eval gate, and first proof. If your work is public, link your project, dataset, company, paper, demo, or field problem so others can discover it. Do not include secrets, API keys, private customer data, faces, license plates, medical data, or media you are not allowed to share.
+    Have a real camera, image, or video problem? [Create a use-case issue](https://github.com/Borda/vision-delivery/issues/new?template=use-case.yml) to get help turning it into a concrete route, success check, and first proof. If your work is public, link your project, dataset, company, paper, demo, or field problem so others can discover it. Do not include secrets, API keys, private customer data, faces, license plates, medical data, or media you are not allowed to share.
 
 ## Features
 
@@ -90,7 +90,7 @@ Read the full [Quick Start](quickstart.md) for setup, key handling, first prompt
   </article>
   <article>
     <h3>Eval-first workflow</h3>
-    <p>The plugin asks for the success threshold and records it before training or deployment advice can move forward.</p>
+    <p>The plugin asks practical success questions first: do you need to catch every object, how many misses are acceptable, and which error is worse?</p>
   </article>
   <article>
     <h3>Pretrained baseline first</h3>
@@ -98,7 +98,7 @@ Read the full [Quick Start](quickstart.md) for setup, key handling, first prompt
   </article>
   <article>
     <h3>Cheapest improvement first</h3>
-    <p>Threshold tuning comes before fine-tuning, and fine-tuning comes before larger data work unless the evidence says otherwise.</p>
+    <p>When a model misses the target, the next step is diagnostics: metrics, loss curves, confusion matrix, hard cases, class balance, augmentation, then data or training.</p>
   </article>
   <article>
     <h3>Explicit credit gate</h3>
@@ -124,7 +124,7 @@ Read the full [Quick Start](quickstart.md) for setup, key handling, first prompt
 flowchart LR
     A[Messy CV request] --> B[Read project and samples]
     B --> C[Classify the task]
-    C --> D[Define the eval gate]
+    C --> D[Define the success check]
     D --> E[Measure a pretrained baseline]
     E --> F{Passes?}
     F -->|yes| G[Write local PoC artifacts]
@@ -139,9 +139,9 @@ The workflow is intentionally conservative because the expensive mistake is solv
 
 1. **Read the context:** inspect relevant files, sample images, annotations, and constraints.
 2. **Classify the CV job:** choose the right route and clarify ambiguous wording.
-3. **Define the eval:** capture the metric, threshold, dataset slice, and failure consequence.
+3. **Define success:** ask guiding questions: do misses matter more than false alarms, how many misses are acceptable, and how fast does it need to run?
 4. **Measure a baseline:** try pretrained or Universe candidates against the gate.
-5. **Improve in cost order:** tune thresholds, then consider training, then recommend data work.
+5. **Investigate misses:** review metrics, loss curves, confusion matrix, hard cases, class balance, and augmentation before recommending more data or training.
 6. **Write the PoC:** produce local inference and eval artifacts the user can inspect.
 7. **Estimate economics:** compare annotation, training, managed deployment, and self-hosting assumptions.
 8. **Record provenance:** append train, eval, and deploy records for audit and reporting.
@@ -167,13 +167,13 @@ Read the full [Use Cases](use-cases.md) guide for route boundaries and examples.
 
 > User: "Count cracked items on my packaging line. I have 40 sample images."
 >
-> Plugin: "This is an object-instance detection/counting task: one box per visible crack, count per image. What recall floor do you need?"
+> Plugin: "This is an object-instance detection/counting task: one box per visible crack, count per image. Do you need to catch nearly every crack, or is an occasional miss acceptable?"
 >
-> User: "80% recall. A missed crack reaches the customer."
+> User: "A missed crack reaches the customer. Missing up to 2 in 10 during the first proof is acceptable."
 >
-> Plugin: "Eval defined: recall >= 80% on your 40 images. Measuring a pretrained candidate."
+> Plugin: "Success check defined: catch at least 8 of 10 visible cracks on your 40 images. Measuring a pretrained candidate."
 >
-> Plugin: "Baseline result: 74% recall. Fastest lever is a confidence threshold sweep."
+> Plugin: "Baseline catches about 7 of 10 cracks. That misses the target. First I will check the confidence threshold and hard cases."
 >
 > Plugin: "Best threshold reaches 83% recall. Eval passes. Writing the local PoC and ledger entry."
 
@@ -182,7 +182,7 @@ Read the full [Use Cases](use-cases.md) guide for route boundaries and examples.
 | Common failure mode                            | What `vision-delivery` enforces                                                                                     |
 | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | The user asks for "AI" instead of a CV task.   | The router narrows the request to a concrete detection, OCR, tracking, segmentation, pose, or classification job.   |
-| Success is judged after seeing a demo.         | The eval gate is defined before model search or training.                                                           |
+| Success is judged after seeing a demo.         | The success check is defined before model search or training.                                                       |
 | Training starts before a baseline is measured. | Pretrained candidates are measured first.                                                                           |
 | Paid actions happen too casually.              | Skills instruct the agent to ask for explicit confirmation and log train/deploy events afterward.                   |
 | Results live only in chat history.             | Artifacts and ledger entries are written locally.                                                                   |
@@ -190,7 +190,7 @@ Read the full [Use Cases](use-cases.md) guide for route boundaries and examples.
 
 ## CV Economics
 
-After a model passes the eval gate, invoke the economics recipe:
+After a model passes the success check, invoke the economics recipe:
 
 ```text
 /vision-delivery:estimate

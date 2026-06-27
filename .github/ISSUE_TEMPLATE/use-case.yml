@@ -7,7 +7,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Share a real computer-vision problem to get help shaping it into a concrete route, eval gate, and first proof. If your work is public, this issue can also point back to your project, dataset, company, paper, demo, or field problem so others can discover it.
+        Share a real computer-vision problem to get help shaping it into a concrete route, success check, and first proof. If your work is public, this issue can also point back to your project, dataset, company, paper, demo, or field problem so others can discover it.
 
         Do not include secrets, API keys, private customer data, faces, license plates, medical data, or images you are not allowed to share. Link only to data you are allowed to make public.
 
@@ -59,10 +59,19 @@ body:
     id: success
     attributes:
       label: What would count as success?
-      description: Include a metric or decision threshold if you know it.
-      placeholder: "Example: >=90% recall on damaged pallets, count MAE <= 1 per frame, false alarms under 2 per hour."
+      description: "Plain language is fine. Do you need to catch every object? How many misses per 100 are acceptable? Which is worse: a missed object or a false alarm?"
+      placeholder: "Example: Missing up to 2 damaged pallets per 100 is acceptable for the first proof, but false alarms should stay under 5 per hour."
     validations:
       required: true
+
+  - type: textarea
+    id: current_attempt
+    attributes:
+      label: If you already tried a model, what happened?
+      description: Optional. Share known metrics, confusing classes, hard examples, loss curves, class balance, annotation concerns, or augmentations you already tried.
+      placeholder: "Example: The model finds large cracks but misses hairline cracks. Training loss was still falling when it stopped. Most examples are from one lighting condition."
+    validations:
+      required: false
 
   - type: textarea
     id: constraints
@@ -76,10 +85,10 @@ body:
   - type: dropdown
     id: reuse
     attributes:
-      label: May this use case be reused to improve vision-delivery?
-      description: This does not grant rights to private data. Only share details you are allowed to publish.
+      label: May this public issue be reused?
+      description: This does not grant rights to private data or linked media. Only share details you are allowed to publish.
       options:
-        - "Yes, public issue text may be used for docs, evals, and fine-tuning examples."
+        - "Yes, public issue text may be used for docs, evals, and training examples."
         - "Anonymized only: use the pattern, but remove identifying details."
         - "No: discuss the problem, but do not reuse it as an example or dataset item."
     validations:

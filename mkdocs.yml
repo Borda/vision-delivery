@@ -29,6 +29,10 @@ theme:
 extra_css:
   - stylesheets/roboflow.css
 
+extra_javascript:
+  - https://unpkg.com/mermaid@10.9.1/dist/mermaid.min.js
+  - javascripts/mermaid.js
+
 markdown_extensions:
   - admonition
   - attr_list

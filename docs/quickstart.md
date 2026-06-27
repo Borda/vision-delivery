@@ -52,7 +52,7 @@ Better prompts include:
 - input source: images, video, RTSP, camera, folder, dataset
 - target: object, defect, text field, person, pose, area
 - output: count, pass/fail, CSV, alert, endpoint, local script
-- success threshold: recall, precision, field match, latency, IoU, count error
+- success check: what must be caught, how many misses are acceptable, which false alarms matter, and how fast it needs to run
 
 ## What The Plugin Should Do First
 
@@ -60,7 +60,7 @@ The first useful response should not be a model shopping list. It should:
 
 1. classify the CV task,
 2. clarify ambiguity if needed,
-3. define or ask for the eval gate,
+3. define or ask for the success check,
 4. measure a baseline before training,
 5. confirm before any paid training or deployment action.
 
