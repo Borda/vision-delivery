@@ -19,7 +19,7 @@
       "Estimate annotation, training, and deployment economics."
     ],
     "developerName": "Roboflow",
-    "displayName": "vision-delivery",
+    "displayName": "Sentinel",
     "longDescription": "Scope a computer-vision task, route it to the right skill, define the eval gate before model search, measure a baseline before training, and produce CV economics with an audit trail.",
     "shortDescription": "Turn messy CV requests into measured Roboflow proof.",
     "websiteURL": "https://borda.github.io/vision-delivery/"
@@ -33,7 +33,7 @@
   ],
   "license": "Apache-2.0",
   "mcpServers": "./.mcp.json",
-  "name": "vision-delivery",
+  "name": "sentinel",
   "repository": "https://github.com/Borda/vision-delivery",
   "skills": "./skills/",
   "version": "0.1.0"

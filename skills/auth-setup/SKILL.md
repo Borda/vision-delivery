@@ -192,6 +192,6 @@ Follow the voice rules from §4 (Forward-Deployed-Engineer model) at every step.
 
 **Cause:** the Roboflow plugin may be installed globally but not activated for this project directory (scope mismatch), or the MCP server failed to start silently.
 
-**Fix:** for Claude Code, run `claude plugin list` to verify the Roboflow MCP entry appears. If missing, reinstall: `claude plugin install roboflow --scope local` (project-local) or `claude plugin install roboflow` (global). For Codex, run `codex plugin list` and reinstall with `codex plugin add vision-delivery@vision-delivery` if needed. Then restart the host app.
+**Fix:** for Claude Code, run `claude plugin list` to verify the Roboflow MCP entry appears. If missing, reinstall: `claude plugin install roboflow --scope local` (project-local) or `claude plugin install roboflow` (global). For Codex, run `codex plugin list` and reinstall with `codex plugin add sentinel@sentinel` if needed. Then restart the host app.
 
 </troubleshooting>

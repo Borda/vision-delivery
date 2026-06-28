@@ -2,11 +2,11 @@
 
 [![Docs](https://img.shields.io/badge/docs-online-0F766E.svg)](https://borda.github.io/vision-delivery/) [![docs](https://github.com/Borda/vision-delivery/actions/workflows/docs.yml/badge.svg)](https://github.com/Borda/vision-delivery/actions/workflows/docs.yml) [![evals](https://github.com/Borda/vision-delivery/actions/workflows/evals.yml/badge.svg)](https://github.com/Borda/vision-delivery/actions/workflows/evals.yml) [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-`vision-delivery` is a Codex and Claude Code plugin for the messy part of computer vision: turning a vague operational request into a scoped Roboflow proof of concept with a clear success check, local artifacts, and a concrete economics decision.
+`vision-delivery` ships the `sentinel` plugin for Codex and Claude Code. It handles the messy part of computer vision: turning a vague operational request into a scoped Roboflow proof of concept with a clear success check, local artifacts, and a concrete economics decision.
 
 It is built for the moment when someone says, "Can AI count this from camera footage?" and the real work is still undefined: what object is being counted, what failure rate is acceptable, whether a pretrained model is enough, what a miss costs, how much labeling or training is justified, and whether the project economics make sense. The plugin keeps that work in order so the session does not drift into model shopping before the problem is actually measured.
 
-It is intentionally not a replacement for Roboflow's platform source of truth. Use Roboflow's local skills or MCP-provided skill resources when the question is "how do I use this Roboflow API, model family, Workflow, or platform page?" Use `vision-delivery` when the question is "what should we build, how do we prove it works, and what decision does the proof support?"
+It is intentionally not a replacement for Roboflow's platform source of truth. Use Roboflow's local skills or MCP-provided skill resources when the question is "how do I use this Roboflow API, model family, Workflow, or platform page?" Use the installed `sentinel` plugin when the question is "what should we build, how do we prove it works, and what decision does the proof support?"
 
 ```mermaid
 flowchart LR
@@ -33,8 +33,8 @@ Install the plugin in either host, make `ROBOFLOW_API_KEY` available to the app 
 # Add this repository as a Codex plugin marketplace
 codex plugin marketplace add https://github.com/Borda/vision-delivery
 
-# Install the plugin from that marketplace
-codex plugin add vision-delivery@vision-delivery
+# Install Sentinel from that marketplace
+codex plugin add sentinel@sentinel
 
 # Launch Codex with the Roboflow key in its environment
 export ROBOFLOW_API_KEY=your_key_here
@@ -145,7 +145,7 @@ See [benchmark docs](docs/benchmarks/index.md) for the benchmark definitions and
 After a model passes the success check, invoke the economics consultant directly:
 
 ```text
-/vision-delivery:estimate
+/sentinel:estimate
 ```
 
 The consultant reads the project and separates one-time project costs from run-rate costs. Annotation and training estimates must come from project evidence or explicit user assumptions. Deployment run-rate uses missing inputs such as stream count, FPS, uptime, and region, then runs:

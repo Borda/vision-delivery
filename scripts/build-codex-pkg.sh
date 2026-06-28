@@ -15,7 +15,7 @@ marketplace_path = root / ".agents" / "plugins" / "marketplace.json"
 manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 marketplace = json.loads(marketplace_path.read_text(encoding="utf-8"))
 
-assert manifest["name"] == "vision-delivery"
+assert manifest["name"] == "sentinel"
 assert manifest["skills"] == "./skills/"
 assert manifest["mcpServers"] == "./.mcp.json"
 assert (root / "skills" / "solve-cv-task" / "SKILL.md").is_file()
@@ -29,9 +29,9 @@ print("Codex package metadata is present and internally consistent.")
 print()
 print("Install from a clone:")
 print(f"  codex plugin marketplace add {root}")
-print("  codex plugin add vision-delivery@vision-delivery")
+print("  codex plugin add sentinel@sentinel")
 print()
 print("Install from GitHub:")
 print("  codex plugin marketplace add https://github.com/Borda/vision-delivery")
-print("  codex plugin add vision-delivery@vision-delivery")
+print("  codex plugin add sentinel@sentinel")
 PY

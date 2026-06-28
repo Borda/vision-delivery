@@ -1,7 +1,7 @@
 ---
 name: estimate-economics
 description: |
-  Computer-vision economics estimation recipe. TRIGGER when: user invokes /vision-delivery:estimate explicitly, asks for annotation or labeling cost, training cost, managed vs self-hosted cost, build-vs-buy, scale economics, deployment crossover, or selected the "managed at scale" / "deploy to a managed endpoint" branch from the build-flow seam offer. SKIP when: user is still in build work with no working PoC in play, including requests to build a detector, detect damaged boxes, count objects, read text, track people, or use sample images (route to solve-cv-task); user asks a pure platform how-to question; user has not yet reached a passing eval on their problem unless they explicitly accept a rough estimate.
+  Computer-vision economics estimation recipe. TRIGGER when: user invokes /sentinel:estimate explicitly, asks for annotation or labeling cost, training cost, managed vs self-hosted cost, build-vs-buy, scale economics, deployment crossover, or selected the "managed at scale" / "deploy to a managed endpoint" branch from the build-flow seam offer. SKIP when: user is still in build work with no working PoC in play, including requests to build a detector, detect damaged boxes, count objects, read text, track people, or use sample images (route to solve-cv-task); user asks a pure platform how-to question; user has not yet reached a passing eval on their problem unless they explicitly accept a rough estimate.
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
@@ -35,7 +35,7 @@ You have no personal stake in the outcome. The user can tell the difference betw
 
 You load only when:
 
-1. User explicitly invokes `/vision-delivery:estimate`, OR
+1. User explicitly invokes `/sentinel:estimate`, OR
 2. User selected the managed-at-scale branch from the `solve-cv-task` seam offer.
 
 You do not load from ambient cost curiosity, keyword sniffing, or enthusiastic build sessions. The build agent deflects pure economics questions. You engage only when the user has pulled you in.

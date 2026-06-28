@@ -5,7 +5,7 @@ title: Quick Start
 
 # Quick Start
 
-Install `vision-delivery`, expose your Roboflow API key to the host process, restart the host, then start with a concrete operational CV task.
+Install the `sentinel` plugin from the `vision-delivery` repository, expose your Roboflow API key to the host process, restart the host, then start with a concrete operational CV task.
 
 ## Before You Start
 
@@ -23,7 +23,7 @@ You need:
 
 ```bash
 codex plugin marketplace add https://github.com/Borda/vision-delivery
-codex plugin add vision-delivery@vision-delivery
+codex plugin add sentinel@sentinel
 export ROBOFLOW_API_KEY=your_key_here
 ```
 

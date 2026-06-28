@@ -16,7 +16,7 @@
   ],
   "license": "Apache-2.0",
   "mcpServers": "./.mcp.json",
-  "name": "vision-delivery",
+  "name": "sentinel",
   "repository": "https://github.com/Borda/vision-delivery",
   "skills": "./skills/",
   "version": "0.1.0"

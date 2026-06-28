@@ -9,7 +9,7 @@ title: Solve real CV tasks with measured proof
   <p class="vd-kicker">Codex and Claude Code plugin for real computer-vision delivery</p>
   <p class="vd-title">vision-delivery</p>
   <p class="vd-lede">
-    <strong>vision-delivery</strong> turns a vague camera, image, or video request into a scoped Roboflow proof of concept with a clear success check, local artifacts, paid-action guardrails, and a concrete economics decision.
+    <strong>vision-delivery</strong> ships the <strong>sentinel</strong> plugin for Codex and Claude Code. It turns a vague camera, image, or video request into a scoped Roboflow proof of concept with a clear success check, local artifacts, paid-action guardrails, and a concrete economics decision.
   </p>
   <p class="vd-actions">
     <a class="vd-button" href="#quick-start">Quick start</a>
@@ -48,7 +48,7 @@ Install the plugin in either host, make `ROBOFLOW_API_KEY` available to the host
 
     ```bash
     codex plugin marketplace add https://github.com/Borda/vision-delivery
-    codex plugin add vision-delivery@vision-delivery
+    codex plugin add sentinel@sentinel
     export ROBOFLOW_API_KEY=your_key_here
     ```
 
@@ -193,7 +193,7 @@ Read the full [Use Cases](use-cases.md) guide for route boundaries and examples.
 After a model passes the success check, invoke the economics recipe:
 
 ```text
-/vision-delivery:estimate
+/sentinel:estimate
 ```
 
 `estimate-economics` reads the project and separates one-time work from run-rate costs:

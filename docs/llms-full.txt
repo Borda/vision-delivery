@@ -1,6 +1,6 @@
 # vision-delivery full LLM context
 
-> `vision-delivery` is an eval-first Codex and Claude Code plugin for computer-vision delivery. It turns vague image, video, or camera requests into scoped Roboflow proofs of concept with an eval gate, local artifacts, paid-action guardrails, provenance records, and a concrete CV economics decision.
+> `vision-delivery` ships the `sentinel` plugin for eval-first computer-vision delivery in Codex and Claude Code. It turns vague image, video, or camera requests into scoped Roboflow proofs of concept with an eval gate, local artifacts, paid-action guardrails, provenance records, and a concrete CV economics decision.
 
 This file is optimized for LLMs and coding agents that need a longer single-file description of the public project. It intentionally excludes secrets, private paths, and unpublished behavior. Use repository files as the source of truth when behavior matters.
 
@@ -47,7 +47,7 @@ Codex:
 
 ```bash
 codex plugin marketplace add https://github.com/Borda/vision-delivery
-codex plugin add vision-delivery@vision-delivery
+codex plugin add sentinel@sentinel
 export ROBOFLOW_API_KEY=your_key_here
 ```
 
@@ -97,7 +97,7 @@ Each route defines its eval metric and threshold before model search. If a pretr
 Invoke economics with:
 
 ```text
-/vision-delivery:estimate
+/sentinel:estimate
 ```
 
 The economics recipe separates one-time project effort from run-rate costs:

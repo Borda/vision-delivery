@@ -1,12 +1,12 @@
 {
   "interface": {
-    "displayName": "vision-delivery"
+    "displayName": "Sentinel"
   },
-  "name": "vision-delivery",
+  "name": "sentinel",
   "plugins": [
     {
       "category": "Developer Tools",
-      "name": "vision-delivery",
+      "name": "sentinel",
       "policy": {
         "authentication": "ON_INSTALL",
         "installation": "AVAILABLE"

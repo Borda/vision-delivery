@@ -1,7 +1,7 @@
 {
   "should_fire": [
     {
-      "prompt": "/vision-delivery:estimate"
+      "prompt": "/sentinel:estimate"
     },
     {
       "prompt": "Estimate managed vs self-hosted cost for eight inspection streams."
