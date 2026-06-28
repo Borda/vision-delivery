@@ -1053,7 +1053,7 @@
   <p class="vd-kicker">Codex and Claude Code plugin for real computer-vision delivery</p>
   <p class="vd-title">vision-delivery</p>
   <p class="vd-lede">
-    <strong>vision-delivery</strong> turns a vague camera, image, or video request into a scoped Roboflow proof of concept with a clear success check, local artifacts, paid-action guardrails, and a concrete economics decision.
+    <strong>vision-delivery</strong> ships the <strong>sentinel</strong> plugin for Codex and Claude Code. It turns a vague camera, image, or video request into a scoped Roboflow proof of concept with a clear success check, local artifacts, paid-action guardrails, and a concrete economics decision.
   </p>
   <p class="vd-actions">
     <a class="vd-button" href="#quick-start">Quick start</a>
@@ -1087,7 +1087,7 @@
 <div class="tabbed-content">
 <div class="tabbed-block">
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>codex<span class="w"> </span>plugin<span class="w"> </span>marketplace<span class="w"> </span>add<span class="w"> </span>https://github.com/Borda/vision-delivery
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>codex<span class="w"> </span>plugin<span class="w"> </span>add<span class="w"> </span>vision-delivery@vision-delivery
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>codex<span class="w"> </span>plugin<span class="w"> </span>add<span class="w"> </span>sentinel@sentinel
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">ROBOFLOW_API_KEY</span><span class="o">=</span>your_key_here
 </code></pre></div>
 </div>
@@ -1274,7 +1274,7 @@
 </table>
 <h2 id="cv-economics">CV Economics<a class="headerlink" href="#cv-economics" title="Permanent link">&para;</a></h2>
 <p>After a model passes the success check, invoke the economics recipe:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>/vision-delivery:estimate
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>/sentinel:estimate
 </code></pre></div>
 <p><code>estimate-economics</code> reads the project and separates one-time work from run-rate costs:</p>
 <ul>
