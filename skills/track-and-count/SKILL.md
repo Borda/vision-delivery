@@ -1,7 +1,7 @@
 ---
 name: track-and-count
 description: |
-  Track object identity across video frames and produce counts, dwell times, and line-cross events. Covers: identity-linked tracking with ByteTrack, zone dwell time (time an object spends in a defined polygon), line-cross counting (entry/exit direction across a virtual line), RTSP one-call deploy (build a Roboflow Workflow with ByteTrack and deploy to a managed endpoint in one call). Builds a tracking pipeline: define eval → select detection backbone → add ByteTrack → measure → tune or train if needed → working PoC.
+  Track object identity across video frames and produce counts, dwell times, and line-cross events. Covers: identity-linked tracking with ByteTrack, zone dwell time (time an object spends in a defined polygon), line-cross counting (entry/exit direction across a virtual line), RTSP one-call deploy (build a Roboflow Workflow with ByteTrack and deploy to a managed endpoint in one call), managed edge device path (Roboflow manages hardware fleet via devices_list, devices_update_config, devices_get_telemetry). Builds a tracking pipeline: define eval → select detection backbone → add ByteTrack → measure → tune or train if needed → working PoC.
   TRIGGER when: user wants to track object identity across frames ("track X as it moves", "follow this person/vehicle", "how long does X spend in zone Y", "count how many X cross line Z", "dwell time", "line-cross counting", "people counting at entrance", "shopper path", "RTSP tracking", "video analytics with identity", "track the forklift", "follow each detected person across video frames", "measure their path", "alert when vehicle enters zone", "how many vehicles crossed", "track how long shoppers spend")
   SKIP when: per-frame count with no identity needed ("count how many cars are in the parking lot", "how many objects in this image", "number of items per frame" → detect-and-analyze); pixel-precise segmentation or area measurement ("measure the crack area", "segment the lesion" → segment-and-analyze); image-level verdict with no instance tracking ("is this product defective", "classify this image as pass/fail", "flag the whole image" → classify-or-flag); text reading or extraction ("read the serial number", "extract text from label" → read-text); cost/scale/deployment question with no unsolved tracking problem ("how much does managed deployment cost", "self-hosting vs managed comparison" → estimate-economics); user already has working tracker and asks only about export or optimization
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
@@ -17,6 +17,7 @@ Track object identity across video frames and produce identity-linked counts, dw
 - **Zone dwell time** — time (in seconds) an object with a given track ID spends inside a user-defined polygon zone
 - **Line-cross counting** — objects crossing a virtual line; direction-aware (entry vs exit)
 - **RTSP one-call deploy** — user provides an RTSP URL → skill builds a Roboflow Workflow (detection + ByteTrack + zone/line logic) and deploys it to a managed endpoint in one call; returns the endpoint URL
+- **Managed edge device** — Roboflow manages the edge hardware; `devices_list` shows fleet status, `devices_update_config` pushes model config, `devices_get_telemetry` / `devices_get_logs` provide fleet monitoring; explicitly contrasted with self-hosted inference server
 
 **What this skill does NOT cover:**
 
@@ -89,14 +90,33 @@ Same generic order as `fde-methodology.md` (confidence-threshold sweep → fine-
 
 User already picked a path from the RTSP pre-check. Execute the selected path:
 
-**Path (a) — edge inference server:**
-Provide a docker run command for `roboflow/roboflow-inference-server-cpu` (or GPU variant) and the `track_count.py` script configured for local endpoint (`http://localhost:9001`). No cloud deployment needed.
+**Path (a) — edge inference server:** Provide a docker run command for `roboflow/roboflow-inference-server-cpu` (or GPU variant) and the `track_count.py` script configured for local endpoint (`http://localhost:9001`). No cloud deployment needed.
 
-**Path (b) — frame-pull cloud:**
-Build a Roboflow Workflow (detection + ByteTrack) and deploy via `workflows_create` + `project_deployment_launch`. User polls the endpoint at their chosen frame interval. State round-trip latency implication explicitly. Show credit estimate and wait for explicit yes before calling `project_deployment_launch`.
+**Path (b) — frame-pull cloud:** Build a Roboflow Workflow (detection + ByteTrack) and deploy via `workflows_create` + `project_deployment_launch`. User polls the endpoint at their chosen frame interval. State round-trip latency implication explicitly. Show credit estimate and wait for explicit yes before calling `project_deployment_launch`.
 
-**Path (c) — Roboflow-managed edge device:**
-List available devices via `devices_list` MCP tool. Guide device config via `devices_update_config`. Show telemetry via `devices_get_telemetry`. State: "Roboflow manages the device — you get config push, fleet monitoring, and aggregated events without local infra ops."
+**Path (c) — Roboflow-managed edge device (full flow):**
+
+1. **List devices:** `devices_list` — shows id, name, status (online/offline), platform, last heartbeat.
+
+   - If empty: "No devices registered yet. A Roboflow-managed device needs compatible hardware running the Roboflow agent. I can create a device entry via `devices_create` with name=<name>."
+   - If devices present: show list and let user pick.
+
+2. **Push model config:** `devices_update_config` with model_id=<workspace>/<project>/<version>. Confirm with user before pushing — replaces current device config.
+
+3. **Verify device running:** `devices_get_telemetry` — show CPU/GPU usage, memory, inference latency on-device.
+
+4. **Tail logs:** `devices_get_logs` — confirm ByteTrack or detection model is running on-device; surface errors.
+
+**Managed-vs-self-managed contrast (state this before user commits to a path):**
+
+|                     | Roboflow-managed edge (c)                   | Self-hosted inference server (a)     |
+| ------------------- | ------------------------------------------- | ------------------------------------ |
+| Who manages updates | Roboflow                                    | You                                  |
+| Config push         | `devices_update_config` (one MCP call)      | Re-deploy container manually         |
+| Fleet monitoring    | `devices_get_telemetry`, `devices_get_logs` | Your own logging stack               |
+| RTSP ingestion      | On-device, lowest latency                   | On-device, lowest latency            |
+| Ops overhead        | Minimal — Roboflow handles agent ops        | Full — container, restarts, upgrades |
+| Best for            | Multi-camera fleets, ops-light teams        | Full control, single camera          |
 
 If user arrives at Step 6 without a pre-check path (e.g., described a non-RTSP tracking problem), produce the `track_count.py` local-inference script for recorded video.
 
@@ -200,6 +220,7 @@ Action triggers for this skill:
 | First `workflow_specs_run` or `models_infer` call returns tracking metric | `baseline_measured`         | `MOTA=X%` or `line-cross error=Y/min` or `dwell MAE=Z s` |
 | `models_train` MCP call submitted                                         | `models_train`              | model name, checkpoint, dataset version                  |
 | `project_deployment_launch` MCP call submitted for RTSP Workflow          | `project_deployment_launch` | deployment_id, endpoint URL, Workflow spec summary       |
+| `devices_update_config` called for managed edge device                    | `edge_device_configured`    | device_id, model_id pushed, telemetry snapshot           |
 
 `entity_id` format: `<workspace>/<project>` for projects; `<workspace>/<project>/<version>` when version is known.
 
