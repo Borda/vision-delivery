@@ -27,6 +27,32 @@ Track object identity across video frames and produce identity-linked counts, dw
 
 <methodology>
 
+**RTSP / live-stream pre-check (fires before Step 3 if triggered).**
+
+If the user's prompt mentions RTSP, an IP camera stream, 24/7 live inference, or any live-video source combined with cloud deployment intent — surface three honest options **immediately**, before building a Workflow spec or selecting a backbone:
+
+```
+"RTSP + live tracking. Three paths — pick before we build:
+
+ (a) Edge inference server — run an inference container on a local machine
+     on the same network as the camera. ByteTrack runs locally; lowest latency;
+     no cloud inference cost per frame.
+     I give you the docker run command and the track_count.py wrapper.
+
+ (b) Frame-pull cloud — pull frames at an interval (e.g. 1 fps) and send
+     to a Roboflow Workflow endpoint. Works today; adds round-trip latency.
+     Not suitable for real-time counts; fine for periodic zone/dwell checks.
+
+ (c) Roboflow-managed edge device — Roboflow manages the edge device,
+     runs ByteTrack locally, streams aggregated events to cloud.
+     No local infra ops; fleet monitoring and config push included.
+     Ask me to show live device options via the MCP.
+
+Which fits your latency, connectivity, and ops constraints?"
+```
+
+Do NOT hard-code "cloud RTSP not supported" as a permanent fact — verify current Roboflow platform status before baking in a limitation. After the user picks a path, continue to Step 1.
+
 Steps 1, 2, 5, 7, and 8 follow the generic sequence in `skills/_shared/fde-methodology.md`. Read that file first. This section documents only the tracking-specific additions.
 
 **Step 3 — Foundation-model-first (tracking-specific).**
@@ -59,15 +85,20 @@ Same generic order as `fde-methodology.md` (confidence-threshold sweep → fine-
 - **ByteTrack parameter tuning** — before retraining, tune `track_thresh` (detection confidence floor for track initiation), `match_thresh` (IoU threshold for association), and `track_buffer` (frames to keep a lost track alive). Tuning is free and often closes 5–10 MOTA points. Report the parameter values explicitly.
 - If detection backbone mAP is the bottleneck (not association), fine-tune or retrain the detection backbone; ByteTrack parameters do not help a weak detector.
 
-**Step 6 — RTSP one-call deploy path (key differentiator).**
+**Step 6 — RTSP deploy path (path selected via pre-check gate above).**
 
-When the user has an RTSP stream, this is the highest-value path:
+User already picked a path from the RTSP pre-check. Execute the selected path:
 
-1. Build a Roboflow Workflow spec: detection block (RF-DETR Nano by default) + ByteTrack block + zone/line polygon defined from user-supplied coordinates.
-2. Deploy via `workflows_create` + `project_deployment_launch` — or confirm with the user and hand to `estimate-economics` for managed endpoint selection.
-3. Return the endpoint URL. The user points their RTSP consumer at the endpoint.
+**Path (a) — edge inference server:**
+Provide a docker run command for `roboflow/roboflow-inference-server-cpu` (or GPU variant) and the `track_count.py` script configured for local endpoint (`http://localhost:9001`). No cloud deployment needed.
 
-State clearly before deployment: deployment costs credits; show the estimate and wait for explicit yes before calling `project_deployment_launch`. If user declines, produce the `track_count.py` local-inference script instead (recorded video only — RTSP via local inference is out of scope without the managed endpoint).
+**Path (b) — frame-pull cloud:**
+Build a Roboflow Workflow (detection + ByteTrack) and deploy via `workflows_create` + `project_deployment_launch`. User polls the endpoint at their chosen frame interval. State round-trip latency implication explicitly. Show credit estimate and wait for explicit yes before calling `project_deployment_launch`.
+
+**Path (c) — Roboflow-managed edge device:**
+List available devices via `devices_list` MCP tool. Guide device config via `devices_update_config`. Show telemetry via `devices_get_telemetry`. State: "Roboflow manages the device — you get config push, fleet monitoring, and aggregated events without local infra ops."
+
+If user arrives at Step 6 without a pre-check path (e.g., described a non-RTSP tracking problem), produce the `track_count.py` local-inference script for recorded video.
 
 Use `workflow_specs_run` or `workflows_run` for one-shot validation before `project_deployment_launch`.
 
@@ -150,7 +181,7 @@ ByteTrack has no model_id — it is a Roboflow Workflows block, not a trainable 
 
 Follow the safe-action gates in `skills/_shared/fde-methodology.md` exactly. Quick reference:
 
-- `models_train` → credit estimate + explicit yes required, same turn
+- `models_train` → quantified credit estimate + explicit yes required, same turn (format in `fde-methodology.md` Safe Actions)
 - `versions_generate` → free but irreversible; state augmentation config before calling
 - Image upload → state destination; offer local path if user declines
 - `project_deployment_launch` → credit-spending; show estimate, wait for explicit yes; this IS in scope for this skill (RTSP Workflow deploy path) — do not silently defer to `estimate-economics` without offering first

@@ -29,6 +29,31 @@ Build a working detection pipeline for the user's specific objects. The exit cri
 
 <methodology>
 
+**RTSP / live-stream pre-check (fires before Step 3 if triggered).**
+
+If the user's prompt mentions RTSP, an IP camera stream, 24/7 live inference, or any live-video source combined with cloud deployment intent — surface three honest options **immediately**, before any model search or eval definition:
+
+```
+"RTSP + live inference. Three paths — pick before we build:
+
+ (a) Edge inference server — run an inference container on a local machine
+     on the same network as the camera. Lowest latency, no cloud dependency.
+     I give you the docker run command and the inference.py wrapper.
+
+ (b) Frame-pull cloud — pull frames from the RTSP stream at an interval
+     (e.g. 1 fps) and send each frame to a Roboflow cloud inference endpoint.
+     Works today; adds ~100–500 ms round-trip latency per frame.
+     Not suitable for real-time video, fine for periodic inspection.
+
+ (c) Roboflow-managed edge device — Roboflow manages an edge device that
+     runs inference locally and streams results to the cloud for aggregation
+     and monitoring. No local infra ops. Ask me to show live device options.
+
+Which fits your latency, connectivity, and ops constraints?"
+```
+
+Do NOT hard-code "cloud RTSP not supported" as a permanent fact — verify current Roboflow platform status before baking in a limitation. After the user picks a path, continue to Step 1.
+
 Steps 1, 2, 5, 7, and 8 follow the generic sequence in `skills/_shared/fde-methodology.md`. Read that file first. This section documents only the detection-specific additions.
 
 **Step 3 — Foundation-model-first (detection-specific).**
@@ -181,7 +206,7 @@ Quick reference for detection:
 
 Follow the safe-action gates in `skills/_shared/fde-methodology.md` exactly. Quick reference:
 
-- `models_train` → credit estimate + explicit yes required, same turn
+- `models_train` → quantified credit estimate + explicit yes required, same turn (format in `fde-methodology.md` Safe Actions)
 - `versions_generate` → free but irreversible; state augmentation config before calling
 - Image upload → state destination; offer local path if user declines
 - `project_deployment_launch` → not in this skill; seam offer hands to `estimate-economics`
