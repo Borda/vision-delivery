@@ -96,6 +96,13 @@ Replace N with the number of streams the user mentioned (or omit if no context).
 
 If user picks **(b)**: hand off to `estimate-economics`. Do not re-engage as builder after this point.
 
+**Drift detection check (once per session when deploy resolves or user reports live failures).**
+After the seam offer resolves — or when the user mentions failures on production footage — ask once:
+"Are you seeing failures on live footage that weren't in your test set?"
+
+- **Yes** → distribution-shift diagnosis: compare train vs production domain (class balance, lighting, angles, scale); guide to augmentation (Gate 3) or active learning path in the skill's improvement sub-flow.
+- **No** → session closes; ledger write at Step 8 is the final step.
+
 **Step 8 — Write the ledger.** On every solve action (eval defined, model tested, threshold tuned, PoC exported, seam offered), append to `.vision-delivery/ledger.jsonl` as JSON; present to user as YAML (see `skills/_shared/ledger-protocol.md`):
 
 ```json

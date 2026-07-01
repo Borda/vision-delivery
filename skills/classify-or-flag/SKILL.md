@@ -68,6 +68,38 @@ Same generic order as `fde-methodology.md` (threshold sweep → fine-tune → fu
 2. **Fine-tune on a CLIP / ViT checkpoint** — `versions_generate` → `models_train` with a ViT-based classifier. Always show credit estimate; wait for explicit yes before calling `models_train`. Requires labeled images (20–50 per class minimum; 100+ preferred).
 3. **Full custom train** — only if CLIP transfer fails and domain is too distant from ImageNet pretraining (e.g. microscopy, X-ray, thermal IR). Guide annotation using the Annotation Unblocking flow in `fde-methodology.md`.
 
+**Improvement sub-flow (when CLIP prompt engineering and fine-tune haven't closed the gap).**
+
+Gates fire in order — never skip to a later gate:
+
+**Gate 2 — Hard-negative mining.**
+1. Pull per-image predictions: `model_evals_get_image_predictions` on the eval version.
+2. Report misclassified images by class and confidence cluster — identify patterns (lighting, background, angle, image quality).
+3. Create annotation job on the misclassified images: `annotation_jobs_create` with project=<project>, images=[<misclassified_ids>], batch_name="hard-negatives-<date>".
+4. Once relabeled or confirmed, `versions_generate` with hard negatives in training split; re-train (`models_train` — credit estimate first) and re-measure F1.
+
+**Gate 3 — Augmentation strategy.**
+Ask one targeted question: "What does production footage look like that your labeled set doesn't cover?"
+
+Match augmentation to the stated gap — never apply a generic preset:
+
+| Gap | Augmentations |
+|-----|---------------|
+| Lighting / exposure variation | Brightness ±30%, Exposure ±25% |
+| Color shift (lighting temperature) | Hue ±15°, Saturation ±25% |
+| Camera angle / perspective variation | Rotation ±15°, Horizontal flip |
+| Image quality / compression artifacts | Blur 0–2 px, Noise |
+
+Call `versions_generate` with the selected augmentations. State config before calling (irreversible). Re-train and report delta F1 and per-class recall vs prior run.
+
+**Gate 4 — Relabel.** Only when Gates 2–3 haven't closed the gap. Return to Annotation Unblocking flow in `fde-methodology.md`. Minimum: 20–50 images per class for fine-tune; 100+ for full custom train.
+
+**Active learning path (deployed model receiving live production images).**
+When user reports classification failures on live images not in their test set:
+1. Diagnose distribution shift — compare train domain vs production (class balance, lighting, background, angles, image quality).
+2. Surface `autolabel_start` to auto-label production hard cases for the next round: project=<project>, model=<deployment_id>.
+3. Feed batch back to Gate 2 for the next iteration.
+
 **Step 6 — Artifact.**
 
 Produce these two user-owned, portable files.

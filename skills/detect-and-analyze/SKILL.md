@@ -110,6 +110,39 @@ Same generic order as `fde-methodology.md` (threshold sweep → fine-tune → fu
 - **Universe checkpoint fine-tune**: use `checkpoint: "universe/<workspace>/<project>/<version>"` when a close Universe model exists. Fewer labeled images needed (50–100 vs 200+ from scratch).
 - **Model size trade-off**: if latency fails after mAP passes, try `rfdetr-nano` or `yolov11n` before accepting a mAP drop. Report both latency and mAP impact.
 
+**Improvement sub-flow (when threshold sweep and checkpoint fine-tune haven't closed the gap).**
+
+Gates fire in order — never skip to a later gate:
+
+**Gate 2 — Hard-negative mining.**
+1. Pull per-image failure breakdown: `model_evals_get_image_predictions` on the eval version.
+2. Report failure clusters by class, object size, lighting, angle — not a raw dump.
+3. Create annotation job on the worst-N images: `annotation_jobs_create` with project=<project>, images=[<image_ids_from_eval>], batch_name="hard-negatives-<date>".
+4. Once relabeled, `versions_generate` with hard negatives in training split; re-train (`models_train` — credit estimate first) and re-measure against the eval.
+
+**Gate 3 — Augmentation strategy.**
+Ask one targeted question: "What does live footage look like that your test set doesn't cover?"
+
+Match augmentation to the stated gap — never apply a generic preset:
+
+| Gap | Augmentations |
+|-----|---------------|
+| Lighting variation | Brightness ±30%, Exposure ±25% |
+| Motion blur / defocus | Blur 0–3 px |
+| Camera angle variation | Rotation ±15°, Horizontal flip |
+| Scale or distance change | Zoom 0–20% |
+| Color / weather variation | Hue ±15°, Saturation ±25% |
+
+Call `versions_generate` with the selected augmentations. State augmentation config before calling (irreversible). Re-train and report delta mAP/recall vs prior run.
+
+**Gate 4 — Relabel.** Only when Gates 2–3 haven't closed the gap. Return to Annotation Unblocking flow in `fde-methodology.md`. Minimum: 50 images per class for fine-tune; 200+ for full train from scratch.
+
+**Active learning path (deployed model receiving live production frames).**
+When user reports failures on live footage not in their test set:
+1. Diagnose distribution shift — compare train domain vs production (class balance, lighting, angles, scale).
+2. Surface `autolabel_start` to auto-label hard cases for the next round: project=<project>, model=<deployment_id>.
+3. Feed labeled batch back to Gate 2 for the next iteration.
+
 **Step 6 — Counting and ROI layer.**
 
 **Count**: `len([p for p in predictions if p["class"] == target])` after NMS (applied by default by Roboflow inference). Multi-class: per-class count dict. Single-class: scalar.
