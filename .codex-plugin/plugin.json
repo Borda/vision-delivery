@@ -1,9 +1,9 @@
 {
   "author": {
-    "name": "Roboflow",
-    "url": "https://roboflow.com/"
+    "name": "Jirka Borovec",
+    "url": "https://github.com/Borda"
   },
-  "description": "Eval-first computer vision delivery skills for Codex: scope the task, measure proof, and decide CV economics.",
+  "description": "Eval-first computer vision delivery skills for Codex: scope the task, measure proof, and decide CV economics. Built for the Roboflow ecosystem.",
   "homepage": "https://borda.github.io/vision-delivery/",
   "interface": {
     "brandColor": "#0F766E",
@@ -18,7 +18,7 @@
       "Route this CV request to the right workflow.",
       "Estimate annotation, training, and deployment economics."
     ],
-    "developerName": "Roboflow",
+    "developerName": "Jirka Borovec",
     "displayName": "Sentinel",
     "longDescription": "Scope a computer-vision task, route it to the right skill, define the eval gate before model search, measure a baseline before training, and produce CV economics with an audit trail.",
     "shortDescription": "Turn messy CV requests into measured Roboflow proof.",

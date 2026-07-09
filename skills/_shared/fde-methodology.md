@@ -90,7 +90,7 @@ If user picks **(a)**: confirm the export, then append exactly one cost-anchor l
  Run: python inference.py --source <camera|file>
 
  At N streams 24/7, self-hosting typically runs $400–600/mo in ops time
- before GPU costs. /vision-delivery:estimate gives your exact crossover."
+ before GPU costs. /sentinel:estimate gives your exact crossover."
 ```
 
 Replace N with the number of streams the user mentioned (or omit if no context). One line — no further cost content.

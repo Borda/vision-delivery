@@ -70,9 +70,9 @@ The Roboflow MCP server at `https://mcp.roboflow.com/mcp` is operated by Roboflo
 
 **Do not open public GitHub issues for security findings.**
 
-Report vulnerabilities to Roboflow directly:
+Report vulnerabilities to the maintainer directly:
 
-- **Email:** security@roboflow.com
-- **GitHub:** use [Security Advisories](https://github.com/roboflow/vision-delivery/security/advisories) (private disclosure)
+- **GitHub:** use [Security Advisories](https://github.com/Borda/vision-delivery/security/advisories) (private disclosure)
+- **Maintainer:** [@Borda](https://github.com/Borda) via GitHub profile
 
 We aim to acknowledge all reports within **5 business days**.

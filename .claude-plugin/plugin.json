@@ -1,9 +1,9 @@
 {
   "author": {
-    "name": "Roboflow",
-    "url": "https://roboflow.com/"
+    "name": "Jirka Borovec",
+    "url": "https://github.com/Borda"
   },
-  "description": "Agent-ready computer vision skills: from problem to deployed model. Claude Code, Codex, Cursor.",
+  "description": "Agent-ready computer vision skills: from problem to deployed model. Built for the Roboflow ecosystem. Claude Code, Codex, Cursor.",
   "homepage": "https://borda.github.io/vision-delivery/",
   "hooks": "./hooks/hooks.json",
   "keywords": [

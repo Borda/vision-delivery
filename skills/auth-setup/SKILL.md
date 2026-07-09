@@ -183,7 +183,7 @@ Follow the voice rules from §4 (Forward-Deployed-Engineer model) at every step.
 **Checks:**
 
 1. Network: `curl -s https://api.roboflow.com` from the terminal — if it hangs or returns a network error, the host is unreachable (VPN, firewall, or DNS issue).
-2. Plugin scope: for Claude Code, confirm the Roboflow MCP is installed with `--scope local` for this project, or globally. Check `~/.claude/settings.json` or `.claude/settings.json` for the MCP entry. For Codex, run `codex plugin list` and confirm `vision-delivery` is installed.
+2. Plugin scope: for Claude Code, confirm the Roboflow MCP is installed with `--scope local` for this project, or globally. Check `~/.claude/settings.json` or `.claude/settings.json` for the MCP entry. For Codex, run `codex plugin list` and confirm `sentinel` is installed.
 3. Fresh terminal: open a new terminal window, export `ROBOFLOW_API_KEY`, navigate to the project directory, and relaunch Claude Code or Codex. MCP servers inherit the environment from the process that starts the host app — a stale shell may not have loaded the updated key.
 
 ### Tools unavailable in a fresh session
@@ -192,6 +192,6 @@ Follow the voice rules from §4 (Forward-Deployed-Engineer model) at every step.
 
 **Cause:** the Roboflow plugin may be installed globally but not activated for this project directory (scope mismatch), or the MCP server failed to start silently.
 
-**Fix:** for Claude Code, run `claude plugin list` to verify the Roboflow MCP entry appears. If missing, reinstall: `claude plugin install roboflow --scope local` (project-local) or `claude plugin install roboflow` (global). For Codex, run `codex plugin list` and reinstall with `codex plugin add sentinel@sentinel` if needed. Then restart the host app.
+**Fix:** for Claude Code, run `claude plugin list` to verify the Roboflow MCP entry appears. If missing, reinstall: `claude plugin install sentinel --scope local` (project-local) or `claude plugin install sentinel` (global). For Codex, run `codex plugin list` and reinstall with `codex plugin add sentinel@sentinel` if needed. Then restart the host app.
 
 </troubleshooting>
