@@ -1,5 +1,6 @@
 # JetBrain IDE
 .idea/
+.cache/
 
 # AI tooling
 __pycache__/

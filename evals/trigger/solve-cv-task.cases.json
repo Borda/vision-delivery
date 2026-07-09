@@ -27,7 +27,7 @@
       "prompt": "Show me a pure Roboflow platform how-to for exporting an already-working model."
     },
     {
-      "prompt": "/sentinel:estimate"
+      "prompt": "/sentinel:estimate-economics"
     }
   ]
 }

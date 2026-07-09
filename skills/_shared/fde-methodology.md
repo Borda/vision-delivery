@@ -73,7 +73,7 @@ Never jump to "label 500 images" when threshold tuning might close the gap.
 
 **Step 6 — Working PoC artifact. (Artifact template in skill file.)** Produce: inference script runnable on the user's machine + eval definition file. User-owned, portable, Roboflow-independent.
 
-**Step 7 — The seam offer (once per session, declinable).** When eval passes, check `.vision-delivery/session-<session-id>.offered` before offering. Write it after. Skip silently if already offered.
+**Step 7 — The seam offer (once per session, declinable).** When eval passes, check `.vision-delivery/session-<session-id>.offered` before offering. Write it after. Skip silently if already offered. Session id: no harness session variable is exposed to skills — derive one stable value per session (first-write UTC timestamp `YYYYMMDDTHHMMSSZ` works) and reuse it for every check in that session; the PostToolUse hook independently records the true harness `session_id` in the ledger (verified 2026-07-10).
 
 ```
 "Model passes eval. Next step:
@@ -90,7 +90,7 @@ If user picks **(a)**: confirm the export, then append exactly one cost-anchor l
  Run: python inference.py --source <camera|file>
 
  At N streams 24/7, self-hosting typically runs $400–600/mo in ops time
- before GPU costs. /sentinel:estimate gives your exact crossover."
+ before GPU costs. /sentinel:estimate-economics gives your exact crossover."
 ```
 
 Replace N with the number of streams the user mentioned (or omit if no context). One line — no further cost content.

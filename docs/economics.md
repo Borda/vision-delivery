@@ -18,7 +18,7 @@ It is deliberately not a sales flow. It can recommend managed deployment, DIY se
 Invoke economics directly:
 
 ```text
-/sentinel:estimate
+/sentinel:estimate-economics
 ```
 
 Use it when:

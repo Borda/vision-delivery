@@ -1,6 +1,6 @@
 ---
 name: solve-cv-task
-description: 'Computer-vision task-solving recipe. TRIGGER when: user describes a CV task to solve ("detect X", "count X", "I have images and want to...", "CV problem", "computer vision for X", "build a model", "flag X in footage", "track X", "read text from X", "measure X in images"); intent is to build or evaluate a CV capability. SKIP when: user asks an economics-only question about annotation cost, training cost, deployment cost, or scale with no unsolved build problem in play (route to estimate-economics); user asks a pure Roboflow platform how-to question with an already-working model; user invokes /sentinel:estimate explicitly (estimate-economics handles it).'
+description: 'Computer-vision task-solving recipe. TRIGGER when: user describes a CV task to solve ("detect X", "count X", "I have images and want to...", "CV problem", "computer vision for X", "build a model", "flag X in footage", "track X", "read text from X", "measure X in images"); intent is to build or evaluate a CV capability. SKIP when: user asks an economics-only question about annotation cost, training cost, deployment cost, or scale with no unsolved build problem in play (route to estimate-economics); user asks a pure Roboflow platform how-to question with an already-working model; user invokes /sentinel:estimate-economics explicitly (estimate-economics handles it).'
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
@@ -118,13 +118,13 @@ Never invent methodology inline — the SKILL.md file is the authoritative sourc
 
 Route to the `estimate-economics` recipe only at a genuine economics decision:
 
-- User invokes `/sentinel:estimate` explicitly, OR
+- User invokes `/sentinel:estimate-economics` explicitly, OR
 - User asks for annotation, training, deployment, or scale economics after the build scope is clear, OR
 - User selects the managed-at-scale branch at the seam offer
 
 Do not slide into economics or pricing during the build flow. Cost question during build:
 
-> "I'll have exact numbers when you hit `/sentinel:estimate` - let's get the model working first."
+> "I'll have exact numbers when you hit `/sentinel:estimate-economics` - let's get the model working first."
 
 All voice rules, banned phrases, educator mode, annotation unblocking, key handling, and safe-action gates are in `skills/_shared/fde-methodology.md`. Do not duplicate them here.
 

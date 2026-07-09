@@ -145,7 +145,7 @@ See [benchmark docs](docs/benchmarks/index.md) for the benchmark definitions and
 After a model passes the success check, invoke the economics consultant directly:
 
 ```text
-/sentinel:estimate
+/sentinel:estimate-economics
 ```
 
 The consultant reads the project and separates one-time project costs from run-rate costs. Annotation and training estimates must come from project evidence or explicit user assumptions. Deployment run-rate uses missing inputs such as stream count, FPS, uptime, and region, then runs:

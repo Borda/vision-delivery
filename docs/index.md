@@ -193,7 +193,7 @@ Read the full [Use Cases](use-cases.md) guide for route boundaries and examples.
 After a model passes the success check, invoke the economics recipe:
 
 ```text
-/sentinel:estimate
+/sentinel:estimate-economics
 ```
 
 `estimate-economics` reads the project and separates one-time work from run-rate costs:

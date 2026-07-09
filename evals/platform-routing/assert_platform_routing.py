@@ -27,6 +27,35 @@ def assert_contains(text: str, needle: str, path: Path) -> None:
         raise AssertionError(f"{path} is missing `{needle}`")
 
 
+STALE_COMMAND_PATTERNS = [
+    "/vision-delivery:",  # pre-rename namespace
+    "/sentinel:estimate\u0060",  # bare /sentinel:estimate` — verified Unknown command 2026-07-10; use /sentinel:estimate-economics
+]
+
+
+def assert_no_stale_commands() -> None:
+    """Fail when docs/skills/agents reference a slash command that does not resolve.
+
+    Examples:
+        >>> assert_no_stale_commands()
+    """
+    import pathlib
+
+    repo = pathlib.Path(__file__).resolve().parents[2]
+    scopes = ["skills", "agents", "docs", "README.md"]
+    for scope in scopes:
+        p = repo / scope
+        files = [p] if p.is_file() else list(p.rglob("*.md"))
+        for f in files:
+            text = f.read_text(encoding="utf-8")
+            for pat in STALE_COMMAND_PATTERNS:
+                needle = pat.encode().decode("unicode_escape")
+                if needle in text:
+                    raise AssertionError(
+                        f"{f} contains stale command reference {needle!r}"
+                    )
+
+
 def main() -> None:
     lookup = read(LOOKUP)
     solver = read(SOLVER)
@@ -61,6 +90,7 @@ def main() -> None:
     )
     assert_contains(docs, "Direct unauthenticated probing", DOCS)
     assert_contains(docs, "OAuth-protected-resource challenge", DOCS)
+    assert_no_stale_commands()
 
     model_ids = re.findall(
         r"`(?:rf|yolo|sam|vit|resnet|deeplab)[^`]+`", model_selection
