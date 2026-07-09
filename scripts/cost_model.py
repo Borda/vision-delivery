@@ -4,7 +4,11 @@
 Invoked by the ``estimate-economics`` recipe to compute a back-of-envelope
 comparison between self-hosting computer-vision inference on cloud GPUs and a
 Roboflow managed endpoint. Always reports a fully-loaded DIY option (5 cost
-components) and a managed option, then picks a recommendation.
+components). A verdict (``diy`` / ``managed``) is emitted ONLY when a real
+managed figure is supplied via ``--managed-usd-mo`` (e.g. an enterprise
+quote); without one the model abstains (``insufficient-data``) — the public
+Core plan floor is credits-based and not comparable to a fully-loaded DIY
+run-rate, and treating it as a price would structurally bias the verdict.
 
 Pricing is read from the committed snapshot ``PRICING_SNAPSHOT.json`` beside
 this file. A live fetch of each source URL is *attempted* (to confirm sources
@@ -54,7 +58,10 @@ SETUP_HOURS: dict[str, int] = {"nano": 16, "medium": 24, "large": 40}
 HOURS_24X7 = 720
 HOURS_BUSINESS = 176
 DRIFT_MONTHLY_USD = 150.0
-MANAGED_FLOOR_USD_MO = 79.0  # Roboflow Core plan (annual) — cheapest paid tier.
+# Roboflow Core plan (annual) — cheapest paid tier. Displayed as a REFERENCE
+# floor only; never used as the managed side of a verdict (credits-based, not
+# a per-stream price — see C-04 in the improvement plan).
+MANAGED_FLOOR_USD_MO = 79.0
 WEEKS_PER_MONTH = 52 / 12
 SNAPSHOT_STALE_DAYS = 30
 
@@ -165,17 +172,31 @@ def scaling_cliff_note(
         >>> "GPU instance" in note
         True
     """
+    return _scaling_cliff(streams, model_size, gpu_rate, hours)[0]
+
+
+def _scaling_cliff(
+    streams: int, model_size: str, gpu_rate: float, hours: int
+) -> tuple[str, float]:
+    """Return (human note, incremental $/mo) for the next GPU-instance cliff.
+
+    Examples:
+        >>> note, inc = _scaling_cliff(5, "medium", 0.274, 720)
+        >>> inc > 0
+        True
+    """
     per_instance = STREAMS_PER_INSTANCE[model_size]
     current = instances_needed(streams, model_size)
     # Smallest stream count that forces one more instance than now.
     next_cliff_streams = current * per_instance + 1
     next_instances = instances_needed(next_cliff_streams, model_size)
     added = next_instances - current
-    incremental = gpu_rate * hours * added
-    return (
+    incremental = round(gpu_rate * hours * added, 2)
+    note = (
         f"At {next_cliff_streams} streams, a {_ordinal(next_instances)} GPU instance "
         f"is needed (+${incremental:,.0f}/mo)."
     )
+    return note, incremental
 
 
 # --------------------------------------------------------------------------- #
@@ -336,25 +357,36 @@ def compute(args: argparse.Namespace, snapshot: dict[str, Any]) -> dict[str, Any
     total_run_rate_mo = round(gpu_cost_mo + ops_mo + drift_mo, 2)
 
     # 5. Scaling cliff note (reported, not summed).
-    cliff = scaling_cliff_note(args.streams, args.model_size, gpu_rate, hours)
+    cliff, cliff_incremental = _scaling_cliff(
+        args.streams, args.model_size, gpu_rate, hours
+    )
 
-    # Managed side.
+    # Managed side. A comparable figure exists ONLY when the user supplies one.
     if args.managed_usd_mo is not None:
-        managed_mo = round(float(args.managed_usd_mo), 2)
+        managed_mo: float | None = round(float(args.managed_usd_mo), 2)
         managed_source = "user-provided"
         managed_url = "user-provided"
         managed_caveat = "user-provided (e.g. enterprise quote)"
     else:
-        managed_mo = MANAGED_FLOOR_USD_MO
+        managed_mo = None
         managed_source = managed_src["source_url"]
         managed_url = managed_src["source_url"]
         managed_caveat = (
-            "No public per-stream price. Figure is the Roboflow Core plan floor "
-            "($79/mo annual); dedicated GPU is Enterprise (custom pricing)."
+            "Credits-based pricing; no public per-stream price. The Core plan "
+            f"floor (${MANAGED_FLOOR_USD_MO:,.0f}/mo annual, ~15 credits) is a "
+            "reference only — NOT comparable to a fully-loaded DIY run-rate."
         )
 
-    # Recommendation + crossover.
-    if managed_mo > total_run_rate_mo:
+    # Recommendation + crossover. No real managed figure -> abstain.
+    if managed_mo is None:
+        recommendation = "insufficient-data"
+        crossover_months = None
+        reason = (
+            f"insufficient managed pricing to compare — DIY run-rate is "
+            f"~${total_run_rate_mo:,.0f}/mo (+${setup_one_time:,.0f} one-time); "
+            "get a Roboflow quote and re-run with --managed-usd-mo"
+        )
+    elif managed_mo > total_run_rate_mo:
         recommendation = "diy"
         monthly_saving = round(managed_mo - total_run_rate_mo, 2)
         crossover_months = (
@@ -394,20 +426,24 @@ def compute(args: argparse.Namespace, snapshot: dict[str, Any]) -> dict[str, Any
         },
         "managed": {
             "total_mo": managed_mo,
+            "reference_floor_usd_mo": (
+                MANAGED_FLOOR_USD_MO if managed_mo is None else None
+            ),
             "source": managed_source,
             "caveat": managed_caveat,
         },
         "crossover_months": crossover_months,
         "scaling_cliff": cliff,
+        "scaling_cliff_incremental_usd_mo": cliff_incremental,
         "sources": {
             "gpu_rate_usd_hr": gpu_rate,
             "gpu_source_url": gpu_src["source_url"],
-            "gpu_as_of": as_of,
+            "gpu_as_of": gpu_src.get("as_of", as_of),
             "managed_source_url": managed_url,
-            "managed_as_of": as_of,
+            "managed_as_of": managed_src.get("as_of", as_of),
             "engineer_usd_hr": engineer_hourly,
             "engineer_source_url": eng_src["source_url"],
-            "engineer_as_of": as_of,
+            "engineer_as_of": eng_src.get("as_of", as_of),
         },
     }
 
@@ -423,6 +459,7 @@ def render_json(result: dict[str, Any]) -> str:
         "reason": result["reason"],
         "diy": {
             "gpu_cost_mo": diy["gpu_cost_mo"],
+            "n_instances": diy["n_instances"],
             "setup_one_time": diy["setup_one_time"],
             "ops_mo": diy["ops_mo"],
             "drift_mo": diy["drift_mo"],
@@ -430,6 +467,7 @@ def render_json(result: dict[str, Any]) -> str:
         },
         "managed": {
             "total_mo": result["managed"]["total_mo"],
+            "reference_floor_usd_mo": result["managed"]["reference_floor_usd_mo"],
             "source": result["managed"]["source"],
             "caveat": (
                 None
@@ -439,6 +477,7 @@ def render_json(result: dict[str, Any]) -> str:
         },
         "crossover_months": result["crossover_months"],
         "scaling_cliff": result["scaling_cliff"],
+        "scaling_cliff_incremental_usd_mo": result["scaling_cliff_incremental_usd_mo"],
         "sources": result["sources"],
     }
     return json.dumps(payload, indent=2)
@@ -497,18 +536,22 @@ def render_text(
     managed_src_label = (
         "user-provided" if managed["source"] == "user-provided" else managed["source"]
     )
-    lines.append(
-        f"Roboflow managed ({args.streams} streams):".ljust(42)
-        + f"~${managed['total_mo']:,.0f}/mo  "
-        + f"[source: {managed_src_label}, as_of: {as_of}]"
-    )
-    if managed["source"] == "user-provided":
+    if managed["total_mo"] is None:
+        lines.append(f"Roboflow managed ({args.streams} streams): no comparable figure")
         lines.append(
-            "  Note: No public per-stream price. Figure above is a user-provided enterprise quote."
+            "  Credits-based pricing; no public per-stream price. Reference floor: "
+            f"~${managed['reference_floor_usd_mo']:,.0f}/mo Core plan (~15 credits) — "
+            "NOT comparable to a fully-loaded DIY run-rate  "
+            + f"[source: {managed_src_label}, as_of: {src['managed_as_of']}]"
         )
     else:
         lines.append(
-            "  Note: No public per-stream price. Figure above is the Roboflow Core plan floor."
+            f"Roboflow managed ({args.streams} streams):".ljust(42)
+            + f"~${managed['total_mo']:,.0f}/mo  "
+            + f"[source: {managed_src_label}, as_of: {src['managed_as_of']}]"
+        )
+        lines.append(
+            "  Note: No public per-stream price. Figure above is a user-provided enterprise quote."
         )
     lines.append(
         "  Public info: https://roboflow.com/pricing — Core plan $79/mo (credits), "
@@ -517,7 +560,9 @@ def render_text(
     lines.append("")
 
     # Crossover sentence.
-    if result["recommendation"] == "diy":
+    if result["recommendation"] == "insufficient-data":
+        lines.append("Crossover: not computable without a real managed figure.")
+    elif result["recommendation"] == "diy":
         lines.append(
             f"Crossover: At {args.streams} streams {args.uptime} with a "
             f"${managed['total_mo']:,.0f}/mo managed figure, {result['reason']}."
@@ -526,11 +571,19 @@ def render_text(
         lines.append(f"Crossover: {result['reason']}.")
     lines.append("")
 
-    rec_label = "DIY" if result["recommendation"] == "diy" else "Managed"
-    alt = "Managed" if rec_label == "DIY" else "DIY"
-    lines.append(
-        f'Recommendation: {rec_label}  <- (or "{alt}" if the other is cheaper)'
-    )
+    if result["recommendation"] == "insufficient-data":
+        lines.append(
+            "Recommendation: none — insufficient managed pricing to compare. "
+            f"DIY run-rate is ~${diy['total_run_rate_mo']:,.0f}/mo "
+            f"(+${diy['setup_one_time']:,.0f} one-time). Get a Roboflow quote "
+            "(https://roboflow.com/pricing) and re-run with --managed-usd-mo <quote>."
+        )
+    else:
+        rec_label = "DIY" if result["recommendation"] == "diy" else "Managed"
+        alt = "Managed" if rec_label == "DIY" else "DIY"
+        lines.append(
+            f'Recommendation: {rec_label}  <- (or "{alt}" if the other is cheaper)'
+        )
     lines.append("")
     lines.append(f"Scaling cliff: {result['scaling_cliff']}")
     lines.append("")

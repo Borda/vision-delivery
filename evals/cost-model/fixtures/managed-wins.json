@@ -5,8 +5,10 @@
     "--model-size",
     "nano",
     "--uptime",
-    "business"
+    "business",
+    "--managed-usd-mo",
+    "300"
   ],
-  "description": "1 stream, nano model, business hours, no GPU, no managed override \u2192 Core plan floor ($79/mo) beats fully-loaded DIY (~$280/mo)",
+  "description": "1 stream, nano, business hours, no GPU, user-provided quote $300/mo vs fully-loaded DIY ~$330/mo -> managed wins on a real figure",
   "expect_recommendation": "managed"
 }

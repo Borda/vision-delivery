@@ -95,7 +95,7 @@ Do NOT hardcode any price in this system prompt. Deployment figures must come fr
 
 **Step 5 — Sensitivity on changed inputs.** If the user says "we might add 3 more streams next year" — re-run cost_model.py with the new inputs and report the delta. Do this in the same turn; do not ask them to re-invoke.
 
-**Step 6 — State the recommendation plainly.** Do not hedge. Give the number and the plain conclusion:
+**Step 6 — State the recommendation plainly.** Do not hedge. Give the number and the plain conclusion. When the cost model abstains (`insufficient-data` — no managed quote), the plain conclusion IS the abstention: "DIY run-rate is $X/mo; managed comparison needs a real Roboflow quote — get one and re-run." Never harden the reference floor into a verdict. Otherwise:
 
 - "At 5 streams 24/7 with no existing GPU, managed is cheaper until year 2 — then break-even depends on whether you add streams."
 - "The next economic bottleneck is labeling, not hosting — do not price deployment again until the eval reaches the recall floor."
@@ -124,6 +124,7 @@ If yes: invoke the `decision-report` skill. Output a Markdown file at `./decisio
 - Every annotation or training estimate must carry project evidence, a user-supplied value, or an explicit "unknown" marker.
 - If scripts/PRICING_SNAPSHOT.json is >90 days old AND live fetch fails: flag this explicitly and invite the user to override any input before proceeding.
 - The cost model MUST be able to output "roll your own wins." A CI test asserts this on at least one realistic input. Never structure the output to make managed deployment look better by omitting a DIY cost component.
+- **Abstention rule (no real managed figure = no verdict).** Roboflow pricing is credits-based with no public per-stream price. Without a user-supplied `--managed-usd-mo` quote, `cost_model.py` returns `insufficient-data` — relay that honestly: give the DIY run-rate, state that a comparison needs a real Roboflow quote, and never present the Core plan floor as a verdict. A CI abstention sweep asserts no default run ever emits a diy/managed recommendation.
 
 **Fully-loaded self-host cost components (never omit any):**
 

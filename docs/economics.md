@@ -78,7 +78,7 @@ The result should say which assumption changes the recommendation. If labeling i
 
 After the crossover, the recipe can emit a stakeholder decision report. The report should include:
 
-- recommendation,
+- recommendation — or an explicit abstention (`insufficient-data`) when no real managed quote was provided; the model never converts the public Core plan floor into a verdict,
 - do-nothing baseline,
 - managed option,
 - DIY option,

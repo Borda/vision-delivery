@@ -1,0 +1,12 @@
+{
+  "args": [
+    "--streams",
+    "5",
+    "--model-size",
+    "medium",
+    "--uptime",
+    "24x7"
+  ],
+  "description": "default run without --managed-usd-mo: the model must abstain (insufficient-data), never convert the Core floor into a verdict",
+  "expect_recommendation": "insufficient-data"
+}
