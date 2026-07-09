@@ -4,8 +4,8 @@
       "local_skill": "roboflow:training-and-evaluation",
       "mcp_resource": "roboflow://skills/training-and-evaluation",
       "mcp_tools": [
-        "models_train",
-        "models_get_training_status",
+        "trainings_create",
+        "trainings_get",
         "versions_generate"
       ],
       "need": "model IDs and training architecture",

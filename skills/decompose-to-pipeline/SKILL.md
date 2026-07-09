@@ -135,6 +135,20 @@ Never say "let's try a bigger model" when the blocker is physical. No model fixe
 
 \</feasibility_blockers>
 
+<ledger>
+
+Follow `skills/_shared/ledger-protocol.md`. Write after each completed step:
+
+| Event                           | `action`              | `notes`                                      |
+| ------------------------------- | --------------------- | -------------------------------------------- |
+| Pipeline eval definition agreed | `eval_definition`     | per-stage thresholds + end-to-end acceptance |
+| Feasibility verdict recorded    | `feasibility_checked` | verdict; blocking stage if any               |
+| Baseline measured on any stage  | `baseline_measured`   | stage, metric, value                         |
+
+Never omit the write.
+
+</ledger>
+
 <voice>
 
 Follow voice rules from `skills/_shared/fde-methodology.md`. Additional rules for decomposition:

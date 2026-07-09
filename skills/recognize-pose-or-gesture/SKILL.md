@@ -118,7 +118,7 @@ Same generic order as `fde-methodology.md` (threshold sweep → fine-tune → fu
 
 1. **Keypoint confidence threshold sweep** — filter low-confidence keypoints before angle computation; often closes recall gaps without training.
 2. **Rule-based gesture classifier tuning** — adjust joint angle thresholds (no training, no annotation); fastest lever for simple gesture classes.
-3. **Fine-tune YOLO-pose on domain images** — requires keypoint-annotated data, not box-annotated. If user has only box annotations, the rule-based approach (lever 2) remains the fastest path. Always show credit estimate; wait for explicit yes before calling `models_train`.
+3. **Fine-tune YOLO-pose on domain images** — requires keypoint-annotated data, not box-annotated. If user has only box annotations, the rule-based approach (lever 2) remains the fastest path. Always show credit estimate; wait for explicit yes before calling `trainings_create`.
 
 Note: fine-tuning pose requires keypoint annotations per person. Guide through Roboflow annotation UI for keypoint projects if user has unannotated footage.
 
@@ -211,7 +211,7 @@ Also write a `.vision-delivery/detections.jsonl` append per inference run (forma
 
 \<model_pick>
 
-See `skills/_shared/model-selection.md` — Keypoint/Pose section. Verify exact `model_id` values from `roboflow://skills/training-and-evaluation` before calling `models_train` — training fails silently on a wrong ID.
+See `skills/_shared/model-selection.md` — Keypoint/Pose section. Verify exact `model_id` values from `roboflow://skills/training-and-evaluation` before calling `trainings_create` — training fails silently on a wrong ID.
 
 Quick reference for pose:
 
@@ -226,7 +226,7 @@ Quick reference for pose:
 
 Follow the safe-action gates in `skills/_shared/fde-methodology.md` exactly. Quick reference:
 
-- `models_train` → credit estimate + explicit yes required, same turn; note: pose training requires keypoint-annotated data, not box annotations
+- `trainings_create` → credit estimate + explicit yes required, same turn; note: pose training requires keypoint-annotated data, not box annotations
 - `versions_generate` → free but irreversible; state augmentation config before calling
 - Image upload → state destination; offer local path if user declines
 - `project_deployment_launch` → not in this skill; seam offer hands to `estimate-economics`
@@ -243,7 +243,7 @@ Action triggers for this skill:
 | --------------------------------------------------------- | --------------------------- | ------------------------------------------------------- |
 | `eval_definition.md` written and user confirmed           | `eval_definition`           | action classes, OKS mAP threshold, gesture recall floor |
 | First `models_infer` call returns OKS mAP result          | `baseline_measured`         | `OKS mAP=X%, gesture_recall=Y%`                         |
-| `models_train` MCP call submitted                         | `models_train`              | model name, checkpoint, dataset version                 |
+| `trainings_create` MCP call submitted                     | `trainings_create`          | model name, checkpoint, dataset version                 |
 | Deployment launched (via seam offer → estimate-economics) | `project_deployment_launch` | deployment_id, endpoint URL                             |
 
 `entity_id` format: `<workspace>/<project>` for projects; `<workspace>/<project>/<version>` when version is known.

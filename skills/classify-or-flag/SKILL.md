@@ -65,7 +65,7 @@ For >2 classes: include a confusion matrix summary (which classes are confused w
 Same generic order as `fde-methodology.md` (threshold sweep → fine-tune → full train), plus:
 
 1. **CLIP prompt engineering** — try 3–5 text prompt variants per class; report the best F1 per variant. Often closes 5–15 points at zero labeling cost. Example: `"a photo of a defective weld"` vs `"weld with visible crack or porosity"`.
-2. **Fine-tune on a CLIP / ViT checkpoint** — `versions_generate` → `models_train` with a ViT-based classifier. Always show credit estimate; wait for explicit yes before calling `models_train`. Requires labeled images (20–50 per class minimum; 100+ preferred).
+2. **Fine-tune on a CLIP / ViT checkpoint** — `versions_generate` → `trainings_create` with a ViT-based classifier. Always show credit estimate; wait for explicit yes before calling `trainings_create`. Requires labeled images (20–50 per class minimum; 100+ preferred).
 3. **Full custom train** — only if CLIP transfer fails and domain is too distant from ImageNet pretraining (e.g. microscopy, X-ray, thermal IR). Guide annotation using the Annotation Unblocking flow in `fde-methodology.md`.
 
 **Improvement sub-flow (when CLIP prompt engineering and fine-tune haven't closed the gap).**
@@ -77,7 +77,7 @@ Gates fire in order — never skip to a later gate:
 1. Pull per-image predictions: `model_evals_get_image_predictions` on the eval version.
 2. Report misclassified images by class and confidence cluster — identify patterns (lighting, background, angle, image quality).
 3. Create annotation job on the misclassified images: `annotation_jobs_create` with project=<project>, images=[\<misclassified_ids>], batch_name="hard-negatives-<date>".
-4. Once relabeled or confirmed, `versions_generate` with hard negatives in training split; re-train (`models_train` — credit estimate first) and re-measure F1.
+4. Once relabeled or confirmed, `versions_generate` with hard negatives in training split; re-train (`trainings_create` — credit estimate first) and re-measure F1.
 
 **Gate 3 — Augmentation strategy.** Ask one targeted question: "What does production footage look like that your labeled set doesn't cover?"
 
@@ -163,13 +163,13 @@ Also write a `.vision-delivery/detections.jsonl` append per inference run (forma
 
 \<model_pick>
 
-See `skills/_shared/model-selection.md` for the full decision tree and exact model_id values (Classification section notes ViT / DINO family IDs are placeholders — verify current values from `roboflow://skills/training-and-evaluation` before calling `models_train`).
+See `skills/_shared/model-selection.md` for the full decision tree and exact model_id values (Classification section notes ViT / DINO family IDs are placeholders — verify current values from `roboflow://skills/training-and-evaluation` before calling `trainings_create`).
 
 Quick reference for classification:
 
 - Zero-shot, no labels → CLIP (text prompt variants, no training)
 - Universe pretrained classifier exists → use it directly before any training
-- Fine-tune required → ViT-based classifier checkpoint via `models_train`
+- Fine-tune required → ViT-based classifier checkpoint via `trainings_create`
 - PPE / safety domain → search Universe first (`hard hat`, `ppe compliance`, `safety vest`)
 
 \</model_pick>
@@ -178,7 +178,7 @@ Quick reference for classification:
 
 Follow the safe-action gates in `skills/_shared/fde-methodology.md` exactly. Quick reference:
 
-- `models_train` → credit estimate + explicit yes required, same turn
+- `trainings_create` → credit estimate + explicit yes required, same turn
 - `versions_generate` → free but irreversible; state augmentation config before calling
 - Image upload → state destination; offer local path if user declines
 - `project_deployment_launch` → not in this skill; seam offer hands to `estimate-economics`
@@ -195,7 +195,7 @@ Action triggers for this skill:
 | ---------------------------------------------------------------------- | --------------------------- | --------------------------------------- |
 | `eval_definition.md` written and user confirmed                        | `eval_definition`           | target classes, F1/recall threshold     |
 | First zero-shot CLIP or `models_infer` call returns F1/accuracy result | `baseline_measured`         | `F1=X, Recall=Y, Precision=Z`           |
-| `models_train` MCP call submitted                                      | `models_train`              | model name, checkpoint, dataset version |
+| `trainings_create` MCP call submitted                                  | `trainings_create`          | model name, checkpoint, dataset version |
 | Deployment launched (via seam offer → estimate-economics)              | `project_deployment_launch` | deployment_id, endpoint URL             |
 
 `entity_id` format: `<workspace>/<project>` for projects; `<workspace>/<project>/<version>` when version is known.

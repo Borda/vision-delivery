@@ -14,5 +14,6 @@ This directory is not a user-facing workflow by itself. Read the specific shared
 - `skills/_shared/fde-methodology.md`
 - `skills/_shared/ledger-protocol.md`
 - `skills/_shared/model-selection.md`
+- `skills/_shared/roboflow-platform-lookup.md`
 
 </objective>

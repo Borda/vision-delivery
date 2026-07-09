@@ -79,9 +79,9 @@ Skill produces `count_inference.py` and `eval_definition.md`. Proceeds to Step 7
 Skill offers fastest lever first:
 
 1. Confidence threshold sweep via `model_evals_get_confidence_sweep`
-2. Fine-tune with RF-DETR + Universe checkpoint (requires explicit credit confirm before `models_train`)
+2. Fine-tune with RF-DETR + Universe checkpoint (requires explicit credit confirm before `trainings_create`)
 
-**\[Step 2 of 5b is a credit-spending step — MUST show credit estimate and wait for explicit "yes" before calling `models_train`\]**
+> **Credit gate — Step 2 of 5b:** MUST show credit estimate and wait for explicit "yes" before calling `trainings_create`.
 
 After fine-tune:
 

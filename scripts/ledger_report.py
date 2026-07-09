@@ -14,7 +14,11 @@ from collections import Counter
 from pathlib import Path
 
 _DEPLOY_ACTION = "project_deployment_launch"
-_PRE_DEPLOY_ACTIONS = {"baseline_measured", "models_train"}
+_PRE_DEPLOY_ACTIONS = {
+    "baseline_measured",
+    "trainings_create",
+    "models_train",
+}  # models_train: legacy pre-2026-07-09 rows
 
 
 def _default_ledger() -> Path:
@@ -75,6 +79,7 @@ def compute_metrics(records: list[dict]) -> dict:
         "solved_no_deploy": solved_no_deploy,
         "workload_mix": workload_mix,
         "action_breakdown": action_breakdown,
+        "coverage_note": "lower-bound, best-effort — skill-side writes are unenforced; hook-side coverage pending live verification",
     }
 
 
@@ -82,6 +87,9 @@ def print_text(m: dict) -> None:
     """Render metrics as human-readable text."""
     deploy_pct = int(m["sessions_reaching_deploy_pct"])
     print("vision-delivery ledger report")
+    print(
+        "(lower-bound, best-effort — skill-side writes unenforced; hook coverage pending live verification)"
+    )
     print("─" * 33)
     print(f"Total events:             {m['total_events']}")
     print(f"Sessions:                 {m['sessions']}")

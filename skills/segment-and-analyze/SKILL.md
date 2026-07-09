@@ -69,7 +69,7 @@ Never soften. Numbers only.
 Same generic order as `fde-methodology.md` (threshold sweep → fine-tune → full train), plus:
 
 1. **SAM prompt tuning** (zero label cost) — point prompts, box prompts. Often closes 10–20 IoU points before any labeling. Try box-prompt mode first; report delta.
-2. **Fine-tune on SAM checkpoint** — `versions_generate` → `models_train` with segmentation dataset. Always show credit estimate; wait for explicit yes before calling `models_train`.
+2. **Fine-tune on SAM checkpoint** — `versions_generate` → `trainings_create` with segmentation dataset. Always show credit estimate; wait for explicit yes before calling `trainings_create`.
 3. **Full custom train from scratch** — only if SAM transfer fails after prompt tuning + fine-tune. Use `rfdetr-seg-medium` (verify model_id from `roboflow://skills/training-and-evaluation` before use — see `skills/_shared/model-selection.md`, Instance Segmentation section, placeholder IDs).
 
 **Step 6 — Measurement from mask.**
@@ -221,7 +221,7 @@ Quick reference for segmentation:
 
 Follow the safe-action gates in `skills/_shared/fde-methodology.md` exactly. Quick reference:
 
-- `models_train` → credit estimate + explicit yes required, same turn
+- `trainings_create` → credit estimate + explicit yes required, same turn
 - `versions_generate` → free but irreversible; state augmentation config before calling
 - Image upload → state destination; offer local path if user declines
 - `project_deployment_launch` → not in this skill; seam offer hands to `estimate-economics`
@@ -238,7 +238,7 @@ Action triggers for this skill:
 | --------------------------------------------------------- | --------------------------- | ------------------------------------------------- |
 | `eval_definition.md` written and user confirmed           | `eval_definition`           | target classes, IoU threshold, calibration method |
 | First SAM zero-shot or `models_infer` returns IoU result  | `baseline_measured`         | `mean_IoU=X, area_error=Y%`                       |
-| `models_train` MCP call submitted                         | `models_train`              | model name, checkpoint, dataset version           |
+| `trainings_create` MCP call submitted                     | `trainings_create`          | model name, checkpoint, dataset version           |
 | Deployment launched (via seam offer → estimate-economics) | `project_deployment_launch` | deployment_id, endpoint URL                       |
 
 `entity_id` format: `<workspace>/<project>` for projects; `<workspace>/<project>/<version>` when version is known.

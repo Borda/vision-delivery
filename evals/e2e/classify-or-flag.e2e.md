@@ -90,8 +90,8 @@ Skill offers fastest lever first:
 
 1. CLIP prompt engineering — try 3–5 additional text prompt variants; report best F1 per variant.
 2. Fine-tune a ViT-based classifier with labeled images from the Universe fixture or user's own data:
-   - `versions_generate` → `models_train` with ViT checkpoint.
-   - **\[Credit-spending step — MUST show credit estimate and wait for explicit "yes" before calling `models_train`\]**
+   - `versions_generate` → `trainings_create` with ViT checkpoint.
+   - **Credit gate:** MUST show credit estimate and wait for explicit "yes" before calling `trainings_create`.
 
 After fine-tune:
 
@@ -156,7 +156,7 @@ notes: 'CLIP zero-shot: F1=0.71, Recall=0.68, Precision=0.74 (no_hard_hat class)
 ts: '2026-06-25T10:30:00Z'
 session: 2026-06-25-hard-hat-compliance
 skill: classify-or-flag
-action: models_train
+action: trainings_create
 entity_id: <workspace>/<project>/1
 version: 0.1.0
 notes: 'ViT classifier fine-tune; checkpoint: universe/<ppe-project>; dataset version

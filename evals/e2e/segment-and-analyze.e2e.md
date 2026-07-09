@@ -93,11 +93,11 @@ Skill offers fastest lever first:
 **5b-ii — Fine-tune on labeled masks (credit-spending step):**
 
 - Requires labeled segmentation dataset. If user has none: offer annotation via Roboflow UI.
-- Show credit estimate for `models_train` before calling.
+- Show credit estimate for `trainings_create` before calling.
 - Wait for explicit "yes" in current turn before submitting training job.
 - After training: re-measure IoU. If passes → Step 6. If still fails → offer data collection guidance.
 
-**\[Step 5b-ii is a credit-spending step — MUST show credit estimate and wait for explicit "yes" before calling `models_train`\]**
+> **Credit gate — Step 5b-ii:** MUST show credit estimate and wait for explicit "yes" before calling `trainings_create`.
 
 ______________________________________________________________________
 
@@ -149,7 +149,7 @@ Expected records in order:
 
 1. `eval_definition` — after eval_definition.md written and confirmed
 2. `baseline_measured` — after SAM zero-shot IoU measured
-3. `models_train` — if fine-tuning was required (credit-confirmed)
+3. `trainings_create` — if fine-tuning was required (credit-confirmed)
 4. `project_deployment_launch` — if user selected (b) in seam offer
 
 ______________________________________________________________________

@@ -201,7 +201,7 @@ ByteTrack has no model_id — it is a Roboflow Workflows block, not a trainable 
 
 Follow the safe-action gates in `skills/_shared/fde-methodology.md` exactly. Quick reference:
 
-- `models_train` → quantified credit estimate + explicit yes required, same turn (format in `fde-methodology.md` Safe Actions)
+- `trainings_create` → quantified credit estimate + explicit yes required, same turn (format in `fde-methodology.md` Safe Actions)
 - `versions_generate` → free but irreversible; state augmentation config before calling
 - Image upload → state destination; offer local path if user declines
 - `project_deployment_launch` → credit-spending; show estimate, wait for explicit yes; this IS in scope for this skill (RTSP Workflow deploy path) — do not silently defer to `estimate-economics` without offering first
@@ -218,7 +218,7 @@ Action triggers for this skill:
 | ------------------------------------------------------------------------- | --------------------------- | -------------------------------------------------------- |
 | `eval_definition.md` written and user confirmed                           | `eval_definition`           | target classes, metric type, threshold                   |
 | First `workflow_specs_run` or `models_infer` call returns tracking metric | `baseline_measured`         | `MOTA=X%` or `line-cross error=Y/min` or `dwell MAE=Z s` |
-| `models_train` MCP call submitted                                         | `models_train`              | model name, checkpoint, dataset version                  |
+| `trainings_create` MCP call submitted                                     | `trainings_create`          | model name, checkpoint, dataset version                  |
 | `project_deployment_launch` MCP call submitted for RTSP Workflow          | `project_deployment_launch` | deployment_id, endpoint URL, Workflow spec summary       |
 | `devices_update_config` called for managed edge device                    | `edge_device_configured`    | device_id, model_id pushed, telemetry snapshot           |
 

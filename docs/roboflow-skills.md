@@ -30,15 +30,15 @@ So the practical lookup order is:
 
 Instead of porting Roboflow skills, `vision-delivery` should carry thin adapters that know where to look and when to return to the eval gate.
 
-| Platform-specific need                              | First local skill                  | MCP skill-resource fallback                     | Live MCP tools usually involved                                                 | `vision-delivery` keeps owning                                      |
-| --------------------------------------------------- | ---------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Model IDs, architectures, checkpoints, model eval   | `roboflow:training-and-evaluation` | `roboflow://skills/training-and-evaluation/...` | `models_train`, `models_get_training_status`, `models_get`, `versions_generate` | whether training is justified by the eval gap and user confirmation |
-| Inference, deployment options, Workflows, batch     | `roboflow:inference`               | `roboflow://skills/inference/...`               | `models_infer`, `workflows_run`, `workflow_specs_validate`, batch/data-staging  | eval fit, latency tradeoff, local PoC artifacts, economics handoff  |
-| Uploads, projects, annotation organization, exports | `roboflow:data-management`         | `roboflow://skills/data-management/...`         | `projects_create`, `image_upload`, `images_search`, `versions_generate/export`  | dataset actions tied to the eval plan                               |
-| REST/API hosts, auth, SDK snippets, response shapes | `roboflow:api-reference`           | `roboflow://skills/api-reference/...`           | typed MCP tools first; raw REST only for gaps                                   | key safety and avoiding unverifiable protocol claims                |
-| Universe datasets, public models, forks             | `roboflow:universe`                | `roboflow://skills/universe/...`                | `universe_search`, Universe app/resource flows                                  | relevance, license risk, and measurement on user samples            |
-| Plans, credits, billing, current pricing references | `roboflow:plans-and-pricing`       | `roboflow://skills/plans-and-pricing/...`       | usage/billing tools if exposed                                                  | `scripts/cost_model.py`, assumptions, one-time vs run-rate split    |
-| UI paths and handoff links                          | `roboflow:product-navigation`      | `roboflow://skills/product-navigation/...`      | usually none                                                                    | only the next useful handoff path                                   |
+| Platform-specific need                              | First local skill                  | MCP skill-resource fallback                     | Live MCP tools usually involved                                                | `vision-delivery` keeps owning                                      |
+| --------------------------------------------------- | ---------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| Model IDs, architectures, checkpoints, model eval   | `roboflow:training-and-evaluation` | `roboflow://skills/training-and-evaluation/...` | `trainings_create`, `trainings_get`, `models_get`, `versions_generate`         | whether training is justified by the eval gap and user confirmation |
+| Inference, deployment options, Workflows, batch     | `roboflow:inference`               | `roboflow://skills/inference/...`               | `models_infer`, `workflows_run`, `workflow_specs_validate`, batch/data-staging | eval fit, latency tradeoff, local PoC artifacts, economics handoff  |
+| Uploads, projects, annotation organization, exports | `roboflow:data-management`         | `roboflow://skills/data-management/...`         | `projects_create`, `image_upload`, `images_search`, `versions_generate/export` | dataset actions tied to the eval plan                               |
+| REST/API hosts, auth, SDK snippets, response shapes | `roboflow:api-reference`           | `roboflow://skills/api-reference/...`           | typed MCP tools first; raw REST only for gaps                                  | key safety and avoiding unverifiable protocol claims                |
+| Universe datasets, public models, forks             | `roboflow:universe`                | `roboflow://skills/universe/...`                | `universe_search`, Universe app/resource flows                                 | relevance, license risk, and measurement on user samples            |
+| Plans, credits, billing, current pricing references | `roboflow:plans-and-pricing`       | `roboflow://skills/plans-and-pricing/...`       | usage/billing tools if exposed                                                 | `scripts/cost_model.py`, assumptions, one-time vs run-rate split    |
+| UI paths and handoff links                          | `roboflow:product-navigation`      | `roboflow://skills/product-navigation/...`      | usually none                                                                   | only the next useful handoff path                                   |
 
 The response pattern should be explicit:
 
@@ -60,7 +60,7 @@ Correct flow:
 
 1. `vision-delivery` owns the task: route to detection, define the recall/count threshold, and measure a pretrained baseline on the user's images.
 2. If training becomes justified, the agent verifies model IDs and training options from `roboflow:training-and-evaluation` or `roboflow://skills/training-and-evaluation/...`.
-3. The agent uses live MCP tools such as `versions_generate`, `models_train`, and `models_get_training_status` only after explaining the spend and getting explicit confirmation.
+3. The agent uses live MCP tools such as `versions_generate`, `trainings_create`, and `trainings_get` only after explaining the spend and getting explicit confirmation.
 4. `vision-delivery` resumes ownership after the platform action: compare results to the eval gate, write proof artifacts, append ledger rows, and decide whether economics should run.
 
 Incorrect flow:

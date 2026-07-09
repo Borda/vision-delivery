@@ -101,9 +101,9 @@ Skill offers fastest lever first:
 
 1. ByteTrack parameter tuning: adjust `track_thresh`, `match_thresh`, `track_buffer` — free, no retraining
 2. Confidence threshold sweep on detection backbone via `model_evals_get_confidence_sweep`
-3. Fine-tune detection backbone with RF-DETR + labeled data (requires explicit credit confirm before `models_train`)
+3. Fine-tune detection backbone with RF-DETR + labeled data (requires explicit credit confirm before `trainings_create`)
 
-**\[Step 3 of 6b is a credit-spending step — MUST show credit estimate and wait for explicit "yes" before calling `models_train`\]**
+> **Credit gate — Step 3 of 6b:** MUST show credit estimate and wait for explicit "yes" before calling `trainings_create`.
 
 After tuning/fine-tune:
 
@@ -123,7 +123,7 @@ Skill checks `.vision-delivery/session-<id>.offered`. If absent: fires offer onc
  (c) Skip for now"
 ```
 
-**\[RTSP deploy — manual acceptance step only. This IS a credit-spending step. `project_deployment_launch` MUST NOT be called without explicit credit confirmation in-session. This step is a manual acceptance test — do not automate it in the runner.\]**
+> **Credit gate — RTSP deploy (manual acceptance only):** `project_deployment_launch` MUST NOT be called without explicit credit confirmation in-session. Manual acceptance test — do not automate it in the runner.
 
 If user picks (a): skill shows credit estimate, waits for explicit yes, then calls `workflows_create` + `project_deployment_launch` and returns the endpoint URL. User points RTSP consumer at the endpoint.
 

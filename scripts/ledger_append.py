@@ -8,7 +8,7 @@ for ledger writes (shell injection risk on free-form notes/entity_id).
 Usage:
     python3 scripts/ledger_append.py \
         --session m1-acceptance --skill detect-and-analyze \
-        --action models_train --entity-id workspace/project/1 \
+        --action trainings_create --entity-id workspace/project/1 \
         --notes "rfdetr-medium, mAP@50=84.6%"
 """
 

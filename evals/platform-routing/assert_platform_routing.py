@@ -56,7 +56,7 @@ def main() -> None:
     assert_contains(model_selection, "stable fallback only", MODEL_SELECTION)
     assert_contains(
         model_selection,
-        "Validate volatile model IDs before `models_train`",
+        "Validate volatile model IDs before `trainings_create`",
         MODEL_SELECTION,
     )
     assert_contains(docs, "Direct unauthenticated probing", DOCS)
@@ -65,7 +65,9 @@ def main() -> None:
     model_ids = re.findall(
         r"`(?:rf|yolo|sam|vit|resnet|deeplab)[^`]+`", model_selection
     )
-    if len(model_ids) > 30:
+    if (
+        len(model_ids) > 45
+    ):  # raised from 30 on 2026-07-09: seg/pose/classification IDs verified + pinned (H-05)
         raise AssertionError(
             "model-selection fallback has too many exact platform IDs; "
             "prefer Roboflow skills/MCP resources over expanding local copies"

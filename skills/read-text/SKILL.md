@@ -61,7 +61,7 @@ Never soften. Numbers only.
 1. **Image preprocessing** — resize to at least 32 px text height, denoise, binarize (Otsu threshold), deskew. Often the biggest accuracy gain with zero labeling cost. Always try this first.
 2. **OCR engine switch** — benchmark DocTR vs PaddleOCR vs Tesseract on the fixture; report field-match and CER for each. Engine choice alone can close 10–20 points.
 3. **Detection crop first** — find the text region with a detection model (Universe search: `"text region detection"` or `"label detection"`), then OCR on the crop only. Reduces background noise substantially.
-4. **Fine-tune** — only for highly stylized text (7-segment, embossed, low-contrast) where all preprocessing and engine combinations fail. Always show credit estimate; wait for explicit yes before calling `models_train`.
+4. **Fine-tune** — only for highly stylized text (7-segment, embossed, low-contrast) where all preprocessing and engine combinations fail. Always show credit estimate; wait for explicit yes before calling `trainings_create`.
 
 **Step 6 — Artifact.**
 
@@ -137,7 +137,7 @@ OCR does not use a trained detection model for text extraction — it uses pre-b
 
 If a detection stage is needed (find the label region before OCR), apply the detection model-selection rules from `skills/_shared/model-selection.md` for that sub-step only.
 
-Custom OCR model training (rare) — verify exact `model_id` values from `roboflow://skills/training-and-evaluation` before calling `models_train`; do not guess.
+Custom OCR model training (rare) — verify exact `model_id` values from `roboflow://skills/training-and-evaluation` before calling `trainings_create`; do not guess.
 
 \</model_pick>
 
@@ -145,7 +145,7 @@ Custom OCR model training (rare) — verify exact `model_id` values from `robofl
 
 Follow the safe-action gates in `skills/_shared/fde-methodology.md` exactly. Quick reference:
 
-- `models_train` → credit estimate + explicit yes required, same turn
+- `trainings_create` → credit estimate + explicit yes required, same turn
 - `versions_generate` → free but irreversible; state augmentation config before calling
 - Image upload → state destination; offer local path if user declines
 - `project_deployment_launch` → not in this skill; seam offer hands to `estimate-economics`
@@ -162,7 +162,7 @@ Action triggers for this skill:
 | --------------------------------------------------------- | --------------------------- | ----------------------------------------- |
 | `eval_definition.md` written and user confirmed           | `eval_definition`           | target fields, CER/field-match thresholds |
 | First OCR Workflow run returns field-match result         | `baseline_measured`         | `field_match=X%, CER=Y%`                  |
-| `models_train` MCP call submitted (rare)                  | `models_train`              | model name, checkpoint, dataset version   |
+| `trainings_create` MCP call submitted (rare)              | `trainings_create`          | model name, checkpoint, dataset version   |
 | Deployment launched (via seam offer → estimate-economics) | `project_deployment_launch` | deployment_id, endpoint URL               |
 
 `entity_id` format: `<workspace>/<project>` for projects; `<workspace>/<project>/<version>` when version is known.

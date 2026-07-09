@@ -119,7 +119,7 @@ Gates fire in order — never skip to a later gate:
 1. Pull per-image failure breakdown: `model_evals_get_image_predictions` on the eval version.
 2. Report failure clusters by class, object size, lighting, angle — not a raw dump.
 3. Create annotation job on the worst-N images: `annotation_jobs_create` with project=<project>, images=[\<image_ids_from_eval>], batch_name="hard-negatives-<date>".
-4. Once relabeled, `versions_generate` with hard negatives in training split; re-train (`models_train` — credit estimate first) and re-measure against the eval.
+4. Once relabeled, `versions_generate` with hard negatives in training split; re-train (`trainings_create` — credit estimate first) and re-measure against the eval.
 
 **Gate 3 — Augmentation strategy.** Ask one targeted question: "What does live footage look like that your test set doesn't cover?"
 
@@ -239,7 +239,7 @@ Quick reference for detection:
 
 Follow the safe-action gates in `skills/_shared/fde-methodology.md` exactly. Quick reference:
 
-- `models_train` → quantified credit estimate + explicit yes required, same turn (format in `fde-methodology.md` Safe Actions)
+- `trainings_create` → quantified credit estimate + explicit yes required, same turn (format in `fde-methodology.md` Safe Actions)
 - `versions_generate` → free but irreversible; state augmentation config before calling
 - Image upload → state destination; offer local path if user declines
 - `project_deployment_launch` → not in this skill; seam offer hands to `estimate-economics`
@@ -256,7 +256,7 @@ Action triggers for this skill:
 | --------------------------------------------------------- | --------------------------- | --------------------------------------- |
 | `eval_definition.md` written and user confirmed           | `eval_definition`           | target classes, threshold               |
 | First `models_infer` call returns mAP result              | `baseline_measured`         | `mAP@50=X%, MAE=Y`                      |
-| `models_train` MCP call submitted                         | `models_train`              | model name, checkpoint, dataset version |
+| `trainings_create` MCP call submitted                     | `trainings_create`          | model name, checkpoint, dataset version |
 | Deployment launched (via seam offer → estimate-economics) | `project_deployment_launch` | deployment_id, endpoint URL             |
 
 `entity_id` format: `<workspace>/<project>` for projects; `<workspace>/<project>/<version>` when version is known.

@@ -10,7 +10,7 @@ const LEDGER_FILE = path.join(LEDGER_DIR, "ledger.jsonl");
 
 const TOOL_ACTIONS = {
   project_deployment_launch: "project_deployment_launch",
-  models_train: "models_train",
+  trainings_create: "trainings_create",
   model_evals_get: "baseline_measured",
   model_evals_get_map_results: "baseline_measured",
 };
@@ -35,16 +35,16 @@ try {
       const payload = JSON.parse(raw);
       const toolName = payload.tool_name || "";
 
-      const bare = toolName.startsWith("mcp__plugin_roboflow_roboflow__")
-        ? toolName.slice("mcp__plugin_roboflow_roboflow__".length)
-        : toolName;
+      // Strip any harness MCP prefix: mcp__roboflow__X or mcp__plugin_<name>_roboflow__X -> X
+      const bare = toolName.replace(/^mcp__(?:plugin_[A-Za-z0-9_-]+_)?roboflow__/, "");
 
       const action = TOOL_ACTIONS[bare];
       if (!action) process.exit(0);
 
       const record = {
         ts: new Date().toISOString(),
-        session: "hook-auto",
+        session:
+          typeof payload.session_id === "string" && payload.session_id ? payload.session_id.slice(0, 64) : "hook-auto",
         skill: "hook",
         action,
         entity_id: extractEntityId(payload.tool_input),

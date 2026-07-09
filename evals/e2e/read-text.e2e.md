@@ -46,7 +46,7 @@ ______________________________________________________________________
 
 Serial numbers on PCB labels are printed text — DocTR or PaddleOCR block handles them without custom training.
 
-**Expected:** skill selects a DocTR OCR Workflow block (or builds a detection + OCR chain if label region detection is needed). No `models_train` called at this stage. Skill explains why: general printed text, pre-built OCR block sufficient for first pass.
+**Expected:** skill selects a DocTR OCR Workflow block (or builds a detection + OCR chain if label region detection is needed). No `trainings_create` called at this stage. Skill explains why: general printed text, pre-built OCR block sufficient for first pass.
 
 **[Live step — read-only MCP, no credits]**
 
@@ -82,9 +82,9 @@ Skill offers fastest lever first in this order:
 1. **Image preprocessing** — resize image crop to ≥32 px text height, apply Otsu binarization, deskew. No labeling required; often closes 10–20 field-match points.
 2. **OCR engine switch** — benchmark PaddleOCR and Tesseract against DocTR baseline on the fixture; report field match and CER for each engine.
 3. **Detection crop first** — add a label-region detection step before OCR to isolate the serial number field; Universe search: `"PCB label detection"` or `"serial number region"`.
-4. **Fine-tune** — only if all above fail and fonts are highly stylized (e.g. embossed, low-contrast ink). Show credit estimate; wait for explicit yes before calling `models_train`.
+4. **Fine-tune** — only if all above fail and fonts are highly stylized (e.g. embossed, low-contrast ink). Show credit estimate; wait for explicit yes before calling `trainings_create`.
 
-**\[Step 4 fine-tune is a credit-spending step — MUST show credit estimate and wait for explicit "yes" before calling `models_train`\]**
+> **Credit gate — Step 4 fine-tune:** MUST show credit estimate and wait for explicit "yes" before calling `trainings_create`.
 
 After each lever: re-measure and report updated field match and CER. If passes → Step 6. If still fails after all levers → offer data collection guidance (annotate more diverse lighting/angle images).
 

@@ -11,7 +11,7 @@ Required fields on every record (stored as JSON Lines; present as YAML to user a
   "ts": "2026-06-25T16:59:00Z",
   "session": "m1-acceptance",
   "skill": "detect-and-analyze",
-  "action": "models_train",
+  "action": "trainings_create",
   "entity_id": "workspace/project/version",
   "version": "0.1.0",
   "notes": "free-form; include key numbers (mAP, model name, etc.)"
@@ -24,7 +24,7 @@ When displaying to user or writing to a report file, render as YAML:
 ts: '2026-06-25T16:59:00Z'
 session: m1-acceptance
 skill: detect-and-analyze
-action: models_train
+action: trainings_create
 entity_id: workspace/project/version
 version: 0.1.0
 notes: free-form; include key numbers (mAP, model name, etc.)
@@ -44,14 +44,15 @@ Skills may add **skill-specific optional fields** (e.g. `streams`, `decision` fo
 
 ## Canonical action names
 
-| Action                      | When to write                                                         |
-| --------------------------- | --------------------------------------------------------------------- |
-| `eval_definition`           | `eval_definition.md` written and agreed                               |
-| `baseline_measured`         | First inference run on test images; note mAP in `notes`               |
-| `models_train`              | `models_train` MCP call submitted; note model + checkpoint in `notes` |
-| `project_deployment_launch` | Deployment confirmed and launched                                     |
-| `crossover_delivered`       | Deployment-consultant crossover computed and shown to user            |
-| `decision_report_emitted`   | `decision-report-*.md` file written                                   |
+| Action                      | When to write                                                             |
+| --------------------------- | ------------------------------------------------------------------------- |
+| `eval_definition`           | `eval_definition.md` written and agreed                                   |
+| `feasibility_checked`       | decompose-to-pipeline feasibility verdict; note verdict + blocking stage  |
+| `baseline_measured`         | First inference run on test images; note mAP in `notes`                   |
+| `trainings_create`          | `trainings_create` MCP call submitted; note model + checkpoint in `notes` |
+| `project_deployment_launch` | Deployment confirmed and launched                                         |
+| `crossover_delivered`       | Deployment-consultant crossover computed and shown to user                |
+| `decision_report_emitted`   | `decision-report-*.md` file written                                       |
 
 ## Write instructions
 
@@ -67,6 +68,8 @@ Do **not** use `echo '...' >> ledger.jsonl` — single-quoted shell strings brea
 - **Never omit the write.** If the action completed, write the record — even if later steps fail.
 - **Never overwrite.** Always append (`>>`). The ledger is append-only.
 - **Never log field values** that could leak API keys or personal data. `entity_id` is a workspace/project path, not a key.
+- **Concurrency assumption:** appends rely on POSIX `O_APPEND` atomicity for single-line records — safe for concurrent local writers; documented assumption, not enforced.
+- **Naming migration (2026-07-09):** action `models_train` renamed to `trainings_create` to match the real MCP tool name; pre-migration rows keep the old label (none were machine-produced).
 
 ## Report
 

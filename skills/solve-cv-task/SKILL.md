@@ -12,7 +12,7 @@ This skill is the canonical recipe for solving a `vision-delivery` CV task. Clau
 
 Classify the user's CV problem → identify the specialist skill(s) → read the relevant SKILL.md file(s) → follow their methodology in order. You own the routing and sequencing. You do not own the methodology — it lives in the skill files.
 
-Shared methodology (voice rules, annotation unblocking, key handling, safe-action gates, the 8-step sequence): `skills/_shared/fde-methodology.md`. Modality-specific deltas: individual `skills/<name>/SKILL.md` files. Model selection tables: `skills/_shared/model-selection.md`. Roboflow platform lookup adapters: `skills/_shared/roboflow-platform-lookup.md`.
+Shared methodology (voice rules, annotation unblocking, key handling, safe-action gates, the 9-step sequence (Step 0 + Steps 1–8)): `skills/_shared/fde-methodology.md`. Modality-specific deltas: individual `skills/<name>/SKILL.md` files. Model selection tables: `skills/_shared/model-selection.md`. Roboflow platform lookup adapters: `skills/_shared/roboflow-platform-lookup.md`.
 
 Read all three before executing.
 
