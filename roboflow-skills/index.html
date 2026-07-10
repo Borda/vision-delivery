@@ -1040,7 +1040,7 @@
 <td>Model IDs, architectures, checkpoints, model eval</td>
 <td><code>roboflow:training-and-evaluation</code></td>
 <td><code>roboflow://skills/training-and-evaluation/...</code></td>
-<td><code>models_train</code>, <code>models_get_training_status</code>, <code>models_get</code>, <code>versions_generate</code></td>
+<td><code>trainings_create</code>, <code>trainings_get</code>, <code>models_get</code>, <code>versions_generate</code></td>
 <td>whether training is justified by the eval gap and user confirmation</td>
 </tr>
 <tr>
@@ -1099,7 +1099,7 @@
 <ol>
 <li><code>vision-delivery</code> owns the task: route to detection, define the recall/count threshold, and measure a pretrained baseline on the user's images.</li>
 <li>If training becomes justified, the agent verifies model IDs and training options from <code>roboflow:training-and-evaluation</code> or <code>roboflow://skills/training-and-evaluation/...</code>.</li>
-<li>The agent uses live MCP tools such as <code>versions_generate</code>, <code>models_train</code>, and <code>models_get_training_status</code> only after explaining the spend and getting explicit confirmation.</li>
+<li>The agent uses live MCP tools such as <code>versions_generate</code>, <code>trainings_create</code>, and <code>trainings_get</code> only after explaining the spend and getting explicit confirmation.</li>
 <li><code>vision-delivery</code> resumes ownership after the platform action: compare results to the eval gate, write proof artifacts, append ledger rows, and decide whether economics should run.</li>
 </ol>
 <p>Incorrect flow:</p>

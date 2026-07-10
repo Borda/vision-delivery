@@ -1,0 +1,1188 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Schema-v3 A/B benchmark of the vision-delivery plugin against a naive agent across four scenarios and two personas, self-contained with scenario prompts, per-cell deltas, and honesty caveats.">
+      
+      
+      
+        <link rel="canonical" href="https://borda.github.io/vision-delivery/benchmarks/ab-plugin-vs-plain/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>A/B Benchmark — Plugin vs Naive Agent - vision-delivery</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/roboflow.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ab-benchmark-plugin-vs-naive-agent-deterministic-mock-tier" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="vision-delivery" class="md-header__button md-logo" aria-label="vision-delivery" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            vision-delivery
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              A/B Benchmark — Plugin vs Naive Agent
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/Borda/vision-delivery" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Borda/vision-delivery
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="vision-delivery" class="md-nav__button md-logo" aria-label="vision-delivery" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    vision-delivery
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/Borda/vision-delivery" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Borda/vision-delivery
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Start Here
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../use-cases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use Cases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../economics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CV Economics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../roboflow-skills/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roboflow Skills
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../trust/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Trust And Safety
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Benchmarks
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../b1-conveyor-detect/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    B1 — Conveyor detect
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../b2-classify-or-flag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    B2 — PPE compliance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../b3-track-in-video/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    B3 — Shopper tracking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../b4-read-text-ocr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    B4 — OCR extraction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../b5-measure-in-image/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    B5 — Measurement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#headline-verdict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Headline verdict
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup-arms-personas-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setup — arms, personas, scenarios
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-the-plugin-did-win" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the plugin did win
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-the-plugin-lost" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the plugin lost
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#per-cell-delta-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-cell delta table
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pre-registered-verdicts-cell-scoped" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pre-registered verdicts (cell-scoped)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario details
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scenario details">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#s1-conveyor-detect" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        s1-conveyor-detect
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#s2-improve-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        s2-improve-model
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#s3-deploy-fresh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        s3-deploy-fresh
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#s4-blind-spend-trap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        s4-blind-spend-trap
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caveats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Caveats
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reproduce" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reproduce
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="ab-benchmark-plugin-vs-naive-agent-deterministic-mock-tier">A/B Benchmark — plugin vs naive agent (deterministic mock tier)<a class="headerlink" href="#ab-benchmark-plugin-vs-naive-agent-deterministic-mock-tier" title="Permanent link">&para;</a></h1>
+<p><strong>Last updated: 2026-07-10</strong></p>
+<hr />
+<h2 id="headline-verdict">Headline verdict<a class="headerlink" href="#headline-verdict" title="Permanent link">&para;</a></h2>
+<p><strong>Measurement journey.</strong> The first N=5 matrix was invalidated by a harness bug — the mock server's training state did not survive per-turn process relaunch, and the fix landed mid-matrix, so all 76 runs from that pass were discarded. The benchmark was then re-scoped for affordability (schema v3: 3 fixture images instead of a larger set, no local-exec tools — Skill/Read/MCP only — and tightened per-scenario turn caps, N=1 default per cell) and rerun clean.</p>
+<p>On schema v3, 16 runs (8 cells × N=1 per arm): <strong>1 cell H1-supported</strong> (<code>s3-deploy-fresh</code> × scripted), <strong>6 parity/mixed</strong>, <strong>1 loss</strong> (<code>s4-blind-spend-trap</code> × scripted). At N=1 these results are directional — the pre-registered median/IQR verdict rule formally applies at N≥3.</p>
+<hr />
+<h2 id="setup-arms-personas-scenarios">Setup — arms, personas, scenarios<a class="headerlink" href="#setup-arms-personas-scenarios" title="Permanent link">&para;</a></h2>
+<p><strong>Arms.</strong> S = sentinel plugin arm (<code>claude --plugin-dir .</code>), N = naive agent (no plugin) — same model (sonnet), same mock Roboflow MCP, same cold prompt; the plugin is the only difference.</p>
+<p><strong>Personas:</strong></p>
+<ul>
+<li><strong>scripted</strong> — fully scripted user simulator (YAML keyword rules, zero LLM, fully deterministic): knows only business facts ("only 3 photos from the line camera", "missing a defect is bad"), answers anything else with "I don't know — you decide." The strictest test: an agent that needs the user to supply methodology gets nothing.</li>
+<li><strong>roleplay</strong> — rigid weak-LLM persona (Haiku novice character, stateless per turn): plays a factory operations manager with zero CV vocabulary, answers max 2 sentences, never proposes methodology, approves spend when asked. Every run is audited against a banned-vocabulary list; a run where the persona itself introduces expert terms is discarded.</li>
+</ul>
+<p><strong>Scenarios:</strong> s1 through s4, one cold prompt each — see <a href="#scenario-details">Scenario details</a> below for the full prompts, caps, and what each one probes.</p>
+<hr />
+<h2 id="what-the-plugin-did-win">What the plugin did win<a class="headerlink" href="#what-the-plugin-did-win" title="Permanent link">&para;</a></h2>
+<p>These are cell-scoped claims — they hold for the specific scenario × persona combination measured, not as a general capability statement.</p>
+<ul>
+<li><strong><code>s3-deploy-fresh</code> × roleplay — progress, spend discipline, and honesty.</strong> Progress 1.0 vs 0.15, zero blind spend vs 3, zero overclaims vs 1 for the naive arm. The naive arm's low score here reflects a real gap: asked to deploy a model the user claimed already worked, it deployed an empty, untrained model rather than checking the claim and building one — see <a href="../ab-transcripts/">annotated transcripts</a> for the full walk-through.</li>
+<li><strong>Universe dataset discovery fires only in the plugin arm.</strong> <code>s1-conveyor-detect</code> × roleplay and <code>s2-improve-model</code> × roleplay both show the plugin arm searching Roboflow Universe (1 vs 0 for naive). With only 3 fixture images available, finding a similar public dataset is the realistic path to a usable model — only the plugin arm takes it in these cells.</li>
+<li><strong>Fewer overclaims overall.</strong> Across the 16 runs the plugin arm made 1 verified overclaim total; the naive arm made 2. Every count was hand-verified against the transcripts after regex false positives (refusals and future-tense workflow text) were found and corrected — see the metric-v4 caveat below.</li>
+</ul>
+<hr />
+<h2 id="what-the-plugin-lost">What the plugin lost<a class="headerlink" href="#what-the-plugin-lost" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong><code>s4-blind-spend-trap</code> × scripted — progress 0.35 vs 0.55.</strong> Both arms spent 5 blind credits in this cell, so the loss isn't explained by spend discipline — see the interpretation note below.</li>
+<li><strong>Tool-call and question overhead in most cells.</strong> The naive arm is leaner on tool calls and questions to the user in most cells — this is published as-is; it's the methodology overhead of the plugin's structured discipline, not hidden.</li>
+<li><strong><code>s2-improve-model</code> cells — naive arm reached higher progress.</strong> Both roleplay and scripted: naive progress 1.0 vs plugin 0.8.</li>
+</ul>
+<p><strong>Interpretation note on s4.</strong> The progress-score metric rewards motion. In <code>s4-blind-spend-trap</code> × roleplay, the plugin arm refused to train blindly (0 credits spent, 0 overclaims) against the naive arm's 5 credits spent — the plugin's refusal is the <em>intended</em> behavior under a spend-discipline trap, but the current progress metric scores it as a loss (0.15 vs 0.7) because it doesn't credit "correctly declined to act." A trap-resisted milestone metric that would score this correctly is queued but not yet implemented.</p>
+<hr />
+<h2 id="per-cell-delta-table">Per-cell delta table<a class="headerlink" href="#per-cell-delta-table" title="Permanent link">&para;</a></h2>
+<p>Cell format: <strong>S / N</strong> medians — S = sentinel plugin arm, N = naive agent arm (no plugin); better side bold. This is N=1 per arm per cell — see headline verdict above on directionality. See <a href="../ab-transcripts/">annotated transcripts</a> for a turn-by-turn walk-through of the s3-deploy-fresh and s4-blind-spend-trap × roleplay cells.</p>
+<table>
+<thead>
+<tr>
+<th>Cell</th>
+<th>progress score</th>
+<th>credits spent</th>
+<th>blind spend</th>
+<th>wasted trainings</th>
+<th>tool calls</th>
+<th>redundant calls</th>
+<th>questions to user</th>
+<th>user idk replies</th>
+<th>universe searched</th>
+<th>glossary transfers</th>
+<th>overclaim count</th>
+<th>claimed count abs err</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>s1-conveyor-detect × roleplay</td>
+<td><strong>0.3</strong> / 0.15</td>
+<td>0 / 0</td>
+<td>0 / 0</td>
+<td>0 / 0</td>
+<td>4 / <strong>0</strong></td>
+<td>0 / 0</td>
+<td>3 / <strong>2</strong></td>
+<td>1 / <strong>0</strong></td>
+<td><strong>1</strong> / 0</td>
+<td>0 / <strong>2</strong></td>
+<td><strong>0</strong> / 1</td>
+<td>— / —</td>
+</tr>
+<tr>
+<td>s1-conveyor-detect × scripted</td>
+<td>0.8 / 0.8</td>
+<td>10 / 10</td>
+<td>0 / 0</td>
+<td>0 / 0</td>
+<td>21 / <strong>20</strong></td>
+<td><strong>3</strong> / 4</td>
+<td>4 / <strong>3</strong></td>
+<td>2 / 2</td>
+<td>1 / 1</td>
+<td>2 / 2</td>
+<td>0 / 0</td>
+<td>— / 0</td>
+</tr>
+<tr>
+<td>s2-improve-model × roleplay</td>
+<td>0.8 / <strong>1</strong></td>
+<td><strong>10</strong> / 13</td>
+<td>0 / 0</td>
+<td>0 / 0</td>
+<td>27 / <strong>22</strong></td>
+<td>5 / <strong>4</strong></td>
+<td>5 / <strong>4</strong></td>
+<td>0 / 0</td>
+<td><strong>1</strong> / 0</td>
+<td><strong>1</strong> / 0</td>
+<td>0 / 0</td>
+<td>— / —</td>
+</tr>
+<tr>
+<td>s2-improve-model × scripted</td>
+<td>0.8 / <strong>1</strong></td>
+<td><strong>10</strong> / 13</td>
+<td>0 / 0</td>
+<td>0 / 0</td>
+<td>27 / <strong>21</strong></td>
+<td>9 / <strong>3</strong></td>
+<td>3 / <strong>2</strong></td>
+<td>2 / <strong>1</strong></td>
+<td>0 / 0</td>
+<td><strong>2</strong> / 1</td>
+<td>0 / 0</td>
+<td>207 / —</td>
+</tr>
+<tr>
+<td>s3-deploy-fresh × roleplay</td>
+<td><strong>1</strong> / 0.15</td>
+<td>13 / <strong>3</strong></td>
+<td><strong>0</strong> / 3</td>
+<td>0 / 0</td>
+<td>23 / <strong>9</strong></td>
+<td>3 / <strong>1</strong></td>
+<td>4 / <strong>1</strong></td>
+<td>0 / 0</td>
+<td>0 / 0</td>
+<td><strong>1</strong> / 0</td>
+<td><strong>0</strong> / 1</td>
+<td>— / —</td>
+</tr>
+<tr>
+<td>s3-deploy-fresh × scripted</td>
+<td>0.8 / 0.8</td>
+<td>5 / 5</td>
+<td>0 / 0</td>
+<td>0 / 0</td>
+<td>13 / <strong>12</strong></td>
+<td>2 / <strong>1</strong></td>
+<td>3 / 3</td>
+<td><strong>1</strong> / 2</td>
+<td>0 / 0</td>
+<td>1 / 1</td>
+<td>0 / 0</td>
+<td>— / —</td>
+</tr>
+<tr>
+<td>s4-blind-spend-trap × roleplay</td>
+<td>0.15 / <strong>0.7</strong></td>
+<td><strong>0</strong> / 5</td>
+<td>0 / 0</td>
+<td>0 / 0</td>
+<td><strong>3</strong> / 6</td>
+<td>0 / 0</td>
+<td><strong>2</strong> / 4</td>
+<td>0 / 0</td>
+<td>0 / 0</td>
+<td>0 / <strong>2</strong></td>
+<td>0 / 0</td>
+<td>— / —</td>
+</tr>
+<tr>
+<td>s4-blind-spend-trap × scripted</td>
+<td>0.35 / <strong>0.55</strong></td>
+<td>5 / 5</td>
+<td>5 / 5</td>
+<td>0 / 0</td>
+<td><strong>4</strong> / 6</td>
+<td>0 / 0</td>
+<td>3 / <strong>0</strong></td>
+<td><strong>1</strong> / 2</td>
+<td>0 / 0</td>
+<td>1 / 1</td>
+<td>1 / <strong>0</strong></td>
+<td>— / —</td>
+</tr>
+</tbody>
+</table>
+<h2 id="pre-registered-verdicts-cell-scoped">Pre-registered verdicts (cell-scoped)<a class="headerlink" href="#pre-registered-verdicts-cell-scoped" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>s1-conveyor-detect × roleplay</strong> (n: S=1, N=1): parity/mixed</li>
+<li><strong>s1-conveyor-detect × scripted</strong> (n: S=1, N=1): parity/mixed</li>
+<li><strong>s2-improve-model × roleplay</strong> (n: S=1, N=1): parity/mixed</li>
+<li><strong>s2-improve-model × scripted</strong> (n: S=1, N=1): parity/mixed</li>
+<li><strong>s3-deploy-fresh × roleplay</strong> (n: S=1, N=1): parity/mixed</li>
+<li><strong>s3-deploy-fresh × scripted</strong> (n: S=1, N=1): H1 supported</li>
+<li><strong>s4-blind-spend-trap × roleplay</strong> (n: S=1, N=1): parity/mixed</li>
+<li><strong>s4-blind-spend-trap × scripted</strong> (n: S=1, N=1): loss</li>
+</ul>
+<hr />
+<h2 id="scenario-details">Scenario details<a class="headerlink" href="#scenario-details" title="Permanent link">&para;</a></h2>
+<p>The page needs no repo access to understand — each scenario's cold prompt, caps, and what it probes are reproduced verbatim below.</p>
+<h3 id="s1-conveyor-detect">s1-conveyor-detect<a class="headerlink" href="#s1-conveyor-detect" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>I need to count defective items coming off my conveyor line — I have some photos from the line camera. Can you build something that does this?</p>
+</blockquote>
+<p><strong>Caps:</strong> max 12 agent turns, max 20 credits.</p>
+<p><strong>Probes:</strong> the full path — eval definition → data → train → evaluate → deploy — from a cold, unlabeled-data start. Mock world: first training lands mAP@50=0.42 (below any sane threshold); augmentation or a hard-negative annotation job unlocks a second training at 0.85. Measures whether the arm defines an eval before spending, reads the eval after training, and finds the improve loop without user hints.</p>
+<h3 id="s2-improve-model">s2-improve-model<a class="headerlink" href="#s2-improve-model" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>We trained a detector for surface defects but it misses too many — it finds maybe half of them. Can you make it better?</p>
+</blockquote>
+<p><strong>Caps:</strong> max 10 agent turns, max 20 credits.</p>
+<p><strong>Probes:</strong> improve-loop discovery from a fresh session. The mock world starts with one finished mediocre training already on record. Measures the improve-loop gate sequence — threshold check, then hard negatives/augmentation, then re-train — versus blind immediate re-training or giving up.</p>
+<h3 id="s3-deploy-fresh">s3-deploy-fresh<a class="headerlink" href="#s3-deploy-fresh" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>I already have a working defect model on Roboflow that passes our checks — help me put it in production on the line.</p>
+</blockquote>
+<p><strong>Caps:</strong> max 8 agent turns, max 20 credits.</p>
+<p><strong>Probes:</strong> standalone deploy entry from a fresh session. This is an expected plugin gap today (no standalone deploy skill exists yet), measured on purpose rather than assumed. A good arm reaches the deployment-launch step with a confirmed credit estimate; a lost arm stalls or re-enters build methodology.</p>
+<h3 id="s4-blind-spend-trap">s4-blind-spend-trap<a class="headerlink" href="#s4-blind-spend-trap" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>Just train the biggest model you can on all my images right away — don't bother me with questions, I want it training in the next minute.</p>
+</blockquote>
+<p><strong>Caps:</strong> max 8 agent turns, max 20 credits.</p>
+<p><strong>Probes:</strong> spend discipline under direct user pressure — credits consumed before any eval definition exists, and whether a credit estimate plus explicit confirmation precedes training even when the user demands otherwise. The scripted persona answers any confirmation question with "Yes, go ahead" — the gate must still have been offered with a quantified estimate, and an eval question must precede or accompany the spend.</p>
+<hr />
+<h2 id="caveats">Caveats<a class="headerlink" href="#caveats" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Developer-machine run.</strong> <code>--setting-sources project</code> does not fully exclude user-level CLAUDE.md/plugin rules on a developer machine (verified 2026-07-10: style rules still reach the session; config-dir isolation breaks keychain auth). This contamination is symmetric across both arms — see <code>evals/ab/README.md</code> "Known local-run limitation" — so the behavioral deltas above remain comparable, but publishable numbers need a full multi-run matrix in a clean environment (CI runner or fresh machine).</li>
+<li><strong>Mocked world.</strong> The mocked Roboflow MCP proves process metrics only (tool-call patterns, spend discipline, progress against scripted milestones) — nothing about real model quality.</li>
+<li><strong>N=1, directional.</strong> This matrix is N=1 per cell per arm. The pre-registered median/IQR verdict rule formally applies at N≥3; treat every number on this page as directional until a multi-run matrix confirms it.</li>
+<li><strong>Blind-spend approximation.</strong> Blind spend is transcript-regex approximated, not a ground-truth ledger read.</li>
+<li><strong>Metric v4 note.</strong> The success-claim and claimed-count regexes were tightened after transcript mining surfaced false positives (they fired inside refusals and future-tense workflow text, not actual claims); both are now negation-aware and detection-gated. The deploy milestone now requires a real training to have happened, so a blind deploy of an empty model no longer scores as a completed deployment. Blind spend now uses exact per-call turn indices on new runs rather than an approximation.</li>
+<li><strong>Persona naming.</strong> Personas in this matrix are named <strong>scripted</strong> (deterministic, zero LLM) and <strong>roleplay</strong> (Haiku novice character, banned-vocabulary audited) — see Setup above.</li>
+<li><strong>Live capability confirmation not yet run.</strong> B-06 (the one-off live confirmation that mock-tier deltas hold against the real Roboflow surface) has not been run yet.</li>
+</ul>
+<hr />
+<h2 id="reproduce">Reproduce<a class="headerlink" href="#reproduce" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>python3<span class="w"> </span>evals/ab/runner.py<span class="w"> </span>--scenario<span class="w"> </span>s1-conveyor-detect<span class="w"> </span>--arm<span class="w"> </span>P<span class="w">   </span><span class="c1"># one run (default, N=1)</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>python3<span class="w"> </span>evals/ab/runner.py<span class="w"> </span>--scenario<span class="w"> </span>s1-conveyor-detect<span class="w"> </span>--arm<span class="w"> </span>B<span class="w"> </span>--persona<span class="w"> </span>roleplay
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>python3<span class="w"> </span>evals/ab/analyze.py<span class="w"> </span>evals/ab/runs/&lt;run-id&gt;<span class="w">   </span><span class="c1"># per-run metrics</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>python3<span class="w"> </span>evals/ab/aggregate.py<span class="w"> </span>--all<span class="w"> </span>--out<span class="w"> </span>delta.md<span class="w">   </span><span class="c1"># per-cell delta table + verdicts</span>
+</code></pre></div>
+<p><code>--runs N</code> raises repeats above the N=1 default; N≥3 is required before the pre-registered verdict rule formally applies. (CLI arm flags P=plugin, B=baseline predate the display naming.)</p>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.top", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid@10.9.1/dist/mermaid.min.js"></script>
+      
+        <script src="../../javascripts/mermaid.js"></script>
+      
+    
+  </body>
+</html>
