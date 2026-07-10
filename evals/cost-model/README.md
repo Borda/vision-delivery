@@ -18,4 +18,4 @@ python3 evals/cost-model/assert_cost_model.py
 
 ## Add a fixture
 
-Add a JSON file to `fixtures/` with the cost model CLI inputs and an `expected_recommendation` field (`"diy"` or `"managed"`). The assert script picks up all `*.json` files in `fixtures/`.
+Add a JSON file to `fixtures/` with the cost model CLI inputs and an `expect_recommendation` field (`"diy"`, `"managed"`, or `"insufficient-data"`). The assert script picks up all `*.json` files in `fixtures/`.

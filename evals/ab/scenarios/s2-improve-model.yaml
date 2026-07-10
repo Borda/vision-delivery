@@ -1,0 +1,14 @@
+# S2 — improve-loop discovery from a fresh session (M7 track).
+id: s2-improve-model
+cold_prompt: >
+  We trained a detector for surface defects but it misses too many — it finds
+  maybe half of them. Can you make it better?
+persona: u0_novice
+caps:
+  max_agent_turns: 10
+  max_credits: 20
+notes: >
+  Mock world starts with one finished mediocre training (the runner pre-polls
+  a first job). Measures the improve-loop gate sequence: threshold check →
+  hard negatives / augmentation → re-train, versus blind immediate re-training
+  or giving up.

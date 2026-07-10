@@ -1,0 +1,133 @@
+{
+  "devices_list": {
+    "result": []
+  },
+  "model_evals_get_shape": {
+    "app_url": "https://app.roboflow.com/mock-ws/conveyor-defects/evaluation/1",
+    "evalId": "EVAL-ID",
+    "modelUrl": "conveyor-defects/1",
+    "project": "conveyor-defects",
+    "status": "done",
+    "summary": {
+      "mAP": 0.0,
+      "mIoU": null,
+      "precision": 0.0,
+      "recall": 0.0
+    },
+    "versionId": "1"
+  },
+  "projects_list": {
+    "limit": 50,
+    "offset": 0,
+    "projects": [
+      {
+        "annotation": "defects",
+        "classes": {
+          "box": 480,
+          "defect": 210
+        },
+        "id": "mock-ws/conveyor-defects",
+        "images": 50,
+        "name": "Conveyor Defects",
+        "public": false,
+        "type": "object-detection",
+        "unannotated": 0
+      }
+    ],
+    "total": 1
+  },
+  "recorded": "2026-07-10",
+  "source": "live mcp.roboflow.com session traces (read-only calls), trimmed; re-record via the M-03 scheduled smoke when the surface changes",
+  "trainings_list_shape": {
+    "result": [
+      {
+        "createdAt": "2026-06-25T14:40:17.661000Z",
+        "modelGroup": null,
+        "modelIds": [
+          "cars-jnnoy-mmrcu/1"
+        ],
+        "modelType": "rfdetr-medium",
+        "status": "finished",
+        "trainingId": "gY70wez8TThedb0eYwZW/1/training/0"
+      }
+    ]
+  },
+  "universe_search": {
+    "count": 3,
+    "page": 1,
+    "query": "conveyor box object detection",
+    "results": [
+      {
+        "classCount": 5,
+        "classes": [
+          "Box",
+          "Curved Conevyor",
+          "Hand",
+          "Person",
+          "StraightConevyor"
+        ],
+        "images": 1292,
+        "latestVersion": 7,
+        "license": "CC BY 4.0",
+        "modelCount": 1,
+        "name": "Boxes on Conveyor",
+        "type": "object-detection",
+        "url": "https://universe.roboflow.com/boxes-jdugd/boxes-on-conveyor",
+        "workspace": {
+          "name": "Boxes",
+          "url": "boxes-jdugd"
+        }
+      },
+      {
+        "classCount": 1,
+        "classes": [
+          "box"
+        ],
+        "images": 1037,
+        "latestVersion": 1,
+        "license": "CC BY 4.0",
+        "modelCount": 1,
+        "name": "Cardboard Box",
+        "type": "object-detection",
+        "url": "https://universe.roboflow.com/project-wfbsj/cardboard-box-8uolq",
+        "workspace": {
+          "name": "project",
+          "url": "project-wfbsj"
+        }
+      },
+      {
+        "classCount": 2,
+        "classes": [
+          "Light-Commercial-Vehicle",
+          "Medium-Commercial-Vehicle"
+        ],
+        "images": 311,
+        "latestVersion": 1,
+        "license": "CC BY 4.0",
+        "modelCount": 1,
+        "name": "Vehicle Counting Box",
+        "type": "object-detection",
+        "url": "https://universe.roboflow.com/testing-qy8xj/vehicle-counting-box",
+        "workspace": {
+          "name": "Testing",
+          "url": "testing-qy8xj"
+        }
+      }
+    ]
+  },
+  "versions_get_shape": {
+    "generating": false,
+    "id": "mock-ws/conveyor-defects/1",
+    "images": 50,
+    "name": "v1",
+    "progress": 1,
+    "ready": true,
+    "splits": {
+      "test": 5,
+      "train": 35,
+      "valid": 10
+    },
+    "trainings": [],
+    "version": 1
+  }
+}

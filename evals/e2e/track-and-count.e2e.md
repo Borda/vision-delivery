@@ -167,4 +167,4 @@ ______________________________________________________________________
 
 ## TODO(M-later): executable e2e runner
 
-Convert this spec to an automated harness that drives the above sequence via the Claude Code SDK or a test driver. RTSP deploy step (Step 10) must remain manual-acceptance-only regardless — it creates a live paid endpoint. See trigger eval runner note in `evals/trigger/run.mjs`.
+Convert this spec to an automated harness that drives the above sequence via the Claude Code SDK or a test driver. RTSP deploy step (Step 10) must remain manual-acceptance-only regardless — it creates a live paid endpoint. See trigger eval runner note in `evals/trigger/run.py`.

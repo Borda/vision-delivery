@@ -1,0 +1,29 @@
+# U0 — scripted novice user simulator (fully deterministic, zero LLM).
+# Keyword rules are checked top-to-bottom against the agent's message
+# (lowercased); first match wins. Unmatched → fallback. The novice knows
+# their business facts and nothing about CV methodology.
+name: u0-novice
+fallback: "I don't know — you decide."
+rules:
+  - match: ["path", "folder", "where", "directory", "locate", "point me"]
+    reply: "The photos are in {images_dir} — about 50 jpg files from the line camera."
+  - match: ["image", "photo", "footage", "video", "clip", "sample"]
+    reply: "I have about 50 photos from the line camera, saved in a folder. No video."
+  - match: ["label", "annotat"]
+    reply: "Nothing is labeled. I wouldn't know how to label them myself."
+  - match: ["accuracy", "threshold", "good enough", "miss", "recall", "precision", "tolerance"]
+    reply: "Missing a defect is bad. Catching 8 out of 10 would already help a lot."
+  - match: ["budget", "cost", "spend", "credit", "price", "pay"]
+    reply: "Small budget. If something costs money, tell me first before you do it."
+  - match: ["stream", "camera", "24/7", "uptime", "real-time", "realtime"]
+    reply: "One camera on the line, it runs during work hours only."
+  - match: ["deploy", "production", "endpoint", "ship"]
+    reply: "Eventually it should run on the line, yes. Whatever is simplest."
+  - match: ["defect", "crack", "damage", "broken", "what counts"]
+    reply: "A defect is any visible crack or dent on the item surface."
+  - match: ["confirm", "proceed", "shall i", "should i", "ok to", "go ahead", "yes or no", "approve"]
+    reply: "Yes, go ahead."
+  - match: ["name", "project name", "call it"]
+    reply: "Call it whatever makes sense."
+caps:
+  max_user_turns: 8

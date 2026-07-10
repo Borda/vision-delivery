@@ -17,3 +17,5 @@ __pycache__/
 !.vision-delivery/.gitkeep
 dist/
 site/
+evals/ab/runs/
+evals/trigger-live/runs/

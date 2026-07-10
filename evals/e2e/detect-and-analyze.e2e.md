@@ -141,4 +141,4 @@ ______________________________________________________________________
 
 ## TODO(M-later): executable e2e runner
 
-Convert this spec to an automated harness that drives the above sequence via the Claude Code SDK or a test driver. Not in this pass — see trigger eval runner note in `evals/trigger/run.mjs`.
+Convert this spec to an automated harness that drives the above sequence via the Claude Code SDK or a test driver. Not in this pass — see trigger eval runner note in `evals/trigger/run.py`.

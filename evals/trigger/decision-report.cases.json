@@ -1,0 +1,33 @@
+{
+  "should_fire": [
+    {
+      "prompt": "Write me a decision report for my manager from that crossover."
+    },
+    {
+      "prompt": "Generate a report for my manager about the deployment decision."
+    },
+    {
+      "prompt": "I need a stakeholder doc summarizing the build-vs-buy numbers."
+    },
+    {
+      "prompt": "Produce the decision doc for my team based on the estimate."
+    },
+    {
+      "prompt": "Run the decision-report skill on the computed crossover."
+    }
+  ],
+  "should_not_fire": [
+    {
+      "prompt": "No crossover computed yet \u2014 estimate the deployment economics first."
+    },
+    {
+      "prompt": "I am still in build work on the detector, tune the threshold."
+    },
+    {
+      "prompt": "Give me a one-paragraph summary of the options inline."
+    },
+    {
+      "prompt": "Answer inline with a quick one-paragraph summary of the options, no doc."
+    }
+  ]
+}

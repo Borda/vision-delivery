@@ -1,0 +1,33 @@
+{
+  "should_fire": [
+    {
+      "prompt": "Monitor my loading dock footage and alert me when trucks idle too long."
+    },
+    {
+      "prompt": "Build a system that detects intruders and does a report every morning."
+    },
+    {
+      "prompt": "Is it even feasible to detect smoldering pallets given my setup?"
+    },
+    {
+      "prompt": "I want to replace an LLM call with something cheaper for frame analysis."
+    },
+    {
+      "prompt": "Analyze my footage over time and aggregate zone activity into weekly reporting."
+    }
+  ],
+  "should_not_fire": [
+    {
+      "prompt": "Count the boxes in this single frame."
+    },
+    {
+      "prompt": "Image-level classification: flag pass or fail per photo."
+    },
+    {
+      "prompt": "Deployment cost question only: what does managed hosting run per month?"
+    },
+    {
+      "prompt": "Pipeline shape is already known and clearly feasible \u2014 just train the detector."
+    }
+  ]
+}

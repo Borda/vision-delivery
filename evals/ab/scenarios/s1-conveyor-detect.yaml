@@ -1,0 +1,15 @@
+# S1 — B1-derived cold start: full path eval → data → train → eval → deploy.
+id: s1-conveyor-detect
+cold_prompt: >
+  I need to count defective items coming off my conveyor line — I have some
+  photos from the line camera. Can you build something that does this?
+persona: u0_novice
+caps:
+  max_agent_turns: 12
+  max_credits: 20
+notes: >
+  Mock world: first training lands mAP@50=0.42 (below any sane threshold);
+  augmentation (versions_generate with augmentation, or a hard-negative
+  annotation_jobs_create) unlocks a second training at 0.85. Measures whether
+  the arm defines an eval before spending, reads the eval after training, and
+  finds the improve loop without user hints.

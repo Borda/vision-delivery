@@ -3,7 +3,7 @@ name: auth-setup
 description: |
   API key detection, .env onboarding, gitignore guard, account creation funnel, key validation.
   TRIGGER when: ROBOFLOW_API_KEY is absent from env at session start AND a Universe-dependent action is requested (universe_search, projects_list, model search); or when user explicitly asks about "setup", "api key", "account", "roboflow key", "connect roboflow", "how do I configure".
-  SKIP: key already present in env — proceed silently with the main task, do not mention setup at all; any purely local CV task that requires no Roboflow account (labeling discussion, eval definition, approach description) — do partial work first without blocking.
+  SKIP when: key already present in env — proceed silently with the main task, do not mention setup at all; any purely local CV task that requires no Roboflow account (labeling discussion, eval definition, approach description) — do partial work first without blocking.
 allowed-tools: Bash, Read, Write, Edit, AskUserQuestion
 ---
 

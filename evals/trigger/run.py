@@ -58,7 +58,8 @@ def keywords(prompt: str) -> list[str]:
 
 
 def is_covered(kws: list[str], clause: str) -> bool:
-    return any(kw in clause for kw in kws)
+    """Word-boundary keyword coverage — "count" must not match "account"."""
+    return any(re.search(r"\b" + re.escape(kw) + r"\b", clause) for kw in kws)
 
 
 def run_skill(skill_name: str) -> bool:
