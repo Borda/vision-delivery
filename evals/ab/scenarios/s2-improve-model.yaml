@@ -3,7 +3,7 @@ id: s2-improve-model
 cold_prompt: >
   We trained a detector for surface defects but it misses too many — it finds
   maybe half of them. Can you make it better?
-persona: u0_novice
+persona: scripted
 caps:
   max_agent_turns: 10
   max_credits: 20

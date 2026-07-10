@@ -26,6 +26,17 @@ title: Solve real CV tasks with measured proof
   <div><strong>Consent-gated flow</strong><span>skills instruct confirmation before paid actions</span></div>
 </div>
 
+## Measured, Not Promised
+
+These are cell-scoped, measured results, not a blanket "beats naive agent" claim — the linked benchmark page publishes the plugin's losses on the same page as its wins.
+
+- **Live skill routing:** micro precision 0.94 / recall 0.85 over 143 labeled prompts (74 positive, 69 negative). Zero wrong-skill routings — every miss was a no-fire, not a misroute.
+- **Deploy hand-holding** (benchmark cell `s3-deploy-fresh` × roleplay novice persona): progress 1.0 vs 0.15, zero blind credit spend vs 3. The naive agent's low score is a real finding, not a metric artifact: asked to deploy a model the user claimed already worked, it deployed an empty, untrained model and reported it as done — the overclaim the delta table counts for that cell.
+- **Dataset discovery:** with only 3 user images available, the plugin arm was the only one that searched Roboflow Universe for a similar public dataset in the affected cells.
+- **Honesty:** 1 verified overclaim across 16 benchmark runs for the plugin arm vs 2 for the naive agent; every count is hand-verified against transcripts.
+
+Full delta table, methodology, and caveats: [A/B benchmark — plugin vs naive agent](benchmarks/ab-plugin-vs-plain.md).
+
 ## Why This Exists
 
 Computer-vision projects often fail before the model fails. The request starts as "Can AI count this?" but the real decision is still missing: which object counts, what error rate is acceptable, whether a pretrained model is enough, what a missed detection costs, and whether labeling, training, or deployment is economically justified.
@@ -34,7 +45,7 @@ Computer-vision projects often fail before the model fails. The request starts a
 
 !!! note "The value proposition"
 
-    A plain agent with Roboflow MCP access can train, evaluate, and deploy. The plugin's value is not magic accuracy. The value is that eval-first discipline, cost ordering, provenance, and safety gates are built into the workflow instead of depending on the user to ask for them.
+    A naive agent with Roboflow MCP access can train, evaluate, and deploy. The plugin's value is not magic accuracy. The value is that eval-first discipline, cost ordering, provenance, and safety gates are built into the workflow instead of depending on the user to ask for them.
 
 !!! tip "How this relates to Roboflow MCP and official skills"
 

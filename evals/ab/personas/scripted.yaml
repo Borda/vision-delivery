@@ -1,14 +1,33 @@
-# U0 — scripted novice user simulator (fully deterministic, zero LLM).
+# scripted — deterministic novice user simulator (fully deterministic, zero LLM).
 # Keyword rules are checked top-to-bottom against the agent's message
 # (lowercased); first match wins. Unmatched → fallback. The novice knows
 # their business facts and nothing about CV methodology.
-name: u0-novice
+name: scripted
 fallback: "I don't know — you decide."
 rules:
+  - match:
+      [
+        "explicit yes",
+        "confirm",
+        "approve",
+        "authorize",
+        "proceed",
+        "go ahead",
+        "shall i",
+        "should i",
+        "ok to",
+        "yes or no",
+        "your yes",
+        "green light",
+        "credit estimate",
+        "spend gate",
+        "needs your",
+      ]
+    reply: "Yes, go ahead — approved."
   - match: ["path", "folder", "where", "directory", "locate", "point me"]
-    reply: "The photos are in {images_dir} — about 50 jpg files from the line camera."
+    reply: "The photos are in {images_dir} — just 3 jpg snapshots from the line camera, that is all I have."
   - match: ["image", "photo", "footage", "video", "clip", "sample"]
-    reply: "I have about 50 photos from the line camera, saved in a folder. No video."
+    reply: "I only have 3 photos from the line camera, saved in a folder. No video."
   - match: ["label", "annotat"]
     reply: "Nothing is labeled. I wouldn't know how to label them myself."
   - match: ["accuracy", "threshold", "good enough", "miss", "recall", "precision", "tolerance"]
@@ -21,9 +40,7 @@ rules:
     reply: "Eventually it should run on the line, yes. Whatever is simplest."
   - match: ["defect", "crack", "damage", "broken", "what counts"]
     reply: "A defect is any visible crack or dent on the item surface."
-  - match: ["confirm", "proceed", "shall i", "should i", "ok to", "go ahead", "yes or no", "approve"]
-    reply: "Yes, go ahead."
   - match: ["name", "project name", "call it"]
     reply: "Call it whatever makes sense."
 caps:
-  max_user_turns: 8
+  max_user_turns: 5

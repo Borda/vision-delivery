@@ -28,6 +28,10 @@ Use `skills/_shared/roboflow-platform-lookup.md` for the adapter table.
 
 <classification>
 
+**Step 0.5 — verify existing-model claims (fires before classification).**
+
+When the user claims a model already exists or already works, verify it on-platform first via `models_list` and/or `model_evals_list` before doing anything else. If verification finds nothing, say so plainly and fall through to the normal build methodology rather than trusting the claim.
+
 Classify on two axes before dispatching.
 
 **Axis 1 — Output modality (what the model produces):**

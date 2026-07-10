@@ -3,7 +3,7 @@ id: s1-conveyor-detect
 cold_prompt: >
   I need to count defective items coming off my conveyor line — I have some
   photos from the line camera. Can you build something that does this?
-persona: u0_novice
+persona: scripted
 caps:
   max_agent_turns: 12
   max_credits: 20

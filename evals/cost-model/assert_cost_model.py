@@ -91,7 +91,7 @@ def assert_source_citations(text: str, fixture_name: str) -> None:
 
 
 def assert_snapshot_fresh(failures: list[str]) -> None:
-    """Staleness canary: fail when the committed snapshot is too old (M-03).
+    """Staleness canary: fail when the committed snapshot is too old.
 
     Override with ALLOW_STALE_SNAPSHOT=1 for a deliberate stale run.
     """
@@ -114,7 +114,7 @@ def assert_snapshot_fresh(failures: list[str]) -> None:
 
 
 def assert_monotonicity(failures: list[str]) -> None:
-    """Property checks over a streams sweep with a fixed real quote (M-05)."""
+    """Monotonicity property checks over a streams sweep with a fixed real quote."""
     base = ["--model-size", "medium", "--uptime", "24x7", "--managed-usd-mo", "1000"]
     prev_total = 0.0
     prev_instances = 0
@@ -150,7 +150,7 @@ def assert_monotonicity(failures: list[str]) -> None:
 
 
 def assert_abstention_sweep(failures: list[str]) -> None:
-    """Without a real quote, no sweep point may emit a diy/managed verdict (C-04)."""
+    """Abstention sweep: without a real quote, no point may emit a diy/managed verdict."""
     ok = True
     for streams in SWEEP_STREAMS:
         data = run_json(

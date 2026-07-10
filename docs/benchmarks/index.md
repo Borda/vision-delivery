@@ -30,6 +30,8 @@ ______________________________________________________________________
 - [B3 — Shopper dwell tracking (RTSP)](b3-track-in-video.md)
 - [B4 — Serial number OCR extraction](b4-read-text-ocr.md)
 - [B5 — Crack width measurement](b5-measure-in-image.md)
+- [A/B — Plugin vs plain agent (deterministic mock tier)](ab-plugin-vs-plain.md)
+- [A/B — Annotated transcripts](ab-transcripts.md)
 
 ______________________________________________________________________
 

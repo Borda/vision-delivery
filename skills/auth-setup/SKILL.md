@@ -133,7 +133,7 @@ ______________________________________________________________________
 
 <voice>
 
-Follow the voice rules from §4 (Forward-Deployed-Engineer model) at every step.
+Follow the shared voice rules (Forward-Deployed-Engineer model, `skills/_shared/fde-methodology.md`) at every step.
 
 **Do:**
 

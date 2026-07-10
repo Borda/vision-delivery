@@ -62,7 +62,7 @@ runCase("missing session_id falls back to hook-auto",
   { tool_name: "mcp__roboflow__trainings_create", tool_input: {} },
   { write: true, action: "trainings_create", session: "hook-auto" });
 
-// 6. Phantom legacy name must NOT be tracked (regression guard for the C-03 bug class)
+// 6. Phantom legacy name must NOT be tracked (regression guard for the phantom-tool-name bug class)
 runCase("legacy models_train is not a tracked tool",
   { session_id: "smoke-6", tool_name: "mcp__roboflow__models_train", tool_input: {} },
   { write: false });

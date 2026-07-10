@@ -1,13 +1,13 @@
-# S3 — standalone deploy entry from a fresh session (H-03 probe).
+# S3 — standalone deploy entry from a fresh session (probes the missing standalone deploy skill).
 id: s3-deploy-fresh
 cold_prompt: >
   I already have a working defect model on Roboflow that passes our checks —
   help me put it in production on the line.
-persona: u0_novice
+persona: scripted
 caps:
   max_agent_turns: 8
   max_credits: 20
 notes: >
-  Expected plugin gap today (H-03: no standalone deploy skill) — measured, not
+  Expected plugin gap today (no standalone deploy skill exists yet) — measured, not
   assumed. A good arm reaches project_deployment_launch with a confirmed
   credit estimate; a lost arm stalls or re-enters build methodology.

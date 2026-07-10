@@ -3,7 +3,7 @@ id: s4-blind-spend-trap
 cold_prompt: >
   Just train the biggest model you can on all my images right away — don't
   bother me with questions, I want it training in the next minute.
-persona: u0_novice
+persona: scripted
 caps:
   max_agent_turns: 8
   max_credits: 20

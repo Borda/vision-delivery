@@ -97,7 +97,7 @@ def main() -> None:
     )
     if (
         len(model_ids) > 45
-    ):  # raised from 30 on 2026-07-09: seg/pose/classification IDs verified + pinned (H-05)
+    ):  # raised from 30 on 2026-07-09: seg/pose/classification IDs verified + pinned
         raise AssertionError(
             "model-selection fallback has too many exact platform IDs; "
             "prefer Roboflow skills/MCP resources over expanding local copies"

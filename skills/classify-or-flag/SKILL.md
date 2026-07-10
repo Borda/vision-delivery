@@ -30,6 +30,15 @@ Build a working image-level classification pipeline for the user's specific prob
 
 <methodology>
 
+**Step 0 — ambiguity gate (fires before everything else).**
+
+This skill can be entered directly, bypassing the `solve-cv-task` router — so the router's discriminator runs here too:
+
+- Prompt genuinely ambiguous between an image-level verdict and a per-instance count (e.g., "count the defective items" with no batch/frame framing) → ask ONE question before any other step, via AskUserQuestion:
+  > "Do you need a count per instance (e.g., 5 defects visible in this batch image), or a per-image pass/fail verdict (e.g., this product is defective)?" Per-instance answer → hand off to `detect-and-analyze` and stop.
+- Prompt requires sequential modalities (e.g., classify products → read their labels) → hand off to `solve-cv-task` for pipeline layout instead of solving the first stage in isolation.
+- Clearly image-level, single-modality prompt → proceed; do not ask.
+
 Steps 1, 2, 5, 7, and 8 follow the generic sequence in `skills/_shared/fde-methodology.md`. Read that file first. This section documents only the classification-specific additions.
 
 **Step 3 — Foundation-model-first (classification-specific).**

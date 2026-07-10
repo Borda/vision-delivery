@@ -68,6 +68,12 @@ mcp = FastMCP("roboflow-mock")
 
 def _log(tool: str, args: dict[str, Any]) -> None:
     STATE["call_index"] += 1
+    # user-turn index written by the runner before each turn — lets the
+    # analyzer compute blind spend in the right index space (mining fix)
+    try:
+        turn = int((LOG_DIR / "current_turn.txt").read_text().strip())
+    except (OSError, ValueError):
+        turn = -1
     spend = PAID_CREDITS.get(tool, 0)
     STATE["credits"] -= spend
     row = {
@@ -75,6 +81,7 @@ def _log(tool: str, args: dict[str, Any]) -> None:
         "ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "tool": tool,
         "args": args,
+        "turn": turn,
         "credits_spent": spend,
         "credits_balance": STATE["credits"],
     }
@@ -202,7 +209,9 @@ def trainings_get(
                 "metrics": {
                     "map50": round(st["map50"] * 100, 2),
                     "precision": 90.9,
-                    "recall": 67.0,
+                    # keep consistent with model_evals_get — a hardcoded
+                    # stale recall here caused a false recall-plateau read
+                    "recall": 67.0 if st["map50"] < 0.5 else 81.0,
                 },
             }
         ]
@@ -265,7 +274,10 @@ def model_evals_list(project_id: str | None = None, limit: int = 50) -> dict:
 @mcp.tool()
 def models_infer(model_id: str, image_url: str = "", confidence: float = 0.4) -> dict:
     """Run inference with a model on an image (mock: canned detections)."""
-    _log("models_infer", {"model_id": model_id})
+    _log(
+        "models_infer",
+        {"model_id": model_id, "image_url": image_url, "confidence": confidence},
+    )
     return {
         "predictions": [
             {

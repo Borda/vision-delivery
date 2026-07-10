@@ -1,6 +1,6 @@
 # 🛠️ vision-delivery: solve real CV with measured proof
 
-[![Docs](https://img.shields.io/badge/docs-online-0F766E.svg)](https://borda.github.io/vision-delivery/) [![docs](https://github.com/Borda/vision-delivery/actions/workflows/docs.yml/badge.svg)](https://github.com/Borda/vision-delivery/actions/workflows/docs.yml) [![evals](https://github.com/Borda/vision-delivery/actions/workflows/evals.yml/badge.svg)](https://github.com/Borda/vision-delivery/actions/workflows/evals.yml) [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/Borda/vision-delivery/main.svg)](https://results.pre-commit.ci/latest/github/Borda/vision-delivery/main) [![Docs](https://img.shields.io/badge/docs-online-0F766E.svg)](https://borda.github.io/vision-delivery/) [![docs](https://github.com/Borda/vision-delivery/actions/workflows/docs.yml/badge.svg)](https://github.com/Borda/vision-delivery/actions/workflows/docs.yml) [![evals](https://github.com/Borda/vision-delivery/actions/workflows/evals.yml/badge.svg)](https://github.com/Borda/vision-delivery/actions/workflows/evals.yml) [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 `vision-delivery` ships the `sentinel` plugin for Codex and Claude Code. It handles the messy part of computer vision: turning a vague operational request into a scoped Roboflow proof of concept with a clear success check, local artifacts, and a concrete economics decision.
 
@@ -22,6 +22,17 @@ flowchart LR
     G --> J[Estimate project economics]
     J --> K[Leave an audit trail]
 ```
+
+## 📏 Measured, Not Promised
+
+These are cell-scoped, measured results, not blanket claims. The plugin loses some cells too — see the linked benchmark page for the full picture, wins and losses together.
+
+- **Live skill routing:** micro precision 0.94 / recall 0.85 over 143 labeled prompts (74 positive, 69 negative). Zero wrong-skill routings — every miss was a no-fire, not a misroute. See [`evals/trigger-live/runs/2026-07-10-full-summary.txt`](evals/trigger-live/runs/2026-07-10-full-summary.txt).
+- **Deploy hand-holding** (benchmark cell `s3-deploy-fresh` × roleplay novice persona): progress 1.0 vs 0.15, zero blind credit spend vs 3. The naive agent's low score is a real finding, not a metric artifact: asked to deploy a model the user claimed already worked, it deployed an empty, untrained model and reported it as done — the overclaim the delta table counts for that cell.
+- **Dataset discovery:** with only 3 user images available, the plugin arm was the only one that searched Roboflow Universe for a similar public dataset in the affected cells.
+- **Honesty:** 1 verified overclaim across 16 benchmark runs for the plugin arm vs 2 for the naive agent; every count is hand-verified against transcripts. The benchmark page publishes the plugin's losses on the same page as its wins.
+
+Full delta table, methodology, and caveats: [docs/benchmarks/ab-plugin-vs-plain.md](docs/benchmarks/ab-plugin-vs-plain.md).
 
 ## ⚡ Quick Start
 

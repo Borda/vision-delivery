@@ -75,6 +75,8 @@ Present 2–3 results with image count, license, and a one-line relevance note. 
 
 **Step 4 — Measure against the eval (detection-specific metrics).**
 
+Never call `models_infer` against a project/model with no completed training and no explicitly selected pretrained checkpoint — the endpoint returns a fixed/stub prediction with no real signal. Confirm a real model exists first via `trainings_get` (status=completed) or a chosen Universe model. An unmeasured baseline is not a baseline.
+
 Run inference via `models_infer`. Report all three metrics if ground-truth is available:
 
 - **mAP@50** — detection quality on validation set

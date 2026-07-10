@@ -45,6 +45,7 @@ try {
         ts: new Date().toISOString(),
         session:
           typeof payload.session_id === "string" && payload.session_id ? payload.session_id.slice(0, 64) : "hook-auto",
+        // Fixed placeholder: PostToolUse hooks can't see which skill invoked the tool.
         skill: "hook",
         action,
         entity_id: extractEntityId(payload.tool_input),

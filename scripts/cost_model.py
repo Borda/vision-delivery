@@ -59,8 +59,8 @@ HOURS_24X7 = 720
 HOURS_BUSINESS = 176
 DRIFT_MONTHLY_USD = 150.0
 # Roboflow Core plan (annual) — cheapest paid tier. Displayed as a REFERENCE
-# floor only; never used as the managed side of a verdict (credits-based, not
-# a per-stream price — see C-04 in the improvement plan).
+# floor only; never used as the managed side of a verdict — credits-based,
+# not a per-stream price, so treating it as one would bias the comparison.
 MANAGED_FLOOR_USD_MO = 79.0
 WEEKS_PER_MONTH = 52 / 12
 SNAPSHOT_STALE_DAYS = 30

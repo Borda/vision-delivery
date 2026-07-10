@@ -108,7 +108,7 @@ If yes: invoke the `decision-report` skill. Output a Markdown file at `./decisio
 
 **Step 8 — Write the ledger.** Follow the write protocol in `skills/_shared/ledger-protocol.md`. On every economics-decision action (crossover delivered, decision report emitted, decision recorded), append to `.vision-delivery/ledger.jsonl` as JSON; present to user as YAML:
 
-```json
+```jsonc
 {"ts": "<ISO8601>", "session": "<session-id>", "skill": "estimate-economics", "action": "<action>", "entity_id": "<workspace>/<project>", "version": "0.1.0", "notes": "<crossover-number or decision>", "streams": <N>, "decision": "<managed-recommended|diy-recommended|deferred>", "scope": "<annotation|training|deployment|full-project>"}
 ```
 

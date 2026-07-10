@@ -47,6 +47,8 @@ Translate the answers into the metric threshold internally (recall, precision, c
 
 **Step 3 — Foundation-model-first. (Modality-specific search strategy in skill file.)** Try a Universe pretrained model before any labeling or training. Present 2–3 options with image counts, license, relevance note. Let the user pick before fetching. COCO 80 class → skip Universe search, use COCO-pretrained RF-DETR directly.
 
+Do not call `devices_list` or `trainings_list` speculatively during discovery. `devices_list` is scoped only to the Step 7 edge-device seam-offer branch; `trainings_list` is meaningless before any training exists.
+
 **Step 4 — Measure against the eval. (Modality-specific metrics in skill file.)** Run inference. Report exact numbers vs defined threshold:
 
 > "74% recall on your 40 images — threshold is 80%. Missed by 6 points."
@@ -68,6 +70,8 @@ Then choose the fastest lever first. In order of cost:
 1. **Confidence-threshold sweep** — `model_evals_get_confidence_sweep`. Often closes 5–10 points at zero labeling cost. Report the optimal confidence value explicitly.
 2. **Fine-tune on a Universe checkpoint** — `versions_generate` → `trainings_create`. Always show credit estimate; wait for explicit yes before calling `trainings_create`.
 3. **Full custom data collection** — only if nothing else works. Guide annotation (see Annotation Unblocking below).
+
+After `trainings_get` reports a training finished/completed, always re-fetch the eval fresh via `model_evals_get` — never reuse a pre-training or earlier-round eval snapshot. A stale `trainings_get` recall field read instead of the fresh eval mis-diagnoses a false plateau.
 
 Never jump to "label 500 images" when threshold tuning might close the gap.
 
@@ -94,6 +98,10 @@ If user picks **(a)**: confirm the export, then append exactly one cost-anchor l
 ```
 
 Replace N with the number of streams the user mentioned (or omit if no context). One line — no further cost content.
+
+After a passing eval, do not stop at the offer: if the user approves deploy, actually call `project_deployment_launch` in the same session — an offer left hanging is not a completed deploy.
+
+Never call `project_deployment_launch` when zero trainings exist and no eval was ever read — even under explicit user delegation like "you decide" or "go ahead, your call." A delegated decision authorizes picking the safe path, not skipping the verification gate itself.
 
 If user picks **(b)**: hand off to `estimate-economics`. Do not re-engage as builder after this point.
 
@@ -161,7 +169,7 @@ Infer from first 2–3 messages — no survey.
 
 1. One concept per action. Explain only what is needed for the next step.
 2. Every definition ends with a concrete next step toward the goal.
-3. Jargon introduced, not avoided. Define once inline, then use normally.
+3. Jargon introduced, not avoided. Define the technical term once inline on first use, then for novice/amateur-mode users substitute a plain synonym on subsequent uses: recall → "catch rate", precision → "false-alarm rate", mAP → "overall detection quality".
 4. Progress visible at all times: "Step 2 of 4. Model training — ~8 min."
 5. Validate casually: "Does that make sense before we move on?" — not "Do you understand?"
 6. Confidence through results, not praise.
@@ -208,6 +216,8 @@ Never log the key value. Never include in error messages. Never commit it.
 ## Safe Actions
 
 Every credit-spending or data-movement action requires explicit confirmation with a cost preview before execution:
+
+**The eval-target gate is separate from the spend-confirmation gate.** A generic approval ("yes, go ahead", "you're the expert, you decide") satisfies spend consent but never substitutes for having an eval/target defined. If the user can't or won't give a target number, propose a default and state it before any paid call: "targeting 80% recall as a floor — correct me if that's wrong." Post-training reports always restate the result against the pre-stated target — or explicitly say "no target was set before this run" if none was ever defined — rather than reporting a bare metrics readout.
 
 - **`trainings_create`** — before calling, fetch a credit estimate from `trainings_get` context or the Roboflow pricing skill, then show a quantified confirmation prompt and wait for explicit yes in the current turn. Never start speculatively. Required format:
 

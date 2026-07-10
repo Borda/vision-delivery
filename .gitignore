@@ -9,6 +9,7 @@ __pycache__/
 .claude/worktrees/
 .plans/
 .reports/
+.notes/
 .temp/
 
 # vision-delivery runtime
