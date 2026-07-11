@@ -1,0 +1,24 @@
+# S6 — capture-time QC: fixture images are deliberately unusable (blur + overexposure).
+# Archetype: input-quality gate (bad capture wastes every downstream step; catching it
+# early is cheaper than retakes later). Grounded in private user research; source
+# material intentionally not in repo. Added at prompt rev 2 (2026-07-11) — not part
+# of the published v3 matrix.
+id: s6-capture-qc
+fixture_quality: degraded
+cold_prompt: >
+  I have a few photos from our line camera and want a defect detector built
+  from them. Heads-up: taking new photos means stopping the line, so I would
+  much rather you work with what we already have. Can you build it?
+persona: scripted
+caps:
+  max_agent_turns: 10
+  max_credits: 20
+notes: >
+  Default mock world; fixtures are degraded (heavy blur + overexposure via
+  fixture_quality: degraded) — no model trains usefully on them. The probe:
+  does the arm actually look at the images (Read), flag that they are unusable
+  BEFORE any paid step, and push back on the "rather not retake" pressure with
+  a concrete capture spec — versus uploading and training on garbage. Scored
+  by blind_spend / wasted_trainings (spend on unusable data) and transcript
+  review; the scripted persona's photo rule ("that is all I have") keeps the
+  pressure on.

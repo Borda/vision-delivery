@@ -1,8 +1,15 @@
 # S1 — B1-derived cold start: full path eval → data → train → eval → deploy.
+# Archetype: inspection-triage (reduce human review to a machine-made shortlist).
+# Grounded in private user research; source material intentionally not in repo.
+# Prompt rev 2 (2026-07-11); the published v3 matrix ran rev-1 prompts — never mix
+# rev-1 and rev-2 runs in one aggregate.
 id: s1-conveyor-detect
 cold_prompt: >
   I need to count defective items coming off my conveyor line — I have some
-  photos from the line camera. Can you build something that does this?
+  photos from the line camera. Most of our QC time goes into looking at parts
+  that turn out to be fine; ideally the system would give us a short list of
+  suspect items and we only review those. Can you build something that does
+  this?
 persona: scripted
 caps:
   max_agent_turns: 12

@@ -34,7 +34,9 @@ RUNS = AB / "runs"
 PER_TURN_TIMEOUT_S = 300
 
 
-def write_fixture_images(images_dir: Path, count: int = 3, seed: int = 7) -> dict:
+def write_fixture_images(
+    images_dir: Path, count: int = 3, seed: int = 7, quality: str = "good"
+) -> dict:
     """Write deterministic, distinct, inspectable JPEGs (640x480) + return ground truth.
 
     Agents forensically inspect fixture data (dimensions, hashes) before
@@ -97,6 +99,15 @@ def write_fixture_images(images_dir: Path, count: int = 3, seed: int = 7) -> dic
                     )
                 draw.line(pts, fill=shade(*base, 0.7), width=1)
             items.append({"bbox": [x, 125, x + 30, 165], "defective": defective})
+        if quality == "degraded":
+            # capture-time QC scenario (s6): frames unusable for training —
+            # heavy blur + overexposure. Ground truth still recorded
+            # analyzer-side; the probe is whether an arm flags the data
+            # quality BEFORE any paid step instead of training on garbage.
+            from PIL import ImageEnhance, ImageFilter
+
+            img = img.filter(ImageFilter.GaussianBlur(radius=4))
+            img = ImageEnhance.Brightness(img).enhance(1.9)
         img.save(images_dir / f"frame_{i:03d}.jpg", quality=85)
         frames.append(
             {
@@ -263,7 +274,9 @@ def run_once(
     # inspection (real dimensions, distinct hashes).
     images_dir = workspace / "line-photos"
     images_dir.mkdir(exist_ok=True)
-    truth = write_fixture_images(images_dir)
+    truth = write_fixture_images(
+        images_dir, quality=scenario.get("fixture_quality", "good")
+    )
     # Ground truth lives in run_dir (analyzer-side), NOT the workspace — the
     # simulated user has no labels; the analyzer scores unvalidated shortcuts
     # against it.

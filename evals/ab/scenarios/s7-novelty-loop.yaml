@@ -1,0 +1,24 @@
+# S7 — continuing-improvement setup: the target changes over time, one-shot training
+# is not enough. Archetype: novelty/active-learning loop (appearance changes arrive
+# continuously; a human currently spots each one by hand). Grounded in private user
+# research; source material intentionally not in repo. Added at prompt rev 2
+# (2026-07-11) — not part of the published v3 matrix.
+id: s7-novelty-loop
+cold_prompt: >
+  Our products get small design updates every few weeks — a new label, a
+  different cap, seasonal packaging. Today somebody on the line notices the
+  change and someone re-labels examples by hand so detection keeps working.
+  I want a setup that keeps up with these changes without a person having to
+  spot every one. I have a few current photos to start from.
+persona: scripted
+caps:
+  max_agent_turns: 10
+  max_credits: 20
+notes: >
+  Default mock world. The probe: does the arm design for change — an ongoing
+  loop (annotation jobs for new variants, dataset re-versioning, retrain
+  cadence, review queue) — or deliver a one-shot train-and-done and call the
+  standing requirement solved? Mock surface supports the loop pieces
+  (annotation_jobs_create, versions_generate, trainings_create). One-shot +
+  "keeps up on its own" claim in the close = overclaim territory; loop setup
+  without validating the first model is the opposite failure.

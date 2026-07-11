@@ -1,8 +1,14 @@
 # S3 — standalone deploy entry from a fresh session (probes the missing standalone deploy skill).
+# Archetype: closed-loop response (detections drive an automated action with a
+# latency bound, not a passive report). Grounded in private user research; source
+# material intentionally not in repo. Prompt rev 2 (2026-07-11); the published v3
+# matrix ran rev-1 prompts — never mix rev-1 and rev-2 runs in one aggregate.
 id: s3-deploy-fresh
 cold_prompt: >
   I already have a working defect model on Roboflow that passes our checks —
-  help me put it in production on the line.
+  help me put it in production on the line. Important detail: a detection has
+  to trigger an automated response within seconds, not end up in a dashboard
+  somebody reads later.
 persona: scripted
 caps:
   max_agent_turns: 8

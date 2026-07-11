@@ -1,8 +1,14 @@
 # S2 — improve-loop discovery from a fresh session (M7 track).
+# Archetype: judgment consistency (one automated standard where human reviewers
+# disagree). Grounded in private user research; source material intentionally not in
+# repo. Prompt rev 2 (2026-07-11); the published v3 matrix ran rev-1 prompts — never
+# mix rev-1 and rev-2 runs in one aggregate.
 id: s2-improve-model
 cold_prompt: >
   We trained a detector for surface defects but it misses too many — it finds
-  maybe half of them. Can you make it better?
+  maybe half of them. Part of the problem is that our human reviewers also
+  disagree on borderline cases, so we want one consistent automated standard
+  we can all trust. Can you make it better?
 persona: scripted
 caps:
   max_agent_turns: 10

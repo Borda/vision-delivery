@@ -40,6 +40,8 @@ rules:
     reply: "Eventually it should run on the line, yes. Whatever is simplest."
   - match: ["defect", "crack", "damage", "broken", "what counts"]
     reply: "A defect is any visible crack or dent on the item surface."
+  - match: ["variant", "new label", "packaging", "redesign", "how often do", "how frequently"]
+    reply: "Products get small design updates every few weeks — nobody announces them, we notice on the line."
   - match: ["name", "project name", "call it"]
     reply: "Call it whatever makes sense."
 caps:
