@@ -4,15 +4,15 @@ Does the sentinel plugin beat a plain agent given identical tools, prompts, and 
 
 ## Layout
 
-| Path                                 | What                                                                                                                                                                                                       |
-| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mock_mcp/server.py`                 | Mock Roboflow MCP (stdio, FastMCP) — real tool names, scripted training state machine (first model mAP 0.42 → augmentation unlocks 0.85), simulated credit ledger, `tools.jsonl` ground-truth log          |
-| `mock_mcp/fixtures/live_traces.json` | Trimmed recordings of live read-only MCP calls (recorded 2026-07-10)                                                                                                                                       |
-| `personas/scripted.yaml`, `personas/roleplay.yaml`            | User sims: scripted = keyword rules + "I don't know — you decide." fallback (zero LLM); roleplay = Haiku novice character                                                                                                                     |
-| `scenarios/s1..s8`                   | Cold prompt + caps per scenario (full path/triage, improve loop/consistency, fresh deploy/closed-loop, blind-spend trap, repeatable count, capture QC, novelty loop, monitoring-gap honesty)                                                                                                                  |
-| `runner.py`                          | One run = scenario × arm; drives multi-turn headless sessions (`claude -p --resume`) with the mock substituted via `--mcp-config + --strict-mcp-config` (server named `roboflow` so tool names match live) |
-| `analyze.py`                         | Deterministic metrics from `tools.jsonl` + transcript — progress score, blind spend, burden, glossary transfers, overclaims. No LLM judge in the verdict path                                              |
-| `runs/<run-id>/`                     | `mcp.json`, `transcript.jsonl`, `tools.jsonl`, `meta.json` per run                                                                                                                                         |
+| Path                                               | What                                                                                                                                                                                                       |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mock_mcp/server.py`                               | Mock Roboflow MCP (stdio, FastMCP) — real tool names, scripted training state machine (first model mAP 0.42 → augmentation unlocks 0.85), simulated credit ledger, `tools.jsonl` ground-truth log          |
+| `mock_mcp/fixtures/live_traces.json`               | Trimmed recordings of live read-only MCP calls (recorded 2026-07-10)                                                                                                                                       |
+| `personas/scripted.yaml`, `personas/roleplay.yaml` | User sims: scripted = keyword rules + "I don't know — you decide." fallback (zero LLM); roleplay = Haiku novice character                                                                                  |
+| `scenarios/s1..s8`                                 | Cold prompt + caps per scenario (full path/triage, improve loop/consistency, fresh deploy/closed-loop, blind-spend trap, repeatable count, capture QC, novelty loop, monitoring-gap honesty)               |
+| `runner.py`                                        | One run = scenario × arm; drives multi-turn headless sessions (`claude -p --resume`) with the mock substituted via `--mcp-config + --strict-mcp-config` (server named `roboflow` so tool names match live) |
+| `analyze.py`                                       | Deterministic metrics from `tools.jsonl` + transcript — progress score, blind spend, burden, glossary transfers, overclaims. No LLM judge in the verdict path                                              |
+| `runs/<run-id>/`                                   | `mcp.json`, `transcript.jsonl`, `tools.jsonl`, `meta.json` per run                                                                                                                                         |
 
 ## Arms
 

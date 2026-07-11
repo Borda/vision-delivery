@@ -211,4 +211,4 @@ vision-delivery/
 
 Open issues at [github.com/Borda/vision-delivery](https://github.com/Borda/vision-delivery/issues). Keep README claims tied to runnable plugin behavior and benchmark evidence, and keep user-facing docs focused on what the package does rather than when each capability entered the repository.
 
-Released under the Apache-2.0 license.
+Released under the Apache-2.0 license. If you use this project, please cite it — see [CITATION.cff](CITATION.cff); redistributions must retain [NOTICE](NOTICE) per Apache-2.0 §4(d).

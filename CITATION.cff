@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "sentinel (vision-delivery): agent-ready computer vision skills for the Roboflow ecosystem"
+authors:
+  - family-names: Borovec
+    given-names: Jiří
+    alias: Borda
+url: "https://github.com/Borda/vision-delivery"
+repository-code: "https://github.com/Borda/vision-delivery"
+license: Apache-2.0
+version: 0.1.0
+date-released: 2026-07-11
