@@ -1,0 +1,15 @@
+{
+  "description": "Install Sentinel's business-first computer vision delivery copilot.",
+  "name": "sentinel",
+  "owner": {
+    "name": "Jirka Borovec"
+  },
+  "plugins": [
+    {
+      "description": "Guide an operational computer vision goal toward verified proof, costs, and a decision while delegating current platform execution to Roboflow.",
+      "name": "sentinel",
+      "source": "./",
+      "version": "0.2.0"
+    }
+  ]
+}

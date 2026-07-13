@@ -3,7 +3,7 @@
     "name": "Jirka Borovec",
     "url": "https://github.com/Borda"
   },
-  "description": "Eval-first computer vision delivery skills for Codex: scope the task, measure proof, and decide CV economics. Built for the Roboflow ecosystem.",
+  "description": "Business-first computer vision delivery guide for Codex. Turn an operational goal into a scoped proof plan, verified evidence, costs, and a decision.",
   "homepage": "https://borda.github.io/vision-delivery/",
   "interface": {
     "brandColor": "#0F766E",
@@ -14,14 +14,14 @@
     ],
     "category": "Developer Tools",
     "defaultPrompt": [
-      "Count objects in my sample images with an eval gate.",
-      "Route this CV request to the right workflow.",
-      "Estimate annotation, training, and deployment economics."
+      "I need to reduce missed defects on this line. Help me prove whether computer vision is viable.",
+      "Turn this plain-language computer vision problem into a measured delivery plan.",
+      "Estimate the data, review, compute, and deployment economics before I invest."
     ],
     "developerName": "Jirka Borovec",
     "displayName": "Sentinel",
-    "longDescription": "Scope a computer-vision task, route it to the right skill, define the eval gate before model search, measure a baseline before training, and produce CV economics with an audit trail.",
-    "shortDescription": "Turn messy CV requests into measured Roboflow proof.",
+    "longDescription": "Describe the operational outcome in plain language. Sentinel guides you through scoping the computer-vision task, freezing business and evaluation gates, measuring a baseline, recording replayable evidence, and estimating the economics for a go, revise, or stop decision. Generated artifacts and live provider results require execution and verification. Roboflow integrations remain delegated to Roboflow's current MCP and computer-vision-skills plugin.",
+    "shortDescription": "Guide a business CV problem toward verified proof and a decision.",
     "websiteURL": "https://borda.github.io/vision-delivery/"
   },
   "keywords": [
@@ -36,5 +36,5 @@
   "name": "sentinel",
   "repository": "https://github.com/Borda/vision-delivery",
   "skills": "./skills/",
-  "version": "0.1.0"
+  "version": "0.2.0"
 }

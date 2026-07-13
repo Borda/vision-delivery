@@ -1,0 +1,4 @@
+interface:
+  display_name: "Check Sentinel Setup"
+  short_description: "Diagnose Sentinel package and connection setup"
+  default_prompt: "Use $check-sentinel-setup to diagnose this Sentinel installation."

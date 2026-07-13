@@ -3,9 +3,8 @@
     "name": "Jirka Borovec",
     "url": "https://github.com/Borda"
   },
-  "description": "Agent-ready computer vision skills: from problem to deployed model. Built for the Roboflow ecosystem. Claude Code, Codex, Cursor.",
+  "description": "Business-first computer vision delivery guide for Claude Code and Codex. Turn an operational goal into a scoped proof plan, verified evidence, costs, and a decision.",
   "homepage": "https://borda.github.io/vision-delivery/",
-  "hooks": "./hooks/hooks.json",
   "keywords": [
     "computer-vision",
     "claude-code",
@@ -19,5 +18,5 @@
   "name": "sentinel",
   "repository": "https://github.com/Borda/vision-delivery",
   "skills": "./skills/",
-  "version": "0.1.0"
+  "version": "0.2.0"
 }
