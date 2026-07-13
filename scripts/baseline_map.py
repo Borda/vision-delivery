@@ -3,17 +3,19 @@
 """Baseline mAP@50 for B1 fixture: sandbox-ibs0b/cars-jnnoy-mmrcu/1.
 
 Computes zero-shot COCO pretrained FasterRCNN baseline on the test split.
-Results written to .temp/baseline-result.json.
+Results written to .temp/baseline-result.json by default. The acceptance target
+is declared before inference and remains independent of the measured baseline.
 
 Requirements: torch, torchvision, pillow, requests, numpy
     pip install torch torchvision pillow requests numpy
 
 Weights: ~160 MB, downloaded once to ~/.cache/torch on first run.
 
-Set ROBOFLOW_API_KEY and ROBOFLOW_EXPORT_ID in environment, or pass
---export-url on the CLI (use the URL from app.roboflow.com → Export).
+Set ROBOFLOW_EXPORT_URL in the environment or pass --export-url. Treat export
+URLs as secrets: do not paste them into reports or commit them.
 """
 
+import argparse
 import io
 import json
 import os
@@ -31,17 +33,18 @@ import numpy as np
 
 try:
     import torch
-    from torchvision.models.detection import (
-        fasterrcnn_resnet50_fpn,
-        FasterRCNN_ResNet50_FPN_Weights,
-    )
     from PIL import Image
+    from torchvision.models.detection import (
+        FasterRCNN_ResNet50_FPN_Weights,
+        fasterrcnn_resnet50_fpn,
+    )
 except ImportError:
     sys.exit("pip install torch torchvision pillow numpy")
 
 # Read from env; never hardcode credentials in source.
 _export_url_env = os.environ.get("ROBOFLOW_EXPORT_URL", "")
-OUTPUT = Path(".temp/baseline-result.json")
+DEFAULT_OUTPUT = Path(".temp/baseline-result.json")
+DEFAULT_ACCEPTANCE_MAP50 = 0.65
 CONF_THRESH = 0.3
 IOU_THRESH = 0.5
 
@@ -64,7 +67,10 @@ def compute_ap(recalls: list, precisions: list) -> float:
     """11-point interpolated AP."""
     return (
         sum(
-            max((p for r, p in zip(recalls, precisions) if r >= t), default=0.0)
+            max(
+                (p for r, p in zip(recalls, precisions, strict=True) if r >= t),
+                default=0.0,
+            )
             for t in np.linspace(0, 1, 11)
         )
         / 11
@@ -78,7 +84,7 @@ def compute_map50(all_gt: list, all_pred: list) -> float:
             [
                 (s, p["img_id"], b)
                 for p in all_pred
-                for b, lbl, s in zip(p["boxes"], p["labels"], p["scores"])
+                for b, lbl, s in zip(p["boxes"], p["labels"], p["scores"], strict=True)
                 if lbl == cid
             ],
             key=lambda x: -x[0],
@@ -86,7 +92,7 @@ def compute_map50(all_gt: list, all_pred: list) -> float:
         gt_by_img: dict = defaultdict(list)
         n_gt = 0
         for g in all_gt:
-            for box, label in zip(g["boxes"], g["labels"]):
+            for box, label in zip(g["boxes"], g["labels"], strict=True):
                 if label == cid:
                     gt_by_img[g["img_id"]].append({"box": box, "matched": False})
                     n_gt += 1
@@ -112,14 +118,39 @@ def compute_map50(all_gt: list, all_pred: list) -> float:
     return float(np.mean(list(aps.values()))) if aps else 0.0
 
 
+def parse_args() -> argparse.Namespace:
+    """Parse the export source and pre-registered acceptance target."""
+    parser = argparse.ArgumentParser(
+        description="Measure a fixed detector baseline against a pre-set target."
+    )
+    parser.add_argument(
+        "--export-url",
+        default=_export_url_env,
+        help="Private COCO export URL; defaults to ROBOFLOW_EXPORT_URL.",
+    )
+    parser.add_argument(
+        "--acceptance-map50",
+        type=float,
+        default=DEFAULT_ACCEPTANCE_MAP50,
+        help="Business acceptance target frozen before baseline inference.",
+    )
+    parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    args = parser.parse_args()
+    if not 0.0 <= args.acceptance_map50 <= 1.0:
+        parser.error("--acceptance-map50 must be in [0.0, 1.0]")
+    return args
+
+
 def main() -> None:
+    """Measure the zero-shot baseline without changing the acceptance target."""
+    args = parse_args()
     print("=== B1 Baseline: FasterRCNN COCO zero-shot on Cars test split ===\n")
 
-    export_url = _export_url_env or sys.argv[1] if len(sys.argv) > 1 else ""
+    export_url = args.export_url
     if not export_url:
         sys.exit(
-            "ERROR: set ROBOFLOW_EXPORT_URL env var or pass the export URL as first arg.\n"
-            "  Generate at: app.roboflow.com → Dataset → Export → Download ZIP"
+            "ERROR: set ROBOFLOW_EXPORT_URL or pass --export-url. "
+            "Use the current platform export flow to obtain the private URL."
         )
 
     print("Downloading COCO export...")
@@ -167,7 +198,9 @@ def main() -> None:
             preds = model([transform(img)])[0]
 
         pred_boxes, pred_labels, pred_scores = [], [], []
-        for box, label, score in zip(preds["boxes"], preds["labels"], preds["scores"]):
+        for box, label, score in zip(
+            preds["boxes"], preds["labels"], preds["scores"], strict=True
+        ):
             if label.item() in COCO_TO_LABEL and score.item() >= CONF_THRESH:
                 pred_boxes.append(box.tolist())
                 pred_labels.append(label.item())
@@ -210,14 +243,15 @@ def main() -> None:
     per_class_mae = {
         cls: round(float(np.mean(errs)), 2) for cls, errs in count_errors.items()
     }
-    threshold = max(round(map50 * 100, 1), 65.0)
+    baseline_gap = map50 - args.acceptance_map50
 
     print(f"\n{'=' * 50}")
     print(f"mAP@50:    {map50:.1%}")
     print(f"Count MAE: {count_mae:.2f} per class per image")
     for cls, mae in sorted(per_class_mae.items()):
         print(f"  {cls}: MAE = {mae}")
-    print(f"\nThreshold: max(measured={map50:.0%}, floor=65%) = {threshold:.0f}%")
+    print(f"\nAcceptance target (pre-registered): {args.acceptance_map50:.1%}")
+    print(f"Baseline gap: {baseline_gap:+.1%}")
 
     result = {
         "fixture": "sandbox-ibs0b/cars-jnnoy-mmrcu/1",
@@ -231,15 +265,18 @@ def main() -> None:
         "count_mae": round(count_mae, 3),
         "count_mae_per_class": per_class_mae,
         "classes": sorted(COCO_TO_LABEL.values()),
-        "threshold": f"max({round(map50 * 100, 1)}%, 65%) = {threshold}%",
+        "acceptance_map50": args.acceptance_map50,
+        "acceptance_source": "pre-registered CLI/default; fixed before inference",
+        "baseline_gap": round(baseline_gap, 4),
+        "passes_acceptance": map50 >= args.acceptance_map50,
         "notes": [
             "Aerial view — poor zero-shot COCO performance expected; training required to reach 65%"
         ],
     }
 
-    OUTPUT.parent.mkdir(exist_ok=True)
-    OUTPUT.write_text(json.dumps(result, indent=2))
-    print(f"\nWritten → {OUTPUT}")
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(json.dumps(result, indent=2), encoding="utf-8")
+    print(f"\nWritten → {args.output}")
 
 
 if __name__ == "__main__":

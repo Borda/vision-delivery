@@ -11,6 +11,9 @@
     },
     {
       "prompt": "Track people through zones in warehouse camera footage."
+    },
+    {
+      "prompt": "Can a camera help my factory catch packing mistakes before shipping?"
     }
   ],
   "should_not_fire": [
@@ -27,7 +30,13 @@
       "prompt": "Show me a pure Roboflow platform how-to for exporting an already-working model."
     },
     {
+      "prompt": "Our evaluated detector works; package it for local production and add monitoring."
+    },
+    {
       "prompt": "/sentinel:estimate-economics"
+    },
+    {
+      "prompt": "$estimate-economics"
     }
   ]
 }

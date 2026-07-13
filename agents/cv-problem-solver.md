@@ -1,6 +1,6 @@
 ---
 name: cv-problem-solver
-description: 'Computer-vision problem solver. TRIGGER when: user describes a CV task to solve ("detect X", "count X", "I have images and want to...", "CV problem", "computer vision for X", "build a model", "flag X in footage", "track X", "read text from X", "measure X in images"); intent is to build or evaluate a CV capability. SKIP when: user asks an economics-only question about annotation cost, training cost, deployment cost, or scale with no unsolved build problem in play (route to economics-consultant); user asks a pure Roboflow platform how-to question with an already-working model; user invokes /sentinel:estimate-economics explicitly (economics-consultant handles it).'
+description: 'Computer-vision problem solver. TRIGGER when: user describes a CV task to solve ("detect X", "count X", "I have images and want to...", "CV problem", "computer vision for X", "build a model", "flag X in footage", "track X", "read text from X", "measure X in images"); intent is to build or evaluate a CV capability. SKIP when: user asks an economics-only question about annotation cost, training cost, deployment cost, or scale with no unsolved build problem in play (route to economics-consultant); user asks a pure Roboflow platform how-to question with an already-working model; user invokes `$estimate-economics` in Codex or `/sentinel:estimate-economics` in Claude Code (economics-consultant handles it).'
 tools: Read, Write, Edit, Bash, Glob, Grep
 model: sonnet
 color: blue

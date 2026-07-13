@@ -1,24 +1,24 @@
 {
   "should_fire": [
     {
-      "prompt": "How do I set up my Roboflow API key for this plugin?"
+      "prompt": "How do I sign in to Roboflow from this plugin?"
     },
     {
       "prompt": "Where do I get an account and connect Roboflow?"
     },
     {
-      "prompt": "How do I configure the roboflow key in this project?"
+      "prompt": "The Roboflow MCP authorization window never opened."
     },
     {
-      "prompt": "Universe search fails \u2014 no ROBOFLOW_API_KEY in my env at session start."
+      "prompt": "Roboflow tools say unauthorized after OAuth sign-in."
     },
     {
-      "prompt": "Walk me through api key setup and validation."
+      "prompt": "Do I need a Roboflow API key to install Sentinel?"
     }
   ],
   "should_not_fire": [
     {
-      "prompt": "Key already present in env \u2014 count the boxes on this conveyor."
+      "prompt": "Roboflow MCP is connected; count the boxes on this conveyor."
     },
     {
       "prompt": "Let's define the eval for my defect detector first, purely local discussion."
@@ -27,7 +27,7 @@
       "prompt": "Help me discuss a labeling approach for raw footage, no account needed."
     },
     {
-      "prompt": "Purely local task \u2014 describe the labeling approach, no Roboflow account required."
+      "prompt": "A generated Python client needs its own credential handling."
     }
   ]
 }

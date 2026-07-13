@@ -131,7 +131,7 @@ def main() -> int:
     triples = load_cases(args.skill, negatives=args.negatives)
     if not args.all:
         seen: set[str] = set()
-        sampled = []
+        sampled: list[tuple[str, str, bool]] = []
         for skill, prompt, positive in triples:
             if positive and skill not in seen:
                 sampled.append((skill, prompt, positive))

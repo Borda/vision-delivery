@@ -1,27 +1,15 @@
-# evals/e2e/
+# Manual End-to-End Specifications
 
-End-to-end reproducibility specs — each file documents the full sequence from cold prompt to eval-passing model for one skill vertical.
+These files define manual acceptance sequences for Sentinel routes. They do not constitute an executable harness or a passing result.
 
-No executable harness yet. Run manually against a real Claude Code session with the plugin loaded.
-
-## Run (manual)
+Run a local development checkout with:
 
 ```bash
 claude --plugin-dir .
 ```
 
-Then follow the numbered steps in the relevant `.e2e.md` file.
+For live Roboflow steps, authorize the bundled URL-only MCP connection through the host's sign-in flow. Never use an API-key-present condition to bypass that check. Exact current platform execution comes from installed official Roboflow skills or the host's current MCP resources, not from these specifications.
 
-## Files
+Every run must record the plugin/host versions, input fixture identity, independently produced gold evidence, frozen acceptance ID, upstream capability provenance, artifact/handoff validation, observed result, and unresolved external checks. Until a versioned run record exists, the route remains guided.
 
-| File                         | Skill                 | Fixture                            |
-| ---------------------------- | --------------------- | ---------------------------------- |
-| `detect-and-analyze.e2e.md`  | `detect-and-analyze`  | `sandbox-ibs0b/cars-jnnoy-mmrcu/1` |
-| `classify-or-flag.e2e.md`    | `classify-or-flag`    | TBD (M4)                           |
-| `track-and-count.e2e.md`     | `track-and-count`     | TBD (M4)                           |
-| `read-text.e2e.md`           | `read-text`           | TBD (M4)                           |
-| `segment-and-analyze.e2e.md` | `segment-and-analyze` | TBD (M4)                           |
-
-## Executable harness
-
-Deferred to M-later. Will feed each `.e2e.md` spec to a headless session and assert the correct skill fires, eval threshold is met, and the deploy CTA appears exactly once.
+The automated repository gates validate structure, routing cases, scripts, hooks, and local artifact contracts separately; they do not execute these live specifications.

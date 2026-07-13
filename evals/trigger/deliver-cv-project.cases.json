@@ -1,0 +1,36 @@
+{
+  "should_fire": [
+    {
+      "prompt": "My detector already passes its eval. Export it and make a local runnable package."
+    },
+    {
+      "prompt": "Connect our working OCR model to the application and document the integration handoff."
+    },
+    {
+      "prompt": "The tracker works on our test clips. Put it in production on the RTSP camera."
+    },
+    {
+      "prompt": "What do I do after the model works? I need monitoring and rollback guidance."
+    },
+    {
+      "prompt": "Deploy the evaluated model to our managed device after showing the handoff checks."
+    }
+  ],
+  "should_not_fire": [
+    {
+      "prompt": "Build a detector for damaged cardboard boxes from these sample images."
+    },
+    {
+      "prompt": "How much will five camera streams cost per month?"
+    },
+    {
+      "prompt": "Which exact Roboflow API field selects this model ID?"
+    },
+    {
+      "prompt": "Segment these tumor images and determine whether a model can meet 90 percent IoU."
+    },
+    {
+      "prompt": "I only have existing masks; calculate their pixel areas locally."
+    }
+  ]
+}

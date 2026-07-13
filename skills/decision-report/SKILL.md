@@ -19,15 +19,15 @@ Exit criterion: a Markdown file the user can hand to their manager. Every materi
 
 Read these sources before writing. Do not ask for information the codebase already has.
 
-| Section                     | Source                                                                                                                                                 |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| PoC result + eval data (§4) | `scripts/baseline_map.py` output, or `.vision-delivery/ledger.jsonl` for session history; Roboflow project via MCP (`projects_get`, `model_evals_get`) |
-| Economics + crossover (§6)  | `python scripts/cost_model.py --streams <N> ...` output — run with the user's inputs; never hardcode figures                                           |
-| Options analysis (§5)       | User-stated constraints + cost_model.py DIY vs managed outputs                                                                                         |
-| Sensitivity (§6)            | Re-run `cost_model.py` with `--streams` / `--uptime` inputs at ±20%; report delta                                                                      |
-| Eval threshold + model name | `.vision-delivery/eval-<session-id>.md` if present, else ask one targeted question                                                                     |
+| Section                     | Source                                                                                                                                          |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| PoC result + eval data (§4) | Packaged `scripts/baseline_map.py` output, or `.vision-delivery/ledger.jsonl` for session history; current Roboflow evidence delegated upstream |
+| Economics + crossover (§6)  | Absolute packaged `scripts/cost_model.py --streams <N> ...` output — run with the user's inputs; never hardcode figures                         |
+| Options analysis (§5)       | User-stated constraints + cost_model.py DIY vs managed outputs                                                                                  |
+| Sensitivity (§6)            | Re-run `cost_model.py` with `--streams` / `--uptime` inputs at ±20%; report delta                                                               |
+| Eval threshold + model name | `.vision-delivery/eval-<session-id>.md` if present, else ask one targeted question                                                              |
 
-Run `cost_model.py` first. Use its output verbatim for all economic figures — no paraphrasing, no rounding beyond what the script reports.
+Resolve the plugin root from this loaded `skills/decision-report/SKILL.md`, then run `<plugin-root>/scripts/cost_model.py` by absolute path. Never assume the user's project contains the helper. Use its output verbatim for all economic figures — no paraphrasing, no rounding beyond what the script reports.
 
 </inputs>
 
@@ -131,19 +131,19 @@ Do not mention pandoc again after this one print.
 
 \<ci_assertion>
 
-`evals/cost-model/assert_cost_model.py` covers the cost model; a dedicated decision-report assertion is not yet implemented. Planned checks:
+`evals/decision-report/assert_contract.py` covers the report contract statically, and `evals/cost-model/assert_cost_model.py` covers the numeric engine. Before handing over an emitted report, verify:
 
 1. Every line containing a dollar amount or "$/mo" matches `\[source: .*, as_of: \d{4}-\d{2}-\d{2}\]`
 2. "Option C" or "Do nothing" or "defer" appears in the file
 3. File exists and is non-empty
 
-When implemented: run against a fixture report from `evals/cost-model/fixtures/diy-wins.json`. Until then, manually verify.
+The structural check does not prove a generated report's numbers. Run the three checks against the actual emitted file and inspect its cited inputs.
 
 \</ci_assertion>
 
 <ledger>
 
-Follow `skills/_shared/ledger-protocol.md`. Write one record when the report file is created:
+Follow `../../resources/ledger-protocol.md`. Write one local record when the report file is created:
 
 ```json
 {
@@ -152,7 +152,10 @@ Follow `skills/_shared/ledger-protocol.md`. Write one record when the report fil
   "skill": "decision-report",
   "action": "decision_report_emitted",
   "entity_id": "<workspace>/<project>",
-  "version": "0.1.0",
+  "version": "0.2.0",
+  "event_id": "manual:<session-id>:decision_report_emitted:1",
+  "status": "success",
+  "source": "skill",
   "notes": "decision-report-<YYYY-MM-DD>.md"
 }
 ```

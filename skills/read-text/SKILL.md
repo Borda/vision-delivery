@@ -1,188 +1,93 @@
 ---
 name: read-text
 description: |
-  Extract structured text fields, codes, and numbers from images using OCR and Roboflow Workflow blocks. Covers: serial number and part number extraction from manufacturing labels, license plate reading, form field extraction and document digitization, barcode and QR code reading, meter and gauge digit OCR, date code and lot number parsing, character-error-rate evaluation. Builds an OCR pipeline: define eval → try pre-built Workflow blocks → measure CER/field-match → tune preprocessing or switch engines → working PoC.
-  TRIGGER when: user wants to extract text, numbers, or codes from images ("read the serial number", "extract text from", "read the label", "read the date code", "scan barcodes or QR codes", "extract the part number", "read meter values", "document digitization", "license plate reading", "extract structured fields from form images", "ocr", "lot number", "expiry date extraction", "digit recognition", "read codes from labels", "invoice digitization", "meter readings", "plate recognition").
-  SKIP when: user wants to count object instances with no text extraction ("count the items on the shelf", "tally objects", "how many" → detect-and-analyze); user wants image-level pass/fail verdict with no text ("flag misaligned label", "classify image as defective" → classify-or-flag); user wants pixel-precise outlines or area measurement ("segment the crack", "measure crack width" → segment-and-analyze); user wants object tracking across frames ("track pallets through the warehouse" → track-and-count); cost or scale question with no unsolved OCR problem ("how much to deploy", "cost for cameras" → estimate-economics); user already has working OCR and asks only about integration.
+  Extract structured text, numbers, labels, and codes from images and evaluate by character or field accuracy. TRIGGER when: user asks to read/scan a serial, part/date/lot number, label, license plate, meter, gauge, barcode, QR code, invoice, document, form field, or other image text. SKIP when: user asks to tally/count boxes or other objects on a conveyor (detect-and-analyze), pass/fail without text (classify-or-flag), measure crack width/masks/area (segment-and-analyze), track objects (track-and-count), cost only (estimate-economics), or integrate/deliver working OCR (deliver-cv-project).
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 ---
 
 <objective>
 
-Extract structured text fields from images with accuracy meeting the user's eval. The exit criterion is an OCR pipeline (Roboflow Workflow or inference script) that achieves the agreed character-error-rate (CER) or field-match accuracy threshold on the user's fixture images, plus a portable artifact the user owns.
-
-**What this skill covers:**
-
-- **Serial number / part number / date code extraction** — manufacturing label OCR
-- **License plate reading** — vehicle identification from camera frames
-- **Form field extraction / document digitization** — structured fields from invoices, forms, ID cards
-- **Barcode / QR code reading** — dedicated Roboflow Workflow blocks; no labeling needed
-- **Meter / gauge reading** — digit OCR from utility or industrial meter displays
-- **Latency** — for real-time conveyor-line use cases state inference time; target ≤200 ms/image for inline inspection
-
-**What this skill does NOT cover:**
-
-- Object detection (counting instances) → `detect-and-analyze`
-- Image-level classification / pass-fail verdict → `classify-or-flag`
-- Pixel-precise outlines or area measurement → `segment-and-analyze`
-- Object tracking across frames → `track-and-count`
+Extract the exact fields needed by the business process and clear an independently transcribed acceptance set. Separate region localization, text decoding, normalization, and field validation so failures have an owner.
 
 </objective>
 
 <methodology>
 
-Steps 1, 2, 5, 7, and 8 follow the generic sequence in `skills/_shared/fde-methodology.md`. Read that file first. This section documents only the OCR-specific additions.
+**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific capability, dataset, training, inference, workflow, or deployment action. Delegate exact execution to the installed official Roboflow skill or current MCP resource. Do not preserve current engine names, blocks, IDs, or invocation syntax here.
 
-**Step 3 — Foundation-model-first for OCR.**
+Follow `../../resources/fde-methodology.md`; apply these text-specific rules.
 
-Roboflow Workflows include OCR blocks (DocTR, PaddleOCR, Tesseract) — no training or labeling needed for general printed text. Try these before any custom training:
+## 1. Define fields and operational action
 
-- **General printed text**: add a DocTR OCR block to a Workflow. For structured fields, chain detection (find the label region) → crop → OCR block.
-- **Barcodes / QR codes**: Roboflow has a dedicated barcode detection block. Use `universe_search: "barcode detection"` or add the native Workflow barcode block — no model training needed.
-- **Handwriting or highly stylized fonts**: PaddleOCR often outperforms DocTR; benchmark both on a sample before deciding.
-- **Custom train only when**: fonts are highly stylized (e.g. 7-segment LED display digits, custom embossed characters), images are severely degraded, or all preprocessing + engine combinations fail.
+Inspect representative images, existing schemas, expected formats, code, and error handling. Ask at most three missing questions:
 
-**Step 4 — Measure against the eval (OCR-specific metrics).**
+- Which exact fields must be returned, and what action uses them?
+- Are substitutions allowed, or must the whole field match exactly?
+- Which capture conditions and scripts/languages occur in production?
 
-Run the Workflow or OCR block on a sample of fixture images. Report both metrics when ground-truth is available:
+Freeze before selecting or tuning a candidate:
 
-- **Character Error Rate (CER)** — for general text extraction (lower = better; target ≤5% CER)
-- **Field match rate** — for structured field extraction: percentage of images where the extracted field exactly matches ground-truth (target ≥95% field match)
-- **Latency (ms/image)** — when production-line throughput matters
+```text
+Acceptance ID: <session/revision>
+Business decision: <action enabled by extracted fields>
+Gold set: <independent transcription source, split, adjudicator>
+Primary metric and threshold: <exact field match/CER/valid-code rate>
+Secondary guardrails: <critical-field recall, rejection rate, latency>
+Frozen before baseline: <timestamp and confirmation>
+Baseline result (diagnostic only): <not run yet>
+```
 
-Non-negotiable format:
+## 2. Freeze the extraction schema
 
-> "DocTR Workflow on 40 of your label images: field match = 82%, CER = 3.1%. Threshold is field match ≥ 95% — missed by 13 points."
+For each field, record name, type, allowed alphabet, normalization, format/checksum rule, null behavior, confidence/review policy, and whether localization is needed. Preserve raw text separately from normalized output. Never silently “correct” a value unless the correction rule was frozen and both forms are retained.
 
-Never soften. Numbers only.
+## 3. Select and evaluate candidates
 
-**Step 5 — Levers (OCR-specific ordering, fastest first).**
+Ask upstream for current text/code-reading capabilities with provenance, license, input constraints, and runtime requirements. Prefer a no-training capability that clears the same independent gate. Do not encode provider model IDs or command sequences in Sentinel.
 
-1. **Image preprocessing** — resize to at least 32 px text height, denoise, binarize (Otsu threshold), deskew. Often the biggest accuracy gain with zero labeling cost. Always try this first.
-2. **OCR engine switch** — benchmark DocTR vs PaddleOCR vs Tesseract on the fixture; report field-match and CER for each. Engine choice alone can close 10–20 points.
-3. **Detection crop first** — find the text region with a detection model (Universe search: `"text region detection"` or `"label detection"`), then OCR on the crop only. Reduces background noise substantially.
-4. **Fine-tune** — only for highly stylized text (7-segment, embossed, low-contrast) where all preprocessing and engine combinations fail. Always show credit estimate; wait for explicit yes before calling `trainings_create`.
+Measure the full localize → decode → normalize → validate pipeline. Report:
 
-**Step 6 — Artifact.**
+- exact field-match rate with numerator/denominator;
+- character error rate where partial correctness matters;
+- critical-field recall and false acceptance/rejection rate;
+- invalid-format/checksum and abstention counts;
+- slices by blur, glare, font, layout, language, crop, and camera;
+- p50/p95 latency on the target runtime.
 
-Produce:
+Manual visual review helps diagnose samples but cannot be converted into an accuracy claim without independent transcription.
 
-- **`extract_text.py`** — inference script that extracts the target fields and returns a structured dict; runnable with only `requests` installed.
-- **`eval_definition.md`** — CER and field-match thresholds, dataset split, fixture source, logic used.
+## 4. Diagnose a failed gate
 
-Also write `.vision-delivery/detections.jsonl` append per inference run (format in the `solve-cv-task` composition protocol) — downstream skills consume this.
+Separate missing/wrong regions, decoding substitutions/deletions, orientation/quality issues, normalization bugs, and validator errors. Test capture, crop/orientation, deterministic validation, or candidate changes before custom training. Target new labels at demonstrated failure slices. Delegate platform actions upstream and remeasure on the frozen set.
+
+## 5. Decide and deliver
+
+Return `go`, `revise`, or `stop`, including field-level errors, rejection policy, privacy boundary, and remaining manual-review cases. Follow `../../resources/artifact-contract.md`; emit a verified `hosted-client`, offline-tested `local-runtime`, or candid `scaffold`. A passing extraction capability routes to `deliver-cv-project`.
 
 </methodology>
 
-<artifact>
+<safety>
 
-Produce these two user-owned, portable files at Step 6.
+- Treat extracted personal/document data as sensitive and minimize retention.
+- Never invent missing characters or suppress the raw result.
+- Pseudo-transcriptions cannot own acceptance.
+- Obtain explicit consent before data movement or paid work.
+- Delegate exact provider operations to current upstream guidance.
 
-**`extract_text.py`** — OCR inference script:
-
-```python
-import requests, json, base64, sys
-from pathlib import Path
-
-# ponytail: no SDK — stdlib + requests only
-WORKSPACE = "<workspace>"
-PROJECT = "<project>"
-VERSION = "<version>"
-API_KEY = "<from ROBOFLOW_API_KEY env>"
-FIELD_NAME = sys.argv[1] if len(sys.argv) > 1 else None  # target field, or None = all
-
-
-def extract_text(image_path: str) -> dict:
-    with open(image_path, "rb") as f:
-        img_b64 = base64.b64encode(f.read()).decode()
-    resp = requests.post(
-        f"https://detect.roboflow.com/{WORKSPACE}/{PROJECT}/{VERSION}",
-        params={"api_key": API_KEY},
-        json={"image": img_b64},
-    )
-    resp.raise_for_status()
-    predictions = resp.json().get("predictions", [])
-    fields = {}
-    for p in predictions:
-        label = p.get("class", "text")
-        text = p.get("ocr_text", p.get("text", ""))
-        if FIELD_NAME is None or label == FIELD_NAME:
-            fields[label] = text
-    return {"path": image_path, "fields": fields}
-
-
-if __name__ == "__main__":
-    for path in sys.argv[2:] or []:
-        print(json.dumps(extract_text(path)))
-```
-
-**`eval_definition.md`**:
-
-```markdown
-# Eval — <problem-title>
-Date: <ISO8601>
-Target field(s): <field list>
-CER ceiling: <N>%
-Field match floor: <N>%
-Latency ceiling: <N> ms/image
-Dataset split: <N> images, source: <fixture or user data>
-Threshold logic: max(baseline field-match, business floor)
-```
-
-</artifact>
-
-\<model_pick>
-
-OCR does not use a trained detection model for text extraction — it uses pre-built Workflow OCR blocks (DocTR, PaddleOCR, Tesseract, barcode block). No `model_id` is selected in the initial pass.
-
-If a detection stage is needed (find the label region before OCR), apply the detection model-selection rules from `skills/_shared/model-selection.md` for that sub-step only.
-
-Custom OCR model training (rare) — verify exact `model_id` values from `roboflow://skills/training-and-evaluation` before calling `trainings_create`; do not guess.
-
-\</model_pick>
-
-\<safe_actions>
-
-Follow the safe-action gates in `skills/_shared/fde-methodology.md` exactly. Quick reference:
-
-- `trainings_create` → credit estimate + explicit yes required, same turn
-- `versions_generate` → free but irreversible; state augmentation config before calling
-- Image upload → state destination; offer local path if user declines
-- `project_deployment_launch` → not in this skill; seam offer hands to `estimate-economics`
-
-\</safe_actions>
+</safety>
 
 <ledger>
 
-Follow the write protocol in `skills/_shared/ledger-protocol.md`. Write one record per action, append-only to `.vision-delivery/ledger.jsonl`.
-
-Action triggers for this skill:
-
-| Trigger                                                   | `action` value              | What to put in `notes`                    |
-| --------------------------------------------------------- | --------------------------- | ----------------------------------------- |
-| `eval_definition.md` written and user confirmed           | `eval_definition`           | target fields, CER/field-match thresholds |
-| First OCR Workflow run returns field-match result         | `baseline_measured`         | `field_match=X%, CER=Y%`                  |
-| `trainings_create` MCP call submitted (rare)              | `trainings_create`          | model name, checkpoint, dataset version   |
-| Deployment launched (via seam offer → estimate-economics) | `project_deployment_launch` | deployment_id, endpoint URL               |
-
-`entity_id` format: `<workspace>/<project>` for projects; `<workspace>/<project>/<version>` when version is known.
+Follow `../../resources/ledger-protocol.md`. Record acceptance, field-level evaluation, artifact verification, and decision once with non-empty event IDs and status.
 
 </ledger>
 
-<voice>
+\<stop_rules>
 
-Follow voice rules from `skills/_shared/fde-methodology.md`. Short reference:
+- Field schema/normalization is undefined → freeze it first.
+- No independent transcription set → do not claim accuracy.
+- Capture quality makes characters unresolvable → state the acquisition requirement.
+- Paid/data-moving action lacks current-turn consent → stop.
+- Applicable live/offline smoke is absent → retain `scaffold` status.
 
-**Do:**
-
-- "DocTR on 40 label images: field match = 71% — threshold is 95%. Missed by 24 points. Fastest lever: resize text to ≥32 px and binarize."
-- "PaddleOCR passes: field match = 96%, CER = 2.8%. Threshold was 95%. Done with build step."
-- "7-segment LED display — stylized font, preprocessing won't fix it. Fine-tune needed. Credit estimate: ~10 credits. Proceed?"
-
-**Do not:**
-
-- "Looks like the OCR is reading well!" / "This should work!"
-- Report passing when threshold not cleared.
-- Mention managed deployment, pricing, or cost during the build flow (seam offer fires once at eval-pass only).
-
-</voice>
+\</stop_rules>

@@ -1,135 +1,99 @@
 ---
 name: solve-cv-task
-description: 'Computer-vision task-solving recipe. TRIGGER when: user describes a CV task to solve ("detect X", "count X", "I have images and want to...", "CV problem", "computer vision for X", "build a model", "flag X in footage", "track X", "read text from X", "measure X in images"); intent is to build or evaluate a CV capability. SKIP when: user asks an economics-only question about annotation cost, training cost, deployment cost, or scale with no unsolved build problem in play (route to estimate-economics); user asks a pure Roboflow platform how-to question with an already-working model; user invokes /sentinel:estimate-economics explicitly (estimate-economics handles it).'
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep
+description: |
+  Turn a plain-language CV goal into the correct measurable build route. TRIGGER when: user asks to detect/count vehicles, read serial numbers, track people through zones, use a factory camera to catch mistakes, solve a CV problem from sample images, test feasibility, or build an end-to-end vision capability without knowing the modality. SKIP when: request clearly matches a specialist; asks managed deployment cost, annotation/training cost, or other economics only; asks current platform how-to; invokes estimate-economics; or says an evaluated model works and only needs package/export/deployment/delivery.
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 ---
 
-<role>
+<objective>
 
-You are the cv-problem-solver — **thin router and pipeline orchestrator**.
+Be Sentinel's low-barrier front door. Translate the user's operational outcome into the correct CV output, independent acceptance gate, fastest safe proof, and explicit next route—without requiring them to know CV terminology.
 
-This skill is the canonical recipe for solving a `vision-delivery` CV task. Claude Code agents may adapt to this file, but workflow logic lives here.
+</objective>
 
-Classify the user's CV problem → identify the specialist skill(s) → read the relevant SKILL.md file(s) → follow their methodology in order. You own the routing and sequencing. You do not own the methodology — it lives in the skill files.
+<methodology>
 
-Shared methodology (voice rules, annotation unblocking, key handling, safe-action gates, the 9-step sequence (Step 0 + Steps 1–8)): `skills/_shared/fde-methodology.md`. Modality-specific deltas: individual `skills/<name>/SKILL.md` files. Model selection tables: `skills/_shared/model-selection.md`. Roboflow platform lookup adapters: `skills/_shared/roboflow-platform-lookup.md`.
+**Roboflow platform knowledge lookup.** Read `../../resources/roboflow-platform-lookup.md`. Sentinel owns stable solution-building discipline. Installed official Roboflow skills or current MCP resources own exact product/model/tool truth. If neither is available, continue provider-neutral work and use a scaffold; never copy or guess a volatile platform recipe.
 
-Read all three before executing.
+## 1. Read before asking
 
-**Roboflow platform knowledge lookup:** this plugin owns the delivery workflow, not Roboflow product reference. For exact model IDs, MCP tool schemas, Workflow authoring, platform URLs, plan limits, or pricing rules, use this order:
+Inspect the user's files, sample images/clips, code, README, labels, and existing evaluation artifacts. Summarize the observable problem in plain language. Ask at most three questions that artifacts cannot answer:
 
-1. Local Roboflow plugin skills, if available (`roboflow:inference`, `roboflow:training-and-evaluation`, `roboflow:data-management`, etc.).
-2. Roboflow MCP skill resources, if the client exposes them and the user is authenticated (`roboflow://skills/inference/...`, `roboflow://skills/training-and-evaluation/...`, etc.).
-3. The stable fallback tables in this repository, with any volatile platform detail marked unverified before paid actions.
+1. “What should happen when the camera sees the target?”
+2. “Out of 100 real cases, how many misses or false alarms are acceptable for a first proof?”
+3. “Where will images come from, and may they leave this machine/site?”
 
-Use `skills/_shared/roboflow-platform-lookup.md` for the adapter table.
+For a novice, define only the next needed term. Use “catch rate” before introducing recall and “false-alarm rate” before precision.
 
-</role>
+## 2. Route by required output
 
-<classification>
+| User needs                                                                 | Route                                  | Key discriminator               |
+| -------------------------------------------------------------------------- | -------------------------------------- | ------------------------------- |
+| boxes, object count, crops, per-object metadata, per-person PPE            | `detect-and-analyze`                   | one output per visible instance |
+| one verdict for the whole image, including whole-image compliance          | `classify-or-flag`                     | one label/flag per image        |
+| masks, contours, area, crack width, calibrated physical measurement        | `segment-and-analyze`                  | pixel geometry and calibration  |
+| persistent identity, crossings, paths, dwell, video events                 | `track-and-count`                      | association across frames       |
+| text, numbers, serials, forms, codes, meters                               | `read-text`                            | character/field extraction      |
+| keypoints, joint angles, posture, gestures, actions                        | `recognize-pose-or-gesture`            | skeleton/keypoint semantics     |
+| several perception/rule/aggregation stages                                 | `decompose-to-pipeline`                | end-to-end staged decision      |
+| annotation/training/deployment economics or crossover                      | `estimate-economics`                   | economic decision, not build    |
+| accepted model/pipeline needs package, integration, monitoring, deployment | `deliver-cv-project`                   | capability already measured     |
+| setup/authentication health                                                | `check-sentinel-setup` or `auth-setup` | environment/connection issue    |
 
-**Step 0.5 — verify existing-model claims (fires before classification).**
+If two outputs are required, name a primary acceptance owner and compose the second stage explicitly. Do not hide a multi-stage system inside one skill.
 
-When the user claims a model already exists or already works, verify it on-platform first via `models_list` and/or `model_evals_list` before doing anything else. If verification finds nothing, say so plainly and fall through to the normal build methodology rather than trusting the claim.
+## 3. Write the proof brief
 
-Classify on two axes before dispatching.
+Before routing, state:
 
-**Axis 1 — Output modality (what the model produces):**
+- operational decision and action owner;
+- input source and representative sample;
+- required output schema;
+- costlier error (miss or false alarm);
+- independently produced gold evidence needed;
+- first metric/threshold in plain language;
+- privacy/data boundary;
+- target runtime/latency when known;
+- routed skill and why.
 
-- **boxes** — bounding boxes per object instance (detect, locate, count, measure from bbox, crop)
-- **masks** — pixel-precise instance outlines (segment, area, shape, contour)
-- **tracks** — identity-linked trajectories across frames (follow, entry count, line-cross)
-- **keypoints** — skeleton landmarks per person or object (pose, gesture, action)
-- **label** — image-level categorical verdict (classify, flag, pass/fail inspection)
-- **text** — characters extracted from image regions (OCR, serial number, expiry date)
+If the user cannot choose a metric, propose a clearly labeled draft based on their operational statement and ask for confirmation. The specialist freezes the acceptance revision before baseline work.
 
-**Axis 2 — Task type (skill to invoke):**
+## 4. Handle feasibility honestly
 
-| Modality  | Task                                                           | Skill                       |
-| --------- | -------------------------------------------------------------- | --------------------------- |
-| boxes     | count, measure, crop, per-box metadata                         | `detect-and-analyze`        |
-| masks     | area, shape, contours                                          | `segment-and-analyze`       |
-| tracks    | entry, zone count, line-cross                                  | `track-and-count`           |
-| keypoints | gesture, posture, action                                       | `recognize-pose-or-gesture` |
-| label     | pass/fail, defect type, category                               | `classify-or-flag`          |
-| text      | extracted string, structured field                             | `read-text`                 |
-| any       | system-level monitoring, feasibility check, LLM-to-CV pipeline | `decompose-to-pipeline`     |
+Separate three states:
 
-**Discriminator — "defective items" ambiguity:**
+- `plausible`: signal appears observable; measure it;
+- `blocked`: independent evidence shows resolution, lighting, viewpoint, timing, or sensor limits;
+- `unverified`: available inspection cannot decide; improve capture or obtain a specialist/domain review.
 
-- "how many defective items on the line?" → per-instance count → **detect-and-analyze** (object-level)
-- "is this product defective?" → image-level verdict → **classify-or-flag** (image-level)
-- "count the defective items" — genuinely ambiguous; ask one question:
-  > "Do you need a count per instance (e.g., 5 defects visible in this batch image), or a per-image pass/fail verdict (e.g., this product is defective)?" Then dispatch on the answer.
+Do not call a project impossible because a general model failed to see it. Do not call it feasible because a demo looked convincing.
 
-**Pipeline shape:**
+## 5. Hand off with continuity
 
-- **Single-skill**: one modality covers the full problem → dispatch directly.
-- **Multi-skill**: problem requires sequential modalities (e.g., detect people → project to 2D map → track zones) → lay out the pipeline to the user first; execute step 1; hand typed artifact to step 2.
+Invoke or recommend the selected skill with the proof brief and inspected artifact paths. The specialist owns frozen acceptance, candidate measurement, artifact, and decision. A passing build routes to `deliver-cv-project`; a material scale/build-vs-buy question routes through `estimate-economics`.
 
-</classification>
+</methodology>
 
-<dispatch>
+<safety>
 
-Once classified:
+- Independent human/sensor evidence owns acceptance; candidate output and pseudo-labels do not.
+- Obtain explicit consent before upload/data movement and before paid actions.
+- Never request a token or key for plugin installation.
+- Never invent provider model IDs, commands, API fields, prices, or deployment paths.
+- High-stakes medical, safety, or legal decisions require qualified human ownership.
 
-1. **State the routing decision**: "This is a `detect-and-analyze` problem — bounding boxes → count per class."
-2. **Read the skill file**: `skills/detect-and-analyze/SKILL.md` (or whichever skill applies).
-3. **Read shared methodology**: `skills/_shared/fde-methodology.md`.
-4. **Execute the skill's methodology steps in order.** Every modality-specific decision (model choice, eval metrics, artifact format) is in the skill file — follow it exactly.
+</safety>
 
-For every routed skill, read the corresponding `skills/<name>/SKILL.md` file and execute its methodology. This includes `decompose-to-pipeline` for system-level requests such as "monitor X and alert me", "is this feasible", or "replace my LLM inference with something cheaper."
+<ledger>
 
-**Multi-skill pipeline execution:**
+Follow `../../resources/ledger-protocol.md`. Record a routing/proof-brief event only when a durable brief is written. Let the owning specialist record acceptance and evaluation; never duplicate hook-covered MCP rows.
 
-1. Lay out the full pipeline to the user with typed artifacts named explicitly.
-2. Ask for confirmation before starting.
-3. Execute Step 1 fully → produce typed artifact to `.vision-delivery/`.
-4. Announce transition: "Step 1 complete — [artifact] written. Starting Step 2."
-5. Execute Step 2, reading from the Step 1 artifact.
+</ledger>
 
-Never invent methodology inline — the SKILL.md file is the authoritative source. Read it first.
+\<stop_rules>
 
-</dispatch>
+- Output/action remains ambiguous after three focused questions → write the ambiguity and smallest discriminating sample/check; do not guess.
+- User asks only a current platform how-to → delegate upstream and return to Sentinel when a delivery decision exists.
+- Existing accepted capability only needs integration → route directly to `deliver-cv-project`.
 
-\<composition_protocol>
-
-**Typed inter-skill artifacts** — standardized handoff written to `.vision-delivery/` at project root. Append per inference run; do not overwrite. Create `.vision-delivery/` if absent.
-
-`detections.jsonl` (detect-and-analyze → track-and-count):
-
-```jsonl
-{"ts":"ISO8601","frame":0,"image":"path/or/url","predictions":[{"class":"Box","x":100,"y":200,"width":50,"height":60,"confidence":0.92}]}
-```
-
-`keypoints.jsonl` (recognize-pose-or-gesture → downstream):
-
-```jsonl
-{"ts":"ISO8601","frame":0,"image":"path/or/url","keypoints":[{"label":"left_wrist","x":210,"y":310,"confidence":0.88}]}
-```
-
-`tracks.jsonl` (track-and-count output):
-
-```jsonl
-{"ts":"ISO8601","track_id":"T001","class":"Person","entry_zone":"A","entry_ts":"ISO8601","exit_ts":null}
-```
-
-**Composition note:** plugin-native JSON files are the handoff layer for local skill composition. Roboflow Workflows remain available inside skills that need hosted replay, observability, or managed deployment.
-
-\</composition_protocol>
-
-<routing>
-
-Route to the `estimate-economics` recipe only at a genuine economics decision:
-
-- User invokes `/sentinel:estimate-economics` explicitly, OR
-- User asks for annotation, training, deployment, or scale economics after the build scope is clear, OR
-- User selects the managed-at-scale branch at the seam offer
-
-Do not slide into economics or pricing during the build flow. Cost question during build:
-
-> "I'll have exact numbers when you hit `/sentinel:estimate-economics` - let's get the model working first."
-
-All voice rules, banned phrases, educator mode, annotation unblocking, key handling, and safe-action gates are in `skills/_shared/fde-methodology.md`. Do not duplicate them here.
-
-</routing>
+\</stop_rules>

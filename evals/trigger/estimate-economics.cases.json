@@ -1,6 +1,9 @@
 {
   "should_fire": [
     {
+      "prompt": "$estimate-economics"
+    },
+    {
       "prompt": "/sentinel:estimate-economics"
     },
     {

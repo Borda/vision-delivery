@@ -2,8 +2,8 @@
   "_comment": "Trigger-eval cases for skills/classify-or-flag/SKILL.md. Each case has a prompt and a reason explaining the expected routing decision.",
   "should_fire": [
     {
-      "prompt": "Flag workers not wearing hard hats on this construction site footage",
-      "reason": "PPE compliance \u2014 hard hat check is an explicit classify-or-flag trigger; image-level verdict per frame"
+      "prompt": "Flag each construction-site image as PPE compliant or non-compliant with one whole-scene verdict",
+      "reason": "One whole-image PPE verdict is image-level classification"
     },
     {
       "prompt": "Is this PCB image defective or passing quality control?",
@@ -14,8 +14,8 @@
       "reason": "Multi-class image label with defect classes \u2014 image-level classification trigger"
     },
     {
-      "prompt": "Check whether employees are wearing safety vests in these images",
-      "reason": "PPE compliance \u2014 safety vest check produces an image-level compliant/non-compliant verdict"
+      "prompt": "Classify each team photo as whole-scene safety-vest compliant or non-compliant",
+      "reason": "Whole-scene compliance produces one label per image"
     },
     {
       "prompt": "Build a pass/fail inspection system for our welding quality images",
@@ -35,6 +35,10 @@
     }
   ],
   "should_not_fire": [
+    {
+      "prompt": "Flag every worker who is not wearing a hard hat and return one box per person",
+      "reason": "Per-person PPE requires instance detection and routes to detect-and-analyze"
+    },
     {
       "prompt": "Count how many defective items are visible on the production line",
       "reason": "Per-instance count of defective items \u2014 routes to detect-and-analyze, not classify-or-flag"

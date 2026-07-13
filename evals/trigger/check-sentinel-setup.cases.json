@@ -1,0 +1,13 @@
+{
+  "should_fire": [
+    {"prompt": "Check whether Sentinel installed correctly."},
+    {"prompt": "Run the Sentinel setup doctor; my skills seem to be missing."},
+    {"prompt": "Diagnose this plugin installation before I start a CV task."},
+    {"prompt": "Sentinel is installed but I cannot see any Roboflow tools."}
+  ],
+  "should_not_fire": [
+    {"prompt": "Sentinel and Roboflow work; count the boxes in these images."},
+    {"prompt": "The package is healthy but the Roboflow OAuth window did not open."},
+    {"prompt": "Estimate the deployment crossover for ten camera streams."}
+  ]
+}

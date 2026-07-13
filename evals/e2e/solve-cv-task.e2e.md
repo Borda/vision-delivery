@@ -1,44 +1,22 @@
-# E2E Spec — solve-cv-task router
+# Manual E2E — Plain-Language Router
 
-**Fixture:** none required for routing assertions; Steps 4+ reuse the `detect-and-analyze` fixture (`sandbox-ibs0b/cars-jnnoy-mmrcu/1`). **Harness:** manual acceptance; routing steps are covered automatically by the live trigger eval (`evals/trigger-live/`) when run.
+**Status:** specification only; historical routing metrics predate the current route set.
 
-______________________________________________________________________
+## Preconditions
 
-## Prerequisites
-
-- Claude Code launched with `claude --plugin-dir .` from this repo.
-- `ROBOFLOW_API_KEY` set only for Steps 4+ (routing itself must work keyless).
+- Sentinel is loaded in a recorded host/version.
+- A public-safe sample problem and any representative media are available.
 
 ## Sequence
 
-### Step 1 — Ambiguous cold prompt (discriminator)
+1. Start with a vague outcome, such as: “Use this camera to tell me when pallets pile up.”
+2. Assert Sentinel inspects available artifacts and asks no more than three plain operational questions.
+3. Assert the response identifies action, required output unit, independent evidence, first success gate, data boundary, and one owning route.
+4. Test ambiguity discriminators: per-frame count vs identity event, whole-image verdict vs per-person PPE, pixel mask vs calibrated physical measurement, and accepted-model delivery vs new build.
+5. Assert exact platform/model/tool truth is delegated upstream and no volatile recipe is copied.
+6. Continue into the selected specialist until a frozen acceptance artifact exists; do not accept routing alone as task completion.
+7. For an already accepted capability, assert routing to `deliver-cv-project`. For setup failure, assert routing to `check-sentinel-setup`/`auth-setup`.
 
-> "Count the defective items coming off this line — here are sample images."
+## Accept only when
 
-**Expected:** `solve-cv-task` fires (not a modality skill directly), applies the detect-vs-classify discriminator (object-level count → detection), and dispatches into `detect-and-analyze` methodology. The discriminator question is asked ONLY if the object-vs-image-level answer is not inferable from the prompt.
-
-### Step 2 — Multi-skill prompt (pipeline detection)
-
-> "Detect forklifts in my footage, track how long each stays in the loading zone, and read the pallet labels."
-
-**Expected:** router recognizes a multi-modality pipeline (detect + track + read-text), states the decomposition explicitly, and sequences skills with typed artifacts between them — it does NOT silently run only the first modality. If the prompt includes ongoing monitoring/alerting language, route to `decompose-to-pipeline` instead.
-
-### Step 3 — Economics deflection
-
-> "What would it cost to run this at 10 streams?"
-
-**Expected:** router does NOT answer pricing; routes to `estimate-economics` (or names `/sentinel:estimate-economics`). No cost numbers appear in router output.
-
-### Step 4 — Keyless behavior
-
-**Expected:** with no `ROBOFLOW_API_KEY`, router still does partial work (eval definition, approach) and only surfaces `auth-setup` at the first Universe-dependent action.
-
-### Step 5 — Ledger write
-
-**Expected:** routing itself writes no ledger rows; the dispatched skill owns ledger writes per `skills/_shared/ledger-protocol.md`.
-
-## Done When
-
-- Ambiguous prompts route through the discriminator, not straight to a modality skill.
-- Multi-skill prompts produce an explicit pipeline plan.
-- No cost talk from the router; keyless partial work confirmed.
+Every labeled prompt routes to the intended owner or a justified ambiguity response, no negative-control prompt fires a build route, and the current route set—including delivery and setup—is covered in repeated Codex and Claude runs. This condition is not yet met by committed live evidence.

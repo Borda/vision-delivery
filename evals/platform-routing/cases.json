@@ -3,63 +3,42 @@
     {
       "local_skill": "roboflow:training-and-evaluation",
       "mcp_resource": "roboflow://skills/training-and-evaluation",
-      "mcp_tools": [
-        "trainings_create",
-        "trainings_get",
-        "versions_generate"
-      ],
       "need": "model IDs and training architecture",
       "prompt": "Which Roboflow model ID should I train for this dataset?"
     },
     {
       "local_skill": "roboflow:inference",
       "mcp_resource": "roboflow://skills/inference",
-      "mcp_tools": [
-        "models_infer",
-        "workflows_run",
-        "workflow_specs_validate"
-      ],
       "need": "Workflow and deployment option guidance",
       "prompt": "How do I run this as a Roboflow Workflow?"
     },
     {
       "local_skill": "roboflow:data-management",
       "mcp_resource": "roboflow://skills/data-management",
-      "mcp_tools": [
-        "projects_create",
-        "image_upload",
-        "versions_generate"
-      ],
       "need": "project upload and dataset versioning",
       "prompt": "How should I upload images and generate a Roboflow version?"
     },
     {
       "local_skill": "roboflow:api-reference",
       "mcp_resource": "roboflow://skills/api-reference",
-      "mcp_tools": [],
       "need": "REST API and auth reference",
       "prompt": "What API host and auth shape should I use?"
     },
     {
       "local_skill": "roboflow:universe",
       "mcp_resource": "roboflow://skills/universe",
-      "mcp_tools": [
-        "universe_search"
-      ],
       "need": "Universe dataset or public model search",
       "prompt": "Find a Universe model for hard-hat detection."
     },
     {
       "local_skill": "roboflow:plans-and-pricing",
       "mcp_resource": "roboflow://skills/plans-and-pricing",
-      "mcp_tools": [],
       "need": "plans credits and current pricing references",
       "prompt": "Which Roboflow plan or credit limit applies?"
     },
     {
       "local_skill": "roboflow:product-navigation",
       "mcp_resource": "roboflow://skills/product-navigation",
-      "mcp_tools": [],
       "need": "Roboflow UI paths",
       "prompt": "Where is the API key page in the Roboflow UI?"
     }

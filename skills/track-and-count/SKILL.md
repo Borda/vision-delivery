@@ -1,245 +1,95 @@
 ---
 name: track-and-count
 description: |
-  Track object identity across video frames and produce counts, dwell times, and line-cross events. Covers: identity-linked tracking with ByteTrack, zone dwell time (time an object spends in a defined polygon), line-cross counting (entry/exit direction across a virtual line), RTSP one-call deploy (build a Roboflow Workflow with ByteTrack and deploy to a managed endpoint in one call), managed edge device path (Roboflow manages hardware fleet via devices_list, devices_update_config, devices_get_telemetry). Builds a tracking pipeline: define eval → select detection backbone → add ByteTrack → measure → tune or train if needed → working PoC.
-  TRIGGER when: user wants to track object identity across frames ("track X as it moves", "follow this person/vehicle", "how long does X spend in zone Y", "count how many X cross line Z", "dwell time", "line-cross counting", "people counting at entrance", "shopper path", "RTSP tracking", "video analytics with identity", "track the forklift", "follow each detected person across video frames", "measure their path", "alert when vehicle enters zone", "how many vehicles crossed", "track how long shoppers spend")
-  SKIP when: per-frame count with no identity needed ("count how many cars are in the parking lot", "how many objects in this image", "number of items per frame" → detect-and-analyze); pixel-precise segmentation or area measurement ("measure the crack area", "segment the lesion" → segment-and-analyze); image-level verdict with no instance tracking ("is this product defective", "classify this image as pass/fail", "flag the whole image" → classify-or-flag); text reading or extraction ("read the serial number", "extract text from label" → read-text); cost/scale/deployment question with no unsolved tracking problem ("how much does managed deployment cost", "self-hosting vs managed comparison" → estimate-economics); user already has working tracker and asks only about export or optimization
+  Track identity across video and produce paths, dwell, crossings, zones, or linked counts. TRIGGER when: user asks to follow a person/vehicle/object across frames, track shoppers/forklifts, count entries/line crossings, ask how many vehicles crossed an intersection, analyze video with identity, measure dwell/path, monitor RTSP, or alert on zone entry. SKIP when: user asks to count cars in a parking lot now or other per-image/per-frame counts (detect-and-analyze); masks/area (segment-and-analyze), one image verdict (classify-or-flag), OCR (read-text), cost only (estimate-economics), or export/delivery of a working tracker (deliver-cv-project).
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 ---
 
 <objective>
 
-Track object identity across video frames and produce identity-linked counts, dwell times, or line-cross events for the user's specific objects and zones. The exit criterion is a working tracker PoC that passes the user's own eval — defined as entry/exit count accuracy, dwell time MAE, or line-cross precision on the user's own footage.
-
-**What this skill covers:**
-
-- **Identity-linked tracking** — ByteTrack algorithm layered on top of a detection backbone via Roboflow Workflows; each detected object gets a persistent track ID across frames
-- **Zone dwell time** — time (in seconds) an object with a given track ID spends inside a user-defined polygon zone
-- **Line-cross counting** — objects crossing a virtual line; direction-aware (entry vs exit)
-- **RTSP one-call deploy** — user provides an RTSP URL → skill builds a Roboflow Workflow (detection + ByteTrack + zone/line logic) and deploys it to a managed endpoint in one call; returns the endpoint URL
-- **Managed edge device** — Roboflow manages the edge hardware; `devices_list` shows fleet status, `devices_update_config` pushes model config, `devices_get_telemetry` / `devices_get_logs` provide fleet monitoring; explicitly contrasted with self-hosted inference server
-
-**What this skill does NOT cover:**
-
-- Per-frame count with no identity — "how many cars are in this image" → `detect-and-analyze`
-- Pixel-precise outlines or area measurements → `segment-and-analyze`
+Produce identity-linked video events—paths, dwell, crossings, or counts—that pass an independently annotated clip-level gate. A detector that works on isolated frames is necessary evidence, not proof that tracking works.
 
 </objective>
 
 <methodology>
 
-**RTSP / live-stream pre-check (fires before Step 3 if triggered).**
+**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific search, dataset, training, inference, workflow, device, or deployment action. Delegate exact execution to the installed official Roboflow skill or current MCP resource. Sentinel owns event semantics and measured delivery evidence.
 
-If the user's prompt mentions RTSP, an IP camera stream, 24/7 live inference, or any live-video source combined with cloud deployment intent — surface three honest options **immediately**, before building a Workflow spec or selecting a backbone:
+Follow `../../resources/fde-methodology.md`; apply these video-specific rules.
 
+## 1. Define the event, source, and action
+
+Inspect representative clips, stream configuration, zones/lines, annotations, and code. Ask only what is missing:
+
+- Is the decision about occupancy, unique identity, crossing direction, dwell, or a path?
+- What event/action follows, and which miss/false event is worse?
+- Is the source recorded video or live stream, and may frames leave the site?
+
+Route instantaneous “how many are visible?” to `detect-and-analyze`. For live streams, explain the stable delivery choices—local processing, hosted client, or provider-managed runtime—without claiming current availability or commands; exact setup comes from upstream and final integration from `deliver-cv-project`.
+
+Freeze before tuning:
+
+```text
+Acceptance ID: <session/revision>
+Business decision: <action enabled by the video event>
+Gold set: <independent clip/event labels, sites/times, adjudicator>
+Primary metric and threshold: <event recall/precision/count error/dwell MAE>
+Secondary guardrails: <identity switches, false events/hour, latency>
+Frozen before baseline: <timestamp and confirmation>
+Baseline result (diagnostic only): <not run yet>
 ```
-"RTSP + live tracking. Three paths — pick before we build:
 
- (a) Edge inference server — run an inference container on a local machine
-     on the same network as the camera. ByteTrack runs locally; lowest latency;
-     no cloud inference cost per frame.
-     I give you the docker run command and the track_count.py wrapper.
+## 2. Freeze event semantics
 
- (b) Frame-pull cloud — pull frames at an interval (e.g. 1 fps) and send
-     to a Roboflow Workflow endpoint. Works today; adds round-trip latency.
-     Not suitable for real-time counts; fine for periodic zone/dwell checks.
+Record coordinate conventions, line direction, polygon boundary behavior, track start/end, minimum dwell, cooldown, re-entry policy, dropped-frame behavior, and source timestamps. Define whether returning objects count again. These rules must not change after inspecting failures without a new acceptance revision.
 
- (c) Roboflow-managed edge device — Roboflow manages the edge device,
-     runs ByteTrack locally, streams aggregated events to cloud.
-     No local infra ops; fleet monitoring and config push included.
-     Ask me to show live device options via the MCP.
+## 3. Select and measure a pipeline
 
-Which fits your latency, connectivity, and ops constraints?"
-```
+Ask upstream for current detection and association/tracking candidates with provenance, license, and runtime requirements. Do not retain named algorithms, model IDs, workflow blocks, parameter recipes, or device commands here.
 
-Do NOT hard-code "cloud RTSP not supported" as a permanent fact — verify current Roboflow platform status before baking in a limitation. After the user picks a path, continue to Step 1.
+Evaluate the complete detector → association → event-rule pipeline on independently annotated clips. Report:
 
-Steps 1, 2, 5, 7, and 8 follow the generic sequence in `skills/_shared/fde-methodology.md`. Read that file first. This section documents only the tracking-specific additions.
+- event precision/recall and exact numerator/denominator;
+- count absolute error and directional error for crossing tasks;
+- dwell-time MAE for dwell tasks;
+- identity switches/fragmentation when identity matters;
+- false events per hour and missed events by occlusion/crowding/site;
+- p50/p95 end-to-end latency and effective processed FPS.
 
-**Step 3 — Foundation-model-first (tracking-specific).**
+Frame-level detections or visual review alone cannot establish event accuracy.
 
-Detection backbone selection follows the same COCO 80 / Universe logic as `detect-and-analyze` (see `skills/_shared/model-selection.md`). Quick reference:
+## 4. Diagnose a failed gate
 
-- COCO 80 class + non-real-time → `rfdetr-medium`
-- COCO 80 class + real-time → `rfdetr-nano` (default for RTSP tracking)
+Separate detector misses/duplicates from association breaks, timestamp/drop issues, and event-rule mistakes. Slice by density, occlusion, speed, direction, lighting, source, and camera motion. Test the cheapest falsifiable lever at the responsible stage; do not retrain the detector when the failure is purely temporal logic. Delegate current platform changes upstream, then replay the same clips.
 
-Tracking is ByteTrack layered on top of the detection output via Roboflow Workflows — there is no separate tracking model to select or train. No Universe search for a "tracking model" — search only for the detection backbone if the class is not COCO 80.
+## 5. Decide and deliver
 
-Workflow construction: use Roboflow Workflows to combine detection + ByteTrack + zone polygon or line-cross logic. Build the Workflow spec as JSON and deploy via `workflows_create` + `project_deployment_launch`, or use `workflow_specs_run` for a one-shot test before committing to a deployment.
-
-**Step 4 — Measure against the eval (tracking-specific metrics).**
-
-Run inference via `workflow_specs_run` on a sample video clip or image sequence. Report the metric(s) matching the user's stated success condition:
-
-- **MOTA** (Multiple Object Tracking Accuracy) — when ground-truth tracks are available; report as percentage
-- **Line-cross count error** — absolute difference between predicted and ground-truth crossing count; express per time unit (e.g. vehicles/min)
-- **Dwell time MAE** — mean absolute error in seconds between predicted and observed ground-truth dwell
-
-Non-negotiable format:
-
-> "ByteTrack on 60 s of your footage: MOTA = 81%, line-cross error = 2 vehicles/min. Your threshold is MOTA ≥ 75% — passes."
-
-**Step 5 — Levers (tracking-specific ordering).**
-
-Same generic order as `fde-methodology.md` (confidence-threshold sweep → fine-tune → full train), plus:
-
-- **ByteTrack parameter tuning** — before retraining, tune `track_thresh` (detection confidence floor for track initiation), `match_thresh` (IoU threshold for association), and `track_buffer` (frames to keep a lost track alive). Tuning is free and often closes 5–10 MOTA points. Report the parameter values explicitly.
-- If detection backbone mAP is the bottleneck (not association), fine-tune or retrain the detection backbone; ByteTrack parameters do not help a weak detector.
-
-**Step 6 — RTSP deploy path (path selected via pre-check gate above).**
-
-User already picked a path from the RTSP pre-check. Execute the selected path:
-
-**Path (a) — edge inference server:** Provide a docker run command for `roboflow/roboflow-inference-server-cpu` (or GPU variant) and the `track_count.py` script configured for local endpoint (`http://localhost:9001`). No cloud deployment needed.
-
-**Path (b) — frame-pull cloud:** Build a Roboflow Workflow (detection + ByteTrack) and deploy via `workflows_create` + `project_deployment_launch`. User polls the endpoint at their chosen frame interval. State round-trip latency implication explicitly. Show credit estimate and wait for explicit yes before calling `project_deployment_launch`.
-
-**Path (c) — Roboflow-managed edge device (full flow):**
-
-1. **List devices:** `devices_list` — shows id, name, status (online/offline), platform, last heartbeat.
-
-   - If empty: "No devices registered yet. A Roboflow-managed device needs compatible hardware running the Roboflow agent. I can create a device entry via `devices_create` with name=<name>."
-   - If devices present: show list and let user pick.
-
-2. **Push model config:** `devices_update_config` with model_id=<workspace>/<project>/<version>. Confirm with user before pushing — replaces current device config.
-
-3. **Verify device running:** `devices_get_telemetry` — show CPU/GPU usage, memory, inference latency on-device.
-
-4. **Tail logs:** `devices_get_logs` — confirm ByteTrack or detection model is running on-device; surface errors.
-
-**Managed-vs-self-managed contrast (state this before user commits to a path):**
-
-|                     | Roboflow-managed edge (c)                   | Self-hosted inference server (a)     |
-| ------------------- | ------------------------------------------- | ------------------------------------ |
-| Who manages updates | Roboflow                                    | You                                  |
-| Config push         | `devices_update_config` (one MCP call)      | Re-deploy container manually         |
-| Fleet monitoring    | `devices_get_telemetry`, `devices_get_logs` | Your own logging stack               |
-| RTSP ingestion      | On-device, lowest latency                   | On-device, lowest latency            |
-| Ops overhead        | Minimal — Roboflow handles agent ops        | Full — container, restarts, upgrades |
-| Best for            | Multi-camera fleets, ops-light teams        | Full control, single camera          |
-
-If user arrives at Step 6 without a pre-check path (e.g., described a non-RTSP tracking problem), produce the `track_count.py` local-inference script for recorded video.
-
-Use `workflow_specs_run` or `workflows_run` for one-shot validation before `project_deployment_launch`.
+Return `go`, `revise`, or `stop` with event counts, failed clips/slices, replay command, and data boundary. Follow `../../resources/artifact-contract.md`; produce a verified `hosted-client`, offline-tested `local-runtime`, or candid `scaffold`. A passing replay routes to `deliver-cv-project` for stream integration, monitoring, and rollback.
 
 </methodology>
 
-<artifact>
+<safety>
 
-Produce these two user-owned, portable files at Step 6.
+- Do not infer personal identity or intent from a track ID.
+- State retention/privacy boundaries for video and derived trajectories.
+- Obtain explicit consent before data movement or paid work.
+- Keep detector, association, and event-rule evidence separate.
+- Delegate exact provider execution; never guess current workflow/device details.
 
-**`track_count.py`** — inference script for recorded video (not RTSP; RTSP uses the deployed Workflow endpoint):
-
-```python
-import requests, json, base64, sys, time
-from pathlib import Path
-
-# ponytail: no SDK — stdlib + requests only
-WORKSPACE = "<workspace>"
-PROJECT = "<project>"
-VERSION = "<version>"
-API_KEY = "<from ROBOFLOW_API_KEY env>"
-VIDEO_PATH = sys.argv[1] if len(sys.argv) > 1 else None
-
-
-def track_frame(frame_b64: str, frame_idx: int) -> dict:
-    resp = requests.post(
-        f"https://detect.roboflow.com/{WORKSPACE}/{PROJECT}/{VERSION}",
-        params={"api_key": API_KEY},
-        json={"image": frame_b64},
-    )
-    resp.raise_for_status()
-    preds = resp.json().get("predictions", [])
-    return {"frame": frame_idx, "predictions": preds, "count": len(preds)}
-
-
-# NOTE: for RTSP streams use the managed Workflow endpoint returned by project_deployment_launch.
-# This script supports recorded video sampled frame-by-frame via cv2 or ffmpeg.
-if __name__ == "__main__":
-    if not VIDEO_PATH:
-        print("Usage: python track_count.py <video_path>")
-        sys.exit(1)
-    # Frame extraction left to user (cv2 or ffmpeg) — encode each frame as base64 and call track_frame().
-    print("Frame-by-frame tracking ready. See track_frame() above.")
-```
-
-**`eval_definition.md`**:
-
-```markdown
-# Eval — <problem-title>
-Date: <ISO8601>
-Target class(es): <class list>
-Primary metric: <MOTA | line-cross count error | dwell time MAE>
-MOTA threshold: <N>% (if applicable)
-Line-cross count error ceiling: <N> per <time-unit> (if applicable)
-Dwell time MAE ceiling: <N> seconds (if applicable)
-Dataset: <N> seconds of footage, source: <fixture or user data>
-Threshold logic: max(baseline metric, business floor)
-```
-
-Also write a `.vision-delivery/detections.jsonl` append per inference run (format in the `solve-cv-task` composition protocol) — downstream skills consume this.
-
-</artifact>
-
-\<model_pick>
-
-See `skills/_shared/model-selection.md` for the full decision tree and exact model_id values.
-
-Quick reference for tracking (detection backbone only — ByteTrack is added via Roboflow Workflows, not a separate model):
-
-- COCO 80 class + RTSP / real-time → `rfdetr-nano` (default for RTSP tracking)
-- COCO 80 class + recorded video / non-real-time → `rfdetr-medium`
-- Custom class, first PoC → Rapid or `rfdetr-medium` fine-tune
-- Edge hardware, latency critical → `yolov11n`
-- Max accuracy, no latency constraint → `rfdetr-large`
-
-ByteTrack has no model_id — it is a Roboflow Workflows block, not a trainable model.
-
-\</model_pick>
-
-\<safe_actions>
-
-Follow the safe-action gates in `skills/_shared/fde-methodology.md` exactly. Quick reference:
-
-- `trainings_create` → quantified credit estimate + explicit yes required, same turn (format in `fde-methodology.md` Safe Actions)
-- `versions_generate` → free but irreversible; state augmentation config before calling
-- Image upload → state destination; offer local path if user declines
-- `project_deployment_launch` → credit-spending; show estimate, wait for explicit yes; this IS in scope for this skill (RTSP Workflow deploy path) — do not silently defer to `estimate-economics` without offering first
-
-\</safe_actions>
+</safety>
 
 <ledger>
 
-Follow the write protocol in `skills/_shared/ledger-protocol.md`. Write one record per action, append-only to `.vision-delivery/ledger.jsonl`.
-
-Action triggers for this skill:
-
-| Trigger                                                                   | `action` value              | What to put in `notes`                                   |
-| ------------------------------------------------------------------------- | --------------------------- | -------------------------------------------------------- |
-| `eval_definition.md` written and user confirmed                           | `eval_definition`           | target classes, metric type, threshold                   |
-| First `workflow_specs_run` or `models_infer` call returns tracking metric | `baseline_measured`         | `MOTA=X%` or `line-cross error=Y/min` or `dwell MAE=Z s` |
-| `trainings_create` MCP call submitted                                     | `trainings_create`          | model name, checkpoint, dataset version                  |
-| `project_deployment_launch` MCP call submitted for RTSP Workflow          | `project_deployment_launch` | deployment_id, endpoint URL, Workflow spec summary       |
-| `devices_update_config` called for managed edge device                    | `edge_device_configured`    | device_id, model_id pushed, telemetry snapshot           |
-
-`entity_id` format: `<workspace>/<project>` for projects; `<workspace>/<project>/<version>` when version is known.
+Follow `../../resources/ledger-protocol.md`. Record acceptance, replay evaluation, artifact, and decision once with non-empty event IDs and explicit status.
 
 </ledger>
 
-<voice>
+\<stop_rules>
 
-Follow voice rules from `skills/_shared/fde-methodology.md`. Short reference:
+- Event semantics or line/zone geometry are undefined → freeze them first.
+- No independently annotated representative clips → do not claim event accuracy.
+- Required events occur between captured frames or outside view → state the acquisition blocker.
+- Paid/data-moving action lacks current-turn consent → stop.
+- No replay plus applicable live/offline smoke → artifact remains a `scaffold`.
 
-**Do:**
-
-- "ByteTrack on 60 s of your footage: MOTA = 81%, threshold is 75%. Passes. Fastest next step: tune track_thresh from 0.5 → 0.6."
-- "Line-cross error = 3 vehicles/min — threshold is 5/min. Passes."
-- "RTSP + Workflow → one-call deploy. I build the Workflow spec now; confirm to deploy (credits apply)."
-
-**Do not:**
-
-- "Looks good!" / "This should work!" / "Great use case!"
-- Report passing when threshold not cleared.
-- Mention managed deployment, pricing, or cost before eval passes (seam offer fires once at eval-pass only) — exception: RTSP deploy path explicitly surfaces credit warning in-step, as required by `safe_actions`.
-
-</voice>
+\</stop_rules>

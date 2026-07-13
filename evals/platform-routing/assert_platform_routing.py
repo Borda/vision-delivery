@@ -10,10 +10,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent.parent.parent
 CASES = Path(__file__).with_name("cases.json")
-LOOKUP = ROOT / "skills" / "_shared" / "roboflow-platform-lookup.md"
+LOOKUP = ROOT / "resources" / "roboflow-platform-lookup.md"
 SOLVER = ROOT / "skills" / "solve-cv-task" / "SKILL.md"
-MODEL_SELECTION = ROOT / "skills" / "_shared" / "model-selection.md"
-DOCS = ROOT / "docs" / "roboflow-skills.md"
+MODEL_SELECTION = ROOT / "resources" / "model-selection.md"
 
 
 def read(path: Path) -> str:
@@ -60,48 +59,60 @@ def main() -> None:
     lookup = read(LOOKUP)
     solver = read(SOLVER)
     model_selection = read(MODEL_SELECTION)
-    docs = read(DOCS)
     cases = json.loads(CASES.read_text(encoding="utf-8"))["platform_routes"]
 
     for phrase in (
-        "Local Roboflow skill",
-        "Roboflow MCP skill resource",
-        "Minimal `vision-delivery` fallback",
-        "Do not copy large Roboflow platform recipes",
-        "Return to the `vision-delivery` eval gate",
+        "official `roboflow/computer-vision-skills` skill",
+        "matching `roboflow://skills/...` MCP resource",
+        "local provider-neutral scaffold",
+        "Do not copy Roboflow platform recipes into Sentinel",
+        "Return to the Sentinel acceptance/delivery workflow",
     ):
         assert_contains(lookup, phrase, LOOKUP)
 
     for case in cases:
         assert_contains(lookup, case["local_skill"], LOOKUP)
         assert_contains(lookup, case["mcp_resource"], LOOKUP)
-        assert_contains(docs, case["local_skill"], DOCS)
-        assert_contains(docs, case["mcp_resource"], DOCS)
-        for tool in case["mcp_tools"]:
-            assert_contains(lookup, tool, LOOKUP)
 
     assert_contains(solver, "roboflow-platform-lookup.md", SOLVER)
     assert_contains(solver, "Roboflow platform knowledge lookup", SOLVER)
     assert_contains(model_selection, "stable fallback only", MODEL_SELECTION)
     assert_contains(
         model_selection,
-        "Validate volatile model IDs before `trainings_create`",
+        "Validate every volatile model identifier and paid-training operation",
         MODEL_SELECTION,
     )
-    assert_contains(docs, "Direct unauthenticated probing", DOCS)
-    assert_contains(docs, "OAuth-protected-resource challenge", DOCS)
     assert_no_stale_commands()
 
     model_ids = re.findall(
         r"`(?:rf|yolo|sam|vit|resnet|deeplab)[^`]+`", model_selection
     )
-    if (
-        len(model_ids) > 45
-    ):  # raised from 30 on 2026-07-09: seg/pose/classification IDs verified + pinned
+    if model_ids:
         raise AssertionError(
-            "model-selection fallback has too many exact platform IDs; "
-            "prefer Roboflow skills/MCP resources over expanding local copies"
+            "model-selection fallback copies exact platform IDs; "
+            "delegate the current catalog upstream"
         )
+
+    active_paths = [*sorted((ROOT / "skills").glob("*/SKILL.md"))]
+    active_paths.extend(sorted((ROOT / "agents").glob("*.md")))
+    active_paths.extend(sorted((ROOT / "evals" / "e2e").glob("*.md")))
+    active_paths.extend([ROOT / "resources" / "fde-methodology.md", MODEL_SELECTION])
+    forbidden = (
+        r"\b(?:rfdetr|RF-DETR|yolov?\d*|YOLOv?\d*|SAM\d*|CLIP|ByteTrack|MediaPipe|Florence)\b",
+        r"\b(?:models|trainings|versions|annotation_jobs|workflow_specs|"
+        r"project_deployment|devices|model_evals)_[a-z0-9_]+\b",
+        r"universe_search\s*:",
+        r"checkpoint\s*:",
+        r"roboflow://",
+    )
+    for path in active_paths:
+        text = read(path)
+        for pattern in forbidden:
+            if re.search(pattern, text):
+                raise AssertionError(
+                    f"{path.relative_to(ROOT)} duplicates volatile upstream recipe "
+                    f"pattern {pattern!r}"
+                )
 
     print("Roboflow platform routing stays thin and source-backed.")
 

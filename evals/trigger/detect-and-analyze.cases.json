@@ -40,6 +40,10 @@
     {
       "prompt": "Build me a model that counts trucks entering the facility from RTSP footage",
       "reason": "Count trucks per frame \u2014 object-level; line-cross counting is track-and-count, but per-frame count is detect-and-analyze"
+    },
+    {
+      "prompt": "Find each worker missing a safety vest and return a compliance verdict per person",
+      "reason": "Per-person PPE requires one detected instance and record per worker"
     }
   ],
   "should_not_fire": [
@@ -58,6 +62,10 @@
     {
       "prompt": "Measure the exact area of corrosion in millimeters squared from the image",
       "reason": "Pixel-precise area requires masks, not bboxes \u2014 routes to segment-and-analyze (M4)"
+    },
+    {
+      "prompt": "Measure the calibrated crack width in millimeters from a reference marker",
+      "reason": "Calibrated physical measurement routes to segment-and-analyze"
     },
     {
       "prompt": "Read the serial number and expiry date from the product label",

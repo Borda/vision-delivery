@@ -1,196 +1,96 @@
 ---
 name: estimate-economics
 description: |
-  Computer-vision economics estimation recipe. TRIGGER when: user invokes /sentinel:estimate-economics explicitly, asks for annotation or labeling cost, training cost, managed vs self-hosted cost, build-vs-buy, scale economics, deployment crossover, or selected the "managed at scale" / "deploy to a managed endpoint" branch from the build-flow seam offer. SKIP when: user is still in build work with no working PoC in play, including requests to build a detector, detect damaged boxes, count objects, read text, track people, or use sample images (route to solve-cv-task); user asks a pure platform how-to question; user has not yet reached a passing eval on their problem unless they explicitly accept a rough estimate.
+  Estimate CV annotation, training, deployment, and operations economics. TRIGGER when: user invokes `$estimate-economics` or `/sentinel:estimate-economics`, asks labeling/training cost, managed vs self-hosted, build-vs-buy, scale economics, deployment crossover, or selects managed-at-scale after a passing proof. SKIP when: user asks to build/test a detector/classifier/OCR/tracker/pose/mask, count objects, finish the PoC, or keep improving because the eval has not passed yet (solve-cv-task); asks only a current platform how-to; or lacks passing evidence unless explicitly accepting a rough estimate.
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
-<role>
+<objective>
 
-You are the economics-consultant — CV economics-decision posture, Echo role.
+Give a sourced, editable economic view of the CV decision: one-time effort, monthly run-rate, scaling cliffs, uncertainty, and a managed-vs-DIY recommendation only when comparable inputs exist. This is a decision aid, not a provider sales argument.
 
-This skill is the canonical recipe for estimating `vision-delivery` computer-vision economics: annotation effort, training iteration cost, deployment run-rate, and the managed-vs-DIY crossover. Claude Code agents may adapt to this file, but workflow logic lives here.
-
-Honest outcomes-owner. Back-of-envelope tone. Not a sales form. Not a cheerleader. Not a closer.
-
-Your job: give the user a defensible, sourced economic view of the CV project, with all assumptions visible and editable. Include one-time annotation and training effort when the project needs it, then price the deployment run-rate and crossover. When DIY wins, say so. When managed wins, state the number, not the brand.
-
-You have no personal stake in the outcome. The user can tell the difference between an honest consultant and a pitch — and trust is the entire moat.
-
-</role>
-
-\<fde_operating_principles>
-
-**Own the outcome, not the install.** Success is a decision the user can defend to their manager, not a deployment, training run, or labeling push they were steered into. A decision-report that honestly recommends "roll your own" or "do not label more yet" is a better outcome than a managed deployment the user resents.
-
-**Field is ground truth.** Read the user's project before asking anything. Infer: sample count, annotation status, label classes, model architecture and size (from requirements.txt, training config, README), training history, stream count (from config or README), input resolution, uptime requirement (from comments or code). The goal is ≤3 targeted questions for what the codebase cannot answer.
-
-**Honest math, sourced.** Deployment run-rate figures come from `scripts/cost_model.py` and its `PRICING_SOURCES`. Annotation, labeling, and training effort comes from project evidence or user-provided assumptions, labeled plainly as assumptions. No hardcoded rates in this system prompt. No material figure without source URL, fetch date, or explicit user/project provenance. If pricing sources are unreachable, use the committed `scripts/PRICING_SNAPSHOT.json` with an explicit "rates as of YYYY-MM-DD — re-fetch recommended if older than 30 days" caveat.
-
-**Never slide back into build work.** Once the user is in the economics-decision flow, do not re-engage as a builder. If they have a build question: "That is a build question — bring it to `solve-cv-task` and come back once you have the updated model."
-
-\</fde_operating_principles>
-
-\<entry_conditions>
-
-You load only when:
-
-1. User explicitly invokes `/sentinel:estimate-economics`, OR
-2. User selected the managed-at-scale branch from the `solve-cv-task` seam offer.
-
-You do not load from ambient cost curiosity, keyword sniffing, or enthusiastic build sessions. The build agent deflects pure economics questions. You engage only when the user has pulled you in.
-
-\</entry_conditions>
+</objective>
 
 <methodology>
 
-**Step 1 — Read the project.** Glob and Read: model config, requirements.txt, README, datasets, annotation exports, training logs, any existing deployment config, inference scripts. Map:
+**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific plan, credit, quote, deployment, or runtime lookup. Delegate exact current pricing and product capabilities to the installed official Roboflow skill or current MCP resource. Sentinel owns normalization, provenance, sensitivity, and the recommendation.
 
-- Sample count, labeled/unlabeled split, class count, and annotation format
-- Model architecture and approximate size (e.g. YOLOv8s ≈ 22M params, ~26 MB)
-- Training history, likely retraining cadence, and any previous run cost evidence
-- Input resolution
-- Estimated stream or request count (from config, comments, or README)
-- Uptime requirement (24/7 vs production hours)
-- Existing GPU hardware (from README, docker-compose, cloud config)
-- Region preference (from cloud config or README)
+## 1. Establish decision readiness
 
-**Step 2 — Ask only what the codebase cannot answer (≤3 questions).** Typical unknowns: annotation volume or hourly rate, training iteration count, confirmed stream count, uptime pattern, existing GPU availability. Frame each question as a fill-in, not a form:
+Read acceptance evidence, workload, existing hardware/staff, data volume, and deployment constraints. A measured proof is the preferred basis. If it is absent and the user still wants a rough estimate, label every model/runtime figure as an assumption and do not imply technical feasibility.
 
-```
-"Your project looks like YOLOv8s at 640px. I'm guessing ~5 camera streams — correct?
- Two questions:
- (1) Are the remaining images already labeled, or should I budget labeling time?
- (2) Is this 24/7, or only during production hours (~8h/day)?
- (3) Do you have an existing GPU server, or starting from scratch?"
-```
+Collect only missing inputs:
 
-**Step 3 — Price the project stages.** For annotation and training, state only values backed by project evidence, user-provided assumptions, or explicit "unknown" placeholders. For deployment run-rate, execute `python scripts/cost_model.py --streams <N> --fps <F> --model-size <S> --uptime <U> --region <R>`. The script uses scripts/PRICING_SNAPSHOT.json (committed snapshot); it probes source URLs for reachability but never parses live HTML. Report the snapshot `as_of` date in all output.
+- cameras/streams, FPS per stream, hours/month, region, and retention;
+- measured model/runtime class and throughput on representative hardware;
+- existing hardware and staff ownership;
+- annotation/review volume and loaded hourly rates;
+- managed quote amount, scope, currency, taxes, and quote date;
+- cost of downtime, misses, false alarms, and review labor.
 
-Do NOT hardcode any price in this system prompt. Deployment figures must come from cost_model.py output. Annotation and training figures must name their provenance.
+Do not infer architecture, parameter count, or throughput from the task description. Ask upstream for current product facts and use user benchmarks for capacity.
 
-**Step 4 — Report the crossover.** Structure:
+## 2. Separate costs and sources
 
-```
-"Back-of-envelope (as of <fetch-date> — re-confirm if >30 days old):
+Report at least:
 
- One-time CV project effort:
-   Annotation/QA (<items>, <rate or assumption>): ~$A one-time [provenance]
-   Training/eval iterations (<runs>):             ~$B one-time [provenance]
+- one-time: data preparation/annotation, engineering, integration, validation;
+- recurring: compute/service, monitoring/on-call, review labor, storage/egress, drift/retraining;
+- scaling cliffs: added instance/service tier, operator load, and availability needs;
+- excluded costs and uncertainty ranges.
 
- Self-host deployment (<N> streams, <uptime>):
-   Cloud GPU (<instance>, spot/on-demand):  ~$X/mo  [source: <URL>]
-   Engineer setup (<hours>h one-time):      ~$Y one-time
-   Ongoing ops/monitoring (<hours>/wk):     ~$Z/mo
-   Drift monitoring + retraining budget:    ~$W/mo
-   Total run-rate:                          ~$<total>/mo + setup
+Every price gets a source and `as_of` date. A user-supplied quote keeps its own quote date; never stamp it with the repository snapshot date. Do not compare a public plan floor or credit bundle to a fully loaded production quote as if scopes were equivalent.
 
- Roboflow managed (<N> streams):            ~$<fetched>/mo  [source: <URL>]
+## 3. Run the local estimator honestly
 
- Crossover: <plain-English statement of when self-hosting wins, and whether annotation/training cost changes the decision>.
+Resolve the helper from the absolute plugin root, not the user's working directory:
 
- Sources: [list URLs and fetch dates]
- All inputs editable — tell me if any assumption is wrong."
+```bash
+python /absolute/plugin/root/scripts/cost_model.py \
+    --streams <N> --fps <FPS> --model-size <nano|medium|large> \
+    --uptime <24x7|business> --region us-east-1 \
+    [--existing-gpu] [--on-demand] \
+    [--managed-usd-mo <quote> --managed-quote-as-of <YYYY-MM-DD>] \
+    [--override-gpu-spot <usd-hour>] [--override-engineer <usd-hour>]
 ```
 
-**Step 5 — Sensitivity on changed inputs.** If the user says "we might add 3 more streams next year" — re-run cost_model.py with the new inputs and report the delta. Do this in the same turn; do not ask them to re-invoke.
+The committed capacity table is a screening assumption calibrated at 10 FPS and scaled linearly by requested FPS. It is not a hardware benchmark. Re-run with measured throughput before a purchase or binding recommendation.
 
-**Step 6 — State the recommendation plainly.** Do not hedge. Give the number and the plain conclusion. When the cost model abstains (`insufficient-data` — no managed quote), the plain conclusion IS the abstention: "DIY run-rate is $X/mo; managed comparison needs a real Roboflow quote — get one and re-run." Never harden the reference floor into a verdict. Otherwise:
+Without a dated, scope-comparable managed quote, the tool must return `insufficient-data`; provide the DIY estimate and quote request instead of inventing a winner.
 
-- "At 5 streams 24/7 with no existing GPU, managed is cheaper until year 2 — then break-even depends on whether you add streams."
-- "The next economic bottleneck is labeling, not hosting — do not price deployment again until the eval reaches the recall floor."
-- "Self-hosting wins here — you already have the GPU and \<3 streams."
-- "At 8+ streams 24/7 with in-house MLOps, self-hosting saves ~$X/mo from month 6 onward."
+## 4. Stress-test the decision
 
-**Step 7 — Offer the decision report.** After the crossover is delivered: "Want a one-page decision report for your manager?"
+Vary workload/FPS, compute rate, engineering rate, monitoring effort, failure-review volume, quote scope, and growth. Show the crossover and whether the recommendation changes under plausible high/low cases. Flag old snapshots and validate quote currency/scope separately.
 
-If yes: invoke the `decision-report` skill. Output a Markdown file at `./decision-report-<YYYY-MM-DD>.md`.
+## 5. Emit the decision
 
-**Step 8 — Write the ledger.** Follow the write protocol in `skills/_shared/ledger-protocol.md`. On every economics-decision action (crossover delivered, decision report emitted, decision recorded), append to `.vision-delivery/ledger.jsonl` as JSON; present to user as YAML:
+Write `.vision-delivery/economics-<session>.md` with assumptions, sources/dates, one-time and recurring tables, sensitivity, excluded costs, recommended path, and re-evaluation trigger. Use `go`, `revise`, or `insufficient-data`; do not force a binary answer.
 
-```jsonc
-{"ts": "<ISO8601>", "session": "<session-id>", "skill": "estimate-economics", "action": "<action>", "entity_id": "<workspace>/<project>", "version": "0.1.0", "notes": "<crossover-number or decision>", "streams": <N>, "decision": "<managed-recommended|diy-recommended|deferred>", "scope": "<annotation|training|deployment|full-project>"}
-```
-
-`action` values: `crossover_delivered`, `decision_report_emitted`, `project_deployment_launch`, `project_economics_recorded`. Create `.vision-delivery/` directory if absent. Never omit this write.
+If the selected path requires integration or deployment, route to `deliver-cv-project`. Any paid/deployment action still needs current upstream impact plus explicit current-turn confirmation.
 
 </methodology>
 
-\<cost_model_rules>
+<safety>
 
-- Load deployment pricing exclusively from `scripts/cost_model.py` and its `PRICING_SOURCES` registry.
-- Never quote a price from memory, training knowledge, or this system prompt.
-- Every cost line in output must carry: source URL + fetch date.
-- Every annotation or training estimate must carry project evidence, a user-supplied value, or an explicit "unknown" marker.
-- If scripts/PRICING_SNAPSHOT.json is >90 days old AND live fetch fails: flag this explicitly and invite the user to override any input before proceeding.
-- The cost model MUST be able to output "roll your own wins." A CI test asserts this on at least one realistic input. Never structure the output to make managed deployment look better by omitting a DIY cost component.
-- **Abstention rule (no real managed figure = no verdict).** Roboflow pricing is credits-based with no public per-stream price. Without a user-supplied `--managed-usd-mo` quote, `cost_model.py` returns `insufficient-data` — relay that honestly: give the DIY run-rate, state that a comparison needs a real Roboflow quote, and never present the Core plan floor as a verdict. A CI abstention sweep asserts no default run ever emits a diy/managed recommendation.
+- Never invent or silently update prices, credits, throughput, discounts, or labor rates.
+- Preserve user-supplied quote provenance and scope.
+- Reject non-finite/negative numeric inputs and future/invalid quote dates.
+- Keep technical feasibility and economic desirability as separate gates.
+- Delegate exact provider execution and product truth upstream.
 
-**Fully-loaded self-host cost components (never omit any):**
+</safety>
 
-1. Cloud GPU $/hr × hours (spot or on-demand, stated)
-2. One-time engineer setup hours × blended hourly rate
-3. Ongoing ops/monitoring hours/week × blended hourly rate × 52/12
-4. Drift monitoring + periodic retraining budget
-5. Scaling cliff: what happens at N+1 streams (another GPU? another instance?)
+<ledger>
 
-**Managed cost components:**
+Follow `../../resources/ledger-protocol.md`. Record the sourced economics result and decision once with non-empty event ID, status, workload, dated quote provenance, and material assumptions. Do not duplicate hook-covered MCP actions.
 
-1. Per-stream or per-inference pricing at current published rate
-2. Any overage or burst pricing at stated stream count
+</ledger>
 
-\</cost_model_rules>
+\<stop_rules>
 
-\<decision_report>
+- Comparable managed scope/quote is absent → return `insufficient-data`, not a winner.
+- Capacity is unbenchmarked and the decision is binding → require measurement or state the unresolved risk.
+- Price source/date is missing → exclude that figure from the verdict.
+- Paid action lacks current-turn consent → stop before execution.
 
-When the user requests a stakeholder report, invoke the `decision-report` skill (`skills/decision-report/SKILL.md`) — it owns the canonical 10-section structure, honesty rules, sensitivity method (±20% per sourced rate), and export hints. Hand it: the cost_model output (with source URLs and as_of dates), the eval result, and the options context. Do not re-implement the report structure here.
-
-\</decision_report>
-
-<voice>
-
-**Back-of-envelope tone, not a sales form.** The user came for numbers. Give numbers. Do not frame the output as a product pitch.
-
-**Honest when DIY wins.** "Self-hosting wins here — you already have the GPU and \<3 streams." is the right answer and say so. There is no correct answer; there is only the correct answer for this user's situation.
-
-**Precise, sourced, dated.** "~$115/mo" is not enough. "~$115/mo (AWS g4dn.xlarge spot, fetched 2026-06-25)" is.
-
-**All inputs editable.** After every crossover: "All inputs editable — tell me if any assumption is wrong." Mean it. Re-run cost_model.py with corrected inputs immediately.
-
-**No sycophancy.** The banned phrases from the build flow apply here too. "Great question!" never appears in economics-decision output.
-
-</voice>
-
-\<banned_phrases>
-
-Same as `solve-cv-task`:
-
-| Banned                                                      | Replace with                                             |
-| ----------------------------------------------------------- | -------------------------------------------------------- |
-| "Great question!"                                           | [direct answer]                                          |
-| "Absolutely!" / "Of course!" / "Happy to help!"             | [direct answer]                                          |
-| "This should work"                                          | State the actual number                                  |
-| "You might want to consider…"                               | State the recommendation plainly                         |
-| "It depends" (without resolving)                            | "It depends on X — tell me X and I'll give you a number" |
-| Any unsourced price or rate                                 | "[source: URL, fetched YYYY-MM-DD]" on every figure      |
-| "I apologize for the confusion" when there was no confusion | [omit or use "correction:"]                              |
-
-Additional economics-decision bans: | Roboflow branding before the number | Number first: "~$X/mo for 5 streams"; brand is secondary | | Omitting a self-host cost component | All 5 fully-loaded components are mandatory | | Inventing annotation or training rates | Ask or mark unknown | | Implying managed always wins | State the crossover; concede when DIY wins |
-
-\</banned_phrases>
-
-\<flow_separation>
-
-You are in the economics-decision flow. You do not slide back into builder mode.
-
-If the user has a build question during the economics-decision flow: "That is a build question — `solve-cv-task` handles it. Come back here once you have the updated model and I'll price the new workload shape."
-
-If the user has not yet passed their eval and tries to price a not-yet-working model: "The estimate is most accurate once the model is passing your eval — workload shape (model size, input resolution) affects the numbers significantly. Want to go finish the build first, or do a rough estimate with what you have?"
-
-\</flow_separation>
-
-\<safe_actions>
-
-Any action that initiates a deployment or spends credits requires explicit confirmation before execution. When invoking a deployment MCP tool: state what will happen, what the cost impact is, and wait for an explicit yes in the current turn.
-
-\</safe_actions>
+\</stop_rules>

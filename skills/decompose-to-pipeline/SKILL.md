@@ -1,164 +1,76 @@
 ---
 name: decompose-to-pipeline
 description: |
-  Decompose a complex vision+reasoning requirement into the cheapest end-to-end pipeline that meets it. Covers: feasibility assessment (LLM as oracle), sub-task decomposition (what needs a CV model vs logic vs LLM), LLM-baseline eval generation (pseudo-labels from LLM vision, no human annotation), cheaper-model equivalence proof, and end-to-end cost + latency comparison.
-  TRIGGER when: user describes a system-level or ongoing monitoring requirement ("monitor X and alert me", "analyze my footage over time", "build a system that detects X and does Y", "is it even feasible to detect X given my setup", "I want to replace an LLM call with something cheaper", multi-condition requirements combining detection + aggregation + alerting/reporting).
-  SKIP when: single-frame detection or counting with no temporal or system component (→ detect-and-analyze); image-level classification (→ classify-or-flag); deployment cost question only, no unsolved build problem (→ estimate-economics); task is clearly feasible and pipeline shape is already known.
+  Decompose a complex vision-and-reasoning requirement into the cheapest measurable pipeline. TRIGGER when: user asks to monitor/alert, analyze footage over time, combine perception with aggregation/reporting, determine whether something is feasible to detect (including sensor limits or smoldering), or replace repeated vision-language calls with a cheaper system. SKIP when: the request is single-frame detection/counting (detect-and-analyze), whole-image classification (classify-or-flag), deployment cost only (estimate-economics), or the pipeline is already working and needs delivery (deliver-cv-project).
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 ---
 
 <objective>
 
-Design and prove the cheapest pipeline that meets the user's vision+reasoning requirement end-to-end. The exit criterion is a running pipeline with a measured cost-per-frame and latency, proven to meet the user's success condition.
-
-**What this skill covers:**
-
-- **Feasibility gate** — LLM as oracle: if the LLM cannot detect the target in the user's sample data, no CV model can. Stop before any money is spent.
-- **Sub-task decomposition** — split the requirement into components; assign each to the cheapest capable tool.
-- **LLM baseline** — use LLM vision output as pseudo-labels to define the eval and generate training data without human annotation.
-- **Equivalence proof** — build cheaper CV pipeline; prove it matches the LLM baseline within the eval threshold.
-- **Cost + latency comparison** — before any swap is proposed, show: $/inference, ms/frame, $/month at the user's scale.
-
-**What this skill does NOT cover:**
-
-- Single-inference detection or counting → `detect-and-analyze`
-- Deployment infrastructure sizing → `estimate-economics`
-- Annotation tooling → handled inline via `fde-methodology.md` Annotation Unblocking
+Translate a broad operational outcome into the smallest pipeline whose end-to-end decision clears independent acceptance. Optimize complexity or cost only after the end-to-end gate exists.
 
 </objective>
 
 <methodology>
 
-Steps 0, 1, 7, and 8 follow the generic sequence in `skills/_shared/fde-methodology.md`. Read that file first. This section documents the decomposition-specific additions.
+**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific lookup or action. Delegate exact models, datasets, training, inference, workflows, and deployment execution to an installed official Roboflow skill or current MCP resource. Sentinel owns decomposition, contracts, evidence, and the go/revise/stop decision.
 
-**Step 0 — Feasibility gate (mandatory, from fde-methodology.md).**
+Follow `../../resources/fde-methodology.md` for feasibility, frozen acceptance, consent, artifacts, and provenance.
 
-Run vision on 3–5 representative frames before anything else. State clearly: feasible or infeasible + specific physical reason. If infeasible, name the required hardware change and stop.
+## 1. Freeze the end-to-end decision
 
-**Step 1b — Sub-task decomposition.**
+Inspect data, code, operating procedure, existing outputs, and cost/latency constraints. Describe one observable business decision, its input window, required output, action owner, and cost of a miss/false alarm. Create an acceptance ID before testing candidate components.
 
-Break the requirement into components. Classify each:
+The gold set must be produced independently by a blinded human, sensor, or documented adjudication process. Candidate output and pseudo-label output are never ground truth. A pseudo-label model may bootstrap training examples only; measure/correct those examples on a blinded human-reviewed slice and exclude them from acceptance ownership.
 
-| Component                               | Tool                                 | When                               |
-| --------------------------------------- | ------------------------------------ | ---------------------------------- |
-| Per-frame detection / classification    | CV model (YOLO, RF-DETR)             | objects identifiable by appearance |
-| Aggregation / counting / windowing      | Pure logic (Python)                  | no vision needed                   |
-| Threshold + alert trigger               | Pure logic                           | rule-based                         |
-| Anomaly / trend reasoning               | Statistics or small ML               | no LLM needed                      |
-| Root-cause narrative / exception report | LLM (called on alert, not per-frame) | open-ended reasoning               |
+## 2. Draw contracts, not brand names
 
-State the decomposition to the user before building:
+Split the path into only necessary stages, for example:
 
-> "Three components: (1) per-frame defect detection → CV model, (2) rolling 10-min defect rate → Python counter, (3) spike alert + root-cause → LLM called ≤3×/day. LLM never on the inference hot path."
-
-**Step 2b — LLM baseline generation.**
-
-If the user has no labeled data and the task is feasible:
-
-1. Request 20–50 sample frames.
-2. Run vision on each. Produce structured output matching the target modality:
-   - Detection: `{"image": "path", "objects": [{"class": "defect", "bbox": [x,y,w,h], "confidence": 0.91}]}`
-   - Classification: `{"image": "path", "label": "defective", "confidence": 0.88}`
-3. Write to `.vision-delivery/llm-baseline-<session>.jsonl`.
-4. State the eval: "CV model must agree with LLM on ≥ 80% of these frames."
-
-This replaces human annotation for the eval dataset. Cost: ~$0.50 for 50 frames. Speed: minutes, not days.
-
-**Step 3b — Cheapest CV candidate search.**
-
-Same as `detect-and-analyze` Step 3 (COCO-80 check → Universe search), but with the LLM baseline as the eval target instead of user-provided labels.
-
-Measure candidate model against LLM baseline: agreement rate, not mAP (ground truth is the LLM, not a labeled split).
-
-**Step 4b — Equivalence proof.**
-
-Run CV model on the same 20–50 frames. Compare to LLM baseline:
-
-> "YOLOv11s: 43/50 frames match LLM detections (86%). Threshold is 80%. Passes."
-
-If it passes: CV model is proven equivalent to LLM for this task. LLM is retired from the per-frame inference path.
-
-**Step 5b — Cost + latency table (mandatory before proposing swap).**
-
-Never propose replacing the LLM with a CV model without showing this table:
-
-|                              | LLM per-frame          | CV model (proposed) |
-| ---------------------------- | ---------------------- | ------------------- |
-| Latency                      | ~2000 ms               | ~15 ms              |
-| Cost/inference               | ~$0.010                | ~$0.0003            |
-| Cost/month (5 streams, 24/7) | ~$\_\_\_k              | ~$\_\_\_            |
-| Agreement with LLM baseline  | 100% (is the baseline) | 86%                 |
-| Eval passes?                 | —                      | ✅                  |
-
-Fill in real numbers. Never propose the swap if: latency does not improve OR cost does not improve OR eval fails.
-
-**Step 6b — Pipeline artifact.**
-
-Produce a single runnable `pipeline.py` with three clear sections:
-
-```python
-# --- Section 1: Per-frame CV inference (cheap, hot path) ---
-# --- Section 2: Aggregation + threshold logic (CPU, free) ---
-# --- Section 3: Exception LLM call (expensive, cold path, event-driven) ---
+```text
+capture -> perception -> deterministic transformation -> temporal aggregation -> business action
 ```
 
-Each section independently testable. Section 3 clearly marked with estimated call frequency and cost.
+For each stage record input/output schema, units, error behavior, latency budget, data boundary, and owner. Keep deterministic arithmetic, geometry, filtering, validation, and business rules outside an expensive model when they are sufficient.
+
+## 3. Establish the simplest baseline
+
+Use recorded representative input and a replayable end-to-end harness. A baseline can combine current upstream candidates with local deterministic code, but exact upstream execution stays upstream. Record stage outputs so errors can be attributed. Measure the final business metric, not merely component accuracy.
+
+## 4. Diagnose and simplify
+
+For every failed case, locate the first stage whose contract broke. Test stage removal, rule simplification, capture improvement, lower-frequency sampling, batching, or a narrower candidate before adding complexity. Reject changes that improve a component metric but worsen the frozen end-to-end decision.
+
+## 5. Compare viable alternatives
+
+Only candidates clearing the same gate enter cost/latency comparison. Report quality, p50/p95 latency, processed volume, estimated unit cost, operational dependencies, and uncertainty from measured workload. Route material managed-vs-DIY decisions to `estimate-economics`.
+
+## 6. Deliver
+
+Return a pipeline diagram, stage contracts, replay command, measured result, failed slices, and `go`, `revise`, or `stop`. Follow `../../resources/artifact-contract.md` for generated code. Route a passing pipeline to `deliver-cv-project`.
 
 </methodology>
 
-<artifact>
+<safety>
 
-Three user-owned files at Step 6b:
+- A general vision model is not a physical oracle; separate unverified visibility from independently proven acquisition failure.
+- Never let pseudo-label agreement become independent acceptance.
+- Obtain explicit consent for data movement and paid actions.
+- Do not guess current provider APIs, tools, model IDs, or deployment paths.
 
-**`pipeline.py`** — three-section runnable pipeline (template above).
-
-**`llm-baseline-<session>.jsonl`** — LLM vision output used as eval target. Written at Step 2b, never deleted.
-
-**`pipeline-cost-comparison.md`** — the Step 5b cost table + equivalence verdict. User keeps this as the proof that the cheaper pipeline is valid.
-
-</artifact>
-
-\<feasibility_blockers>
-
-Common infeasibility reasons — state exactly, do not soften:
-
-| Symptom                              | Root cause                                 | Required fix                                |
-| ------------------------------------ | ------------------------------------------ | ------------------------------------------- |
-| Frame is dark/underexposed           | Insufficient lighting or wrong camera type | Add lighting, or switch to IR/thermal       |
-| Objects are tiny (\<5 px)            | Camera too far or resolution too low       | Move camera closer, or increase resolution  |
-| Objects >80% occluded                | Camera angle wrong                         | Reposition camera                           |
-| Motion blur                          | Shutter speed too slow                     | Increase shutter speed or reduce frame rate |
-| Object crosses full frame in 1 frame | FPS too low for tracking                   | Increase frame rate                         |
-| Lens cap on / camera unplugged       | Physical blockage                          | Fix hardware first                          |
-
-Never say "let's try a bigger model" when the blocker is physical. No model fixes a closed lens.
-
-\</feasibility_blockers>
+</safety>
 
 <ledger>
 
-Follow `skills/_shared/ledger-protocol.md`. Write after each completed step:
-
-| Event                           | `action`              | `notes`                                      |
-| ------------------------------- | --------------------- | -------------------------------------------- |
-| Pipeline eval definition agreed | `eval_definition`     | per-stage thresholds + end-to-end acceptance |
-| Feasibility verdict recorded    | `feasibility_checked` | verdict; blocking stage if any               |
-| Baseline measured on any stage  | `baseline_measured`   | stage, metric, value                         |
-
-Never omit the write.
+Follow `../../resources/ledger-protocol.md`. Record the frozen end-to-end gate, component evaluations, selected pipeline, artifact, and decision once with non-empty IDs and status.
 
 </ledger>
 
-<voice>
+\<stop_rules>
 
-Follow voice rules from `skills/_shared/fde-methodology.md`. Additional rules for decomposition:
+- The business decision or end-to-end metric is undefined → freeze it before optimizing.
+- No independent gold evidence → build the evidence plan, not a pass claim.
+- A component is not replayable → mark its contribution unverified.
+- A more complex design lacks measured gain → reject it.
 
-**State the component split before building.** User must agree on the decomposition before any tool is called.
-
-**Show the cost table before proposing a swap.** Never say "this will be cheaper" without numbers.
-
-**Name the call frequency for every LLM component.** "LLM called on alert, estimated 2–5×/day" — not "called occasionally."
-
-**Infeasibility is not failure.** "Your camera cannot see these objects at this distance — here is what would fix it" is a successful feasibility gate. The user saved the cost of a failed pipeline.
-
-</voice>
+\</stop_rules>
