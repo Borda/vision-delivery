@@ -8,7 +8,9 @@
     "business",
     "--existing-gpu",
     "--managed-usd-mo",
-    "500"
+    "500",
+    "--managed-quote-as-of",
+    "2026-07-01"
   ],
   "description": "1 stream, nano model, business hours, existing GPU, managed quote $500/mo \u2192 DIY clearly wins",
   "expect_recommendation": "diy"

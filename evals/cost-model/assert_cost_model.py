@@ -13,6 +13,8 @@ Asserts, in order:
    crossover_months >= 0 when present.
 5. Abstention sweep: without a quote, no point in the sweep may emit a
    diy/managed verdict.
+6. Boundary validation rejects negative and non-finite overrides while accepting zero
+   and representative extreme finite values.
 
 Usage:
     python3 evals/cost-model/assert_cost_model.py
@@ -62,6 +64,74 @@ def run_text(args: list[str]) -> str:
             f"cost_model.py exited {result.returncode}:\n{result.stderr}"
         )
     return result.stdout
+
+
+def assert_invalid_input(args: list[str], expected_error: str) -> None:
+    """Assert that invalid CLI input fails without emitting a JSON verdict."""
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), *args, "--json"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 2:
+        raise AssertionError(
+            f"expected exit 2 for {args!r}, got {result.returncode}: {result.stdout}"
+        )
+    if expected_error not in result.stderr:
+        raise AssertionError(
+            f"expected {expected_error!r} in stderr for {args!r}: {result.stderr}"
+        )
+    if result.stdout.strip():
+        raise AssertionError(
+            f"invalid input emitted stdout for {args!r}: {result.stdout}"
+        )
+
+
+def assert_numeric_boundaries(failures: list[str]) -> None:
+    """Reject non-finite/negative overrides and accept finite boundaries."""
+    try:
+        for option in (
+            "--managed-usd-mo",
+            "--override-gpu-spot",
+            "--override-engineer",
+        ):
+            for value in ("nan", "inf", "-inf"):
+                option_args = (
+                    [f"{option}={value}"] if value.startswith("-") else [option, value]
+                )
+                assert_invalid_input(
+                    ["--streams", "1", *option_args], f"{option} must be finite"
+                )
+            assert_invalid_input(
+                ["--streams", "1", f"{option}=-0.01"], f"{option} must be >= 0"
+            )
+
+        zero = run_json(
+            [
+                "--streams",
+                "1",
+                "--managed-usd-mo",
+                "0",
+                "--managed-quote-as-of",
+                "2026-07-01",
+            ]
+        )
+        if zero["managed"]["total_mo"] != 0:
+            raise AssertionError("zero managed override was not preserved")
+        extreme = run_json(["--streams", "1", "--override-engineer", "1e100"])
+        if extreme["diy"]["setup_one_time"] <= 0:
+            raise AssertionError(
+                "extreme finite override did not produce a finite cost"
+            )
+        assert_invalid_input(
+            ["--streams", "1", "--override-engineer", "1e308"],
+            "computed result",
+        )
+        print(
+            "  PASS [numeric-boundaries] non-finite/negative rejected; finite bounds accepted"
+        )
+    except (AssertionError, ValueError) as exc:
+        failures.append(f"[numeric-boundaries] {exc}")
 
 
 def assert_source_citations(text: str, fixture_name: str) -> None:
@@ -115,7 +185,16 @@ def assert_snapshot_fresh(failures: list[str]) -> None:
 
 def assert_monotonicity(failures: list[str]) -> None:
     """Monotonicity property checks over a streams sweep with a fixed real quote."""
-    base = ["--model-size", "medium", "--uptime", "24x7", "--managed-usd-mo", "1000"]
+    base = [
+        "--model-size",
+        "medium",
+        "--uptime",
+        "24x7",
+        "--managed-usd-mo",
+        "1000",
+        "--managed-quote-as-of",
+        "2026-07-01",
+    ]
     prev_total = 0.0
     prev_instances = 0
     ok = True
@@ -147,6 +226,51 @@ def assert_monotonicity(failures: list[str]) -> None:
         prev_instances = diy["n_instances"]
     if ok:
         print(f"  PASS [monotonic] {len(SWEEP_STREAMS)}-point sweep properties hold")
+
+
+def assert_fps_capacity(failures: list[str]) -> None:
+    """Require higher requested frame rates to increase estimated capacity."""
+    try:
+        estimates = [
+            run_json(["--streams", "4", "--model-size", "medium", "--fps", str(fps)])
+            for fps in (1, 10, 60)
+        ]
+        counts = [estimate["diy"]["n_instances"] for estimate in estimates]
+        if counts != sorted(counts) or counts[0] == counts[-1]:
+            raise AssertionError(
+                f"FPS did not materially affect instance capacity: {counts}"
+            )
+        print(f"  PASS [fps-capacity] instance estimates rise with FPS: {counts}")
+    except AssertionError as exc:
+        failures.append(f"[fps-capacity] {exc}")
+
+
+def assert_quote_provenance(failures: list[str]) -> None:
+    """Require a dated managed quote and preserve its supplied date."""
+    try:
+        assert_invalid_input(
+            ["--streams", "1", "--managed-usd-mo", "100"],
+            "--managed-usd-mo requires --managed-quote-as-of",
+        )
+        assert_invalid_input(
+            ["--streams", "1", "--managed-quote-as-of", "2026-07-01"],
+            "--managed-quote-as-of requires --managed-usd-mo",
+        )
+        data = run_json(
+            [
+                "--streams",
+                "1",
+                "--managed-usd-mo",
+                "100",
+                "--managed-quote-as-of",
+                "2026-07-01",
+            ]
+        )
+        if data["sources"]["managed_as_of"] != "2026-07-01":
+            raise AssertionError("user-supplied managed quote date was not preserved")
+        print("  PASS [quote-provenance] dated quote required and preserved")
+    except AssertionError as exc:
+        failures.append(f"[quote-provenance] {exc}")
 
 
 def assert_abstention_sweep(failures: list[str]) -> None:
@@ -200,7 +324,10 @@ def main() -> int:
 
     assert_snapshot_fresh(failures)
     assert_monotonicity(failures)
+    assert_fps_capacity(failures)
+    assert_quote_provenance(failures)
     assert_abstention_sweep(failures)
+    assert_numeric_boundaries(failures)
 
     if failures:
         print("\nFAIL:")

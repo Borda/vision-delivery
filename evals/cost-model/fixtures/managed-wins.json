@@ -7,7 +7,9 @@
     "--uptime",
     "business",
     "--managed-usd-mo",
-    "300"
+    "300",
+    "--managed-quote-as-of",
+    "2026-07-01"
   ],
   "description": "1 stream, nano, business hours, no GPU, user-provided quote $300/mo vs fully-loaded DIY ~$330/mo -> managed wins on a real figure",
   "expect_recommendation": "managed"

@@ -257,7 +257,7 @@ def model_evals_list(project_id: str | None = None, limit: int = 50) -> dict:
     """List model evaluations in the workspace."""
     _log("model_evals_list", {"project_id": project_id})
     evals = []
-    for i, (job, st) in enumerate(STATE["trainings"].items(), 1):
+    for i, (_job, st) in enumerate(STATE["trainings"].items(), 1):
         if st["polls"] >= POLLS_TO_FINISH:
             evals.append(
                 {

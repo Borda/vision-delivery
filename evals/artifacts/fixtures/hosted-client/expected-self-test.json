@@ -1,0 +1,10 @@
+{
+  "artifact_kind": "hosted-client",
+  "count": 1,
+  "predictions": [
+    {
+      "class": "fixture",
+      "confidence": 0.9
+    }
+  ]
+}

@@ -1,7 +1,18 @@
 {
-  "description": "vision-delivery hooks: success-moment CTA and local ledger write",
+  "description": "vision-delivery hooks: verified tool outcomes, success-moment CTA, and local ledger write",
   "hooks": {
     "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/cta.js\"",
+            "type": "command"
+          }
+        ],
+        "matcher": "mcp__(plugin_[A-Za-z0-9_-]+_)?roboflow__"
+      }
+    ],
+    "PostToolUseFailure": [
       {
         "hooks": [
           {

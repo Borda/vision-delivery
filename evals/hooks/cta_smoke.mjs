@@ -1,33 +1,36 @@
 #!/usr/bin/env node
-// Smoke test for hooks/cta.js — pipes synthetic PostToolUse payloads and asserts ledger writes.
-// This bug class (dead matcher / wrong prefix / phantom tool names) is invisible to structural evals.
+// Smoke every generic Roboflow hook outcome without copying an upstream tool registry.
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, existsSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, dirname, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const CTA = resolve(dirname(fileURLToPath(import.meta.url)), "../../hooks/cta.js");
+const HOOK = resolve(dirname(fileURLToPath(import.meta.url)), "../../hooks/cta.js");
 let failures = 0;
 
 function runCase(name, payload, expect) {
-  const cwd = mkdtempSync(join(tmpdir(), "cta-smoke-"));
-  const res = spawnSync("node", [CTA], { cwd, input: JSON.stringify(payload), encoding: "utf8" });
+  const cwd = mkdtempSync(join(tmpdir(), "sentinel-hook-"));
+  const results = [];
+  for (let i = 0; i < (expect.repeat || 1); i++) {
+    results.push(spawnSync("node", [HOOK], { cwd, input: JSON.stringify(payload), encoding: "utf8" }));
+  }
+  const res = results.at(-1);
   const ledgerPath = join(cwd, ".vision-delivery", "ledger.jsonl");
   const wrote = existsSync(ledgerPath);
-  let record = null;
-  if (wrote) record = JSON.parse(readFileSync(ledgerPath, "utf8").trim().split("\n").pop());
-
+  const rows = wrote ? readFileSync(ledgerPath, "utf8").trim().split("\n") : [];
+  const record = wrote ? JSON.parse(rows.at(-1)) : null;
   const problems = [];
   if (res.status !== 0) problems.push(`exit ${res.status}`);
-  if (expect.write !== wrote) problems.push(`ledger write=${wrote}, expected ${expect.write}`);
-  if (expect.write && wrote) {
-    if (record.action !== expect.action) problems.push(`action=${record.action}, expected ${expect.action}`);
-    if (expect.session && record.session !== expect.session) problems.push(`session=${record.session}, expected ${expect.session}`);
-    if (expect.entity && record.entity_id !== expect.entity) problems.push(`entity_id=${record.entity_id}, expected ${expect.entity}`);
+  if (expect.write !== wrote) problems.push(`write=${wrote}, expected ${expect.write}`);
+  if (expect.rows && rows.length !== expect.rows) problems.push(`rows=${rows.length}, expected ${expect.rows}`);
+  if (record) {
+    for (const [field, value] of Object.entries(expect.fields || {})) {
+      if (record[field] !== value) problems.push(`${field}=${record[field]}, expected ${value}`);
+    }
+    if (!record.event_id) problems.push("event_id is empty");
   }
-  if (expect.stdoutIncludes && !res.stdout.includes(expect.stdoutIncludes)) problems.push(`stdout missing "${expect.stdoutIncludes}"`);
-
+  if (res.stdout) problems.push(`unexpected success output: ${res.stdout.trim()}`);
   if (problems.length) {
     failures++;
     console.error(`FAIL ${name}: ${problems.join("; ")}`);
@@ -37,35 +40,94 @@ function runCase(name, payload, expect) {
   rmSync(cwd, { recursive: true, force: true });
 }
 
-// 1. Hosted-MCP prefix, training call → ledger row with real session id
-runCase("trainings_create via mcp__roboflow__ prefix",
-  { session_id: "smoke-1", tool_name: "mcp__roboflow__trainings_create", tool_input: { project_id: "ws/proj" } },
-  { write: true, action: "trainings_create", session: "smoke-1", entity: "ws/proj" });
+const success = (operation, category, extra = {}) => ({
+  write: true,
+  fields: { action: "roboflow_mcp_call", operation, category, status: "success", ...extra },
+});
 
-// 2. Installed-plugin prefix, deploy call → ledger row + CTA line
-runCase("deploy via mcp__plugin_sentinel_roboflow__ prefix",
-  { session_id: "smoke-2", tool_name: "mcp__plugin_sentinel_roboflow__project_deployment_launch", tool_input: { workspace: "ws" } },
-  { write: true, action: "project_deployment_launch", session: "smoke-2", entity: "ws", stdoutIncludes: "Deployment launched" });
+runCase(
+  "unknown future operation is recorded",
+  {
+    hook_event_name: "PostToolUse",
+    session_id: "future",
+    tool_use_id: "tool-future",
+    tool_name: "mcp__roboflow__future_capability_execute",
+    tool_input: { project_id: "ws/proj" },
+    tool_response: { success: true },
+  },
+  success("future_capability_execute", "other", { session: "future", entity_id: "ws/proj" }),
+);
 
-// 3. Eval fetch → baseline_measured
-runCase("model_evals_get_map_results maps to baseline_measured",
-  { session_id: "smoke-3", tool_name: "mcp__roboflow__model_evals_get_map_results", tool_input: {} },
-  { write: true, action: "baseline_measured", session: "smoke-3" });
+runCase(
+  "installed-plugin prefix is supported",
+  {
+    hook_event_name: "PostToolUse",
+    tool_name: "mcp__plugin_sentinel_roboflow__anything_read",
+    tool_input: {},
+    tool_response: {},
+  },
+  success("anything_read", "other", { session: "hook-auto" }),
+);
 
-// 4. Non-ledger tool → no write
-runCase("unlisted tool writes nothing",
-  { session_id: "smoke-4", tool_name: "mcp__roboflow__universe_search", tool_input: {} },
-  { write: false });
+for (const [name, operation, category] of [
+  ["training", "training_job_start", "training"],
+  ["dataset generation", "dataset_version_generate", "dataset-version"],
+  ["upload", "image_upload", "data-movement"],
+  ["deployment", "deployment_create", "deployment"],
+  ["evaluation", "prediction_evaluate", "evaluation"],
+]) {
+  runCase(
+    `${name} category`,
+    { hook_event_name: "PostToolUse", tool_name: `mcp__roboflow__${operation}`, tool_input: {}, tool_response: {} },
+    success(operation, category),
+  );
+}
 
-// 5. Missing session_id → hook-auto fallback
-runCase("missing session_id falls back to hook-auto",
-  { tool_name: "mcp__roboflow__trainings_create", tool_input: {} },
-  { write: true, action: "trainings_create", session: "hook-auto" });
+runCase(
+  "non-Roboflow tool is ignored",
+  { hook_event_name: "PostToolUse", tool_name: "mcp__other__deployment_create", tool_response: {} },
+  { write: false },
+);
 
-// 6. Phantom legacy name must NOT be tracked (regression guard for the phantom-tool-name bug class)
-runCase("legacy models_train is not a tracked tool",
-  { session_id: "smoke-6", tool_name: "mcp__roboflow__models_train", tool_input: {} },
-  { write: false });
+runCase(
+  "failure is never success",
+  {
+    hook_event_name: "PostToolUseFailure",
+    tool_use_id: "tool-failed",
+    tool_name: "mcp__roboflow__deployment_create",
+    error: "quota exceeded",
+  },
+  { write: true, fields: { action: "roboflow_mcp_call", category: "deployment", status: "failed" } },
+);
+
+runCase(
+  "result-free legacy event is unknown",
+  { tool_name: "mcp__roboflow__deployment_create", tool_input: {} },
+  { write: true, fields: { action: "roboflow_mcp_call", status: "unknown" } },
+);
+
+runCase(
+  "error-shaped success event is failed",
+  { hook_event_name: "PostToolUse", tool_name: "mcp__roboflow__training_start", tool_response: { isError: true } },
+  { write: true, fields: { action: "roboflow_mcp_call", status: "failed" } },
+);
+
+runCase(
+  "host event ID deduplicates redelivery",
+  {
+    hook_event_name: "PostToolUse",
+    tool_use_id: "tool-duplicate",
+    tool_name: "mcp__roboflow__training_start",
+    tool_response: {},
+  },
+  { ...success("training_start", "training"), repeat: 2, rows: 1 },
+);
+
+runCase(
+  "fallback event ID deduplicates exact legacy redelivery",
+  { hook_event_name: "PostToolUse", tool_name: "mcp__roboflow__training_start", tool_input: {}, tool_response: {} },
+  { ...success("training_start", "training"), repeat: 2, rows: 1 },
+);
 
 if (failures) {
   console.error(`${failures} case(s) failed`);

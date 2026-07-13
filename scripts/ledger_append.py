@@ -8,8 +8,8 @@ for ledger writes (shell injection risk on free-form notes/entity_id).
 Usage:
     python3 scripts/ledger_append.py \
         --session m1-acceptance --skill detect-and-analyze \
-        --action trainings_create --entity-id workspace/project/1 \
-        --notes "rfdetr-medium, mAP@50=84.6%"
+        --action artifact_verified --event-id manual:m1:artifact:1 \
+        --status success --notes "acceptance_id=m1; digest=abc123"
 """
 
 from __future__ import annotations
@@ -20,8 +20,8 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-LEDGER = Path(__file__).parent.parent / ".vision-delivery" / "ledger.jsonl"
-VERSION = "0.1.0"
+LEDGER = Path.cwd() / ".vision-delivery" / "ledger.jsonl"
+VERSION = "0.2.0"
 
 
 def main() -> int:
@@ -30,6 +30,13 @@ def main() -> int:
     p.add_argument("--skill", required=True)
     p.add_argument("--action", required=True)
     p.add_argument("--entity-id", default="")
+    p.add_argument("--event-id", required=True)
+    p.add_argument(
+        "--status",
+        choices=("attempted", "success", "failed", "timeout", "cancelled", "unknown"),
+        required=True,
+    )
+    p.add_argument("--source", choices=("skill", "hook", "import"), default="skill")
     p.add_argument("--notes", default="")
     p.add_argument("--streams", type=int, default=None)
     p.add_argument("--decision", default=None)
@@ -43,6 +50,9 @@ def main() -> int:
         "action": args.action,
         "entity_id": args.entity_id,
         "version": VERSION,
+        "status": args.status,
+        "source": args.source,
+        "event_id": args.event_id,
         "notes": args.notes,
     }
     if args.streams is not None:
@@ -51,9 +61,30 @@ def main() -> int:
         record["decision"] = args.decision
 
     ledger_path = Path(args.ledger)
+    if not args.event_id.strip():
+        p.error("--event-id must not be empty")
+
     ledger_path.parent.mkdir(parents=True, exist_ok=True)
+    if ledger_path.exists():
+        for line in ledger_path.read_text(encoding="utf-8").splitlines():
+            try:
+                existing = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if existing.get("event_id") != args.event_id:
+                continue
+            comparable = {key: value for key, value in record.items() if key != "ts"}
+            prior = {key: existing.get(key) for key in comparable}
+            if prior == comparable:
+                return 0
+            print(
+                f"event_id {args.event_id!r} already exists with different content",
+                file=sys.stderr,
+            )
+            return 2
+
     with ledger_path.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(record) + "\n")
+        f.write(json.dumps(record, allow_nan=False) + "\n")
 
     return 0
 

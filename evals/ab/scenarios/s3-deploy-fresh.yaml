@@ -1,4 +1,4 @@
-# S3 — standalone deploy entry from a fresh session (probes the missing standalone deploy skill).
+# S3 — standalone deploy entry from a fresh session (probed the pre-v0.2 missing delivery skill).
 # Archetype: closed-loop response (detections drive an automated action with a
 # latency bound, not a passive report). Grounded in private user research; source
 # material intentionally not in repo. Prompt rev 2 (2026-07-11); the published v3
@@ -14,6 +14,6 @@ caps:
   max_agent_turns: 8
   max_credits: 20
 notes: >
-  Expected plugin gap today (no standalone deploy skill exists yet) — measured, not
-  assumed. A good arm reaches project_deployment_launch with a confirmed
+  At benchmark time (pre-v0.2), no standalone delivery skill existed; the gap was
+  measured, not assumed. A good arm reaches project_deployment_launch with a confirmed
   credit estimate; a lost arm stalls or re-enters build methodology.

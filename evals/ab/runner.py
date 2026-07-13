@@ -25,6 +25,7 @@ import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -36,7 +37,7 @@ PER_TURN_TIMEOUT_S = 300
 
 def write_fixture_images(
     images_dir: Path, count: int = 3, seed: int = 7, quality: str = "good"
-) -> dict:
+) -> dict[str, Any]:
     """Write deterministic, distinct, inspectable JPEGs (640x480) + return ground truth.
 
     Agents forensically inspect fixture data (dimensions, hashes) before
@@ -57,12 +58,19 @@ def write_fixture_images(
     from PIL import Image, ImageDraw
 
     rng = np.random.default_rng(seed)
-    frames = []
+    frames: list[dict[str, Any]] = []
     for i in range(count):
         light = float(rng.uniform(0.8, 1.2))  # per-frame lighting drift
 
-        def shade(r: int, g: int, b: int, f: float = 1.0) -> tuple[int, int, int]:
-            return tuple(min(255, max(0, int(c * light * f))) for c in (r, g, b))
+        def shade(
+            r: int,
+            g: int,
+            b: int,
+            f: float = 1.0,
+            light_scale: float = light,
+        ) -> tuple[int, int, int]:
+            values = [min(255, max(0, int(c * light_scale * f))) for c in (r, g, b)]
+            return values[0], values[1], values[2]
 
         arr = rng.integers(90, 150, size=(240, 320, 3), dtype="uint8")
         arr = np.clip(arr * light, 0, 255).astype("uint8")

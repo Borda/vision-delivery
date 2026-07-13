@@ -1,0 +1,6 @@
+PyYAML==6.0.3
+mypy==2.2.0
+pre-commit==4.6.0
+requests==2.34.2
+ruff==0.15.21
+types-PyYAML==6.0.12.20260518

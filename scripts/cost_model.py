@@ -17,7 +17,8 @@ are reachable) but live HTML is never parsed — snapshot values are used.
 Usage:
     python scripts/cost_model.py --streams 5 --fps 10 --model-size medium \\
         --uptime 24x7 --region us-east-1 [--existing-gpu] [--use-spot] \\
-        [--managed-usd-mo 1500] [--override-gpu-spot 0.20] \\
+        [--managed-usd-mo 1500 --managed-quote-as-of 2026-07-13] \\
+        [--override-gpu-spot 0.20] \\
         [--override-engineer 75] [--json]
 
 Examples:
@@ -39,7 +40,7 @@ from pathlib import Path
 from typing import Any
 
 try:
-    import requests  # type: ignore
+    import requests
 except ImportError:  # pragma: no cover - requests optional
     requests = None  # type: ignore
 
@@ -54,6 +55,7 @@ PRICING_SOURCES: dict[str, str] = {
 
 # Capacity / effort model constants.
 STREAMS_PER_INSTANCE: dict[str, int] = {"nano": 4, "medium": 2, "large": 1}
+BASELINE_FPS = 10
 SETUP_HOURS: dict[str, int] = {"nano": 16, "medium": 24, "large": 40}
 HOURS_24X7 = 720
 HOURS_BUSINESS = 176
@@ -91,15 +93,16 @@ def hours_per_month(uptime: str) -> int:
     return HOURS_24X7 if uptime == "24x7" else HOURS_BUSINESS
 
 
-def instances_needed(streams: int, model_size: str) -> int:
-    """Return GPU instance count needed to serve ``streams`` at ``model_size``.
+def instances_needed(streams: int, model_size: str, fps: int = BASELINE_FPS) -> int:
+    """Estimate GPU instances for streams, model-size class, and frame rate.
 
     Args:
         streams: Number of camera streams (>= 1).
         model_size: One of ``nano``, ``medium``, ``large``.
+        fps: Frames per second per stream (>= 1).
 
     Returns:
-        Ceil of streams divided by per-instance stream capacity.
+        Ceil of normalized frame workload divided by the baseline capacity.
 
     Examples:
         >>> instances_needed(5, "medium")
@@ -108,7 +111,7 @@ def instances_needed(streams: int, model_size: str) -> int:
         1
     """
     per_instance = STREAMS_PER_INSTANCE[model_size]
-    return math.ceil(streams / per_instance)
+    return math.ceil((streams * fps) / (per_instance * BASELINE_FPS))
 
 
 def ops_hours_per_week(streams: int) -> float:
@@ -154,7 +157,11 @@ def _ordinal(n: int) -> str:
 
 
 def scaling_cliff_note(
-    streams: int, model_size: str, gpu_rate: float, hours: int
+    streams: int,
+    model_size: str,
+    gpu_rate: float,
+    hours: int,
+    fps: int = BASELINE_FPS,
 ) -> str:
     """Describe the cost step when the next GPU instance becomes necessary.
 
@@ -163,6 +170,7 @@ def scaling_cliff_note(
         model_size: Model size affecting per-instance capacity.
         gpu_rate: GPU $/hr used for the incremental instance cost.
         hours: Billable hours per month.
+        fps: Frames per second per stream.
 
     Returns:
         Human-readable note describing the next scaling cliff.
@@ -172,11 +180,15 @@ def scaling_cliff_note(
         >>> "GPU instance" in note
         True
     """
-    return _scaling_cliff(streams, model_size, gpu_rate, hours)[0]
+    return _scaling_cliff(streams, model_size, gpu_rate, hours, fps)[0]
 
 
 def _scaling_cliff(
-    streams: int, model_size: str, gpu_rate: float, hours: int
+    streams: int,
+    model_size: str,
+    gpu_rate: float,
+    hours: int,
+    fps: int = BASELINE_FPS,
 ) -> tuple[str, float]:
     """Return (human note, incremental $/mo) for the next GPU-instance cliff.
 
@@ -186,14 +198,15 @@ def _scaling_cliff(
         True
     """
     per_instance = STREAMS_PER_INSTANCE[model_size]
-    current = instances_needed(streams, model_size)
+    current = instances_needed(streams, model_size, fps)
     # Smallest stream count that forces one more instance than now.
-    next_cliff_streams = current * per_instance + 1
-    next_instances = instances_needed(next_cliff_streams, model_size)
+    next_cliff_streams = math.floor(current * per_instance * BASELINE_FPS / fps) + 1
+    next_instances = instances_needed(next_cliff_streams, model_size, fps)
     added = next_instances - current
     incremental = round(gpu_rate * hours * added, 2)
     note = (
-        f"At {next_cliff_streams} streams, a {_ordinal(next_instances)} GPU instance "
+        f"At {next_cliff_streams} streams running {fps} FPS each, a "
+        f"{_ordinal(next_instances)} GPU instance "
         f"is needed (+${incremental:,.0f}/mo)."
     )
     return note, incremental
@@ -314,7 +327,8 @@ def compute(args: argparse.Namespace, snapshot: dict[str, Any]) -> dict[str, Any
         >>> snap = load_snapshot()
         >>> ns = argparse.Namespace(streams=5, fps=10, model_size="medium",
         ...     uptime="24x7", region="us-east-1", existing_gpu=False,
-        ...     use_spot=True, managed_usd_mo=1500.0, override_gpu_spot=None,
+        ...     use_spot=True, managed_usd_mo=1500.0,
+        ...     managed_quote_as_of="2026-07-13", override_gpu_spot=None,
         ...     override_engineer=None)
         >>> res = compute(ns, snap)
         >>> res["recommendation"] in ("diy", "managed")
@@ -327,7 +341,7 @@ def compute(args: argparse.Namespace, snapshot: dict[str, Any]) -> dict[str, Any
     as_of = snapshot["as_of"]
 
     hours = hours_per_month(args.uptime)
-    n_instances = instances_needed(args.streams, args.model_size)
+    n_instances = instances_needed(args.streams, args.model_size, args.fps)
     gpu_rate = _resolve_gpu_rate(args, gpu_src)
     engineer_hourly = (
         float(args.override_engineer)
@@ -358,19 +372,21 @@ def compute(args: argparse.Namespace, snapshot: dict[str, Any]) -> dict[str, Any
 
     # 5. Scaling cliff note (reported, not summed).
     cliff, cliff_incremental = _scaling_cliff(
-        args.streams, args.model_size, gpu_rate, hours
+        args.streams, args.model_size, gpu_rate, hours, args.fps
     )
 
     # Managed side. A comparable figure exists ONLY when the user supplies one.
     if args.managed_usd_mo is not None:
         managed_mo: float | None = round(float(args.managed_usd_mo), 2)
-        managed_source = "user-provided"
-        managed_url = "user-provided"
-        managed_caveat = "user-provided (e.g. enterprise quote)"
+        managed_source = "user-supplied managed quote"
+        managed_url = "user-supplied managed quote"
+        managed_as_of = args.managed_quote_as_of
+        managed_caveat = "user-supplied quote; scope and taxes require confirmation"
     else:
         managed_mo = None
         managed_source = managed_src["source_url"]
         managed_url = managed_src["source_url"]
+        managed_as_of = managed_src.get("as_of", as_of)
         managed_caveat = (
             "Credits-based pricing; no public per-stream price. The Core plan "
             f"floor (${MANAGED_FLOOR_USD_MO:,.0f}/mo annual, ~15 credits) is a "
@@ -384,7 +400,8 @@ def compute(args: argparse.Namespace, snapshot: dict[str, Any]) -> dict[str, Any
         reason = (
             f"insufficient managed pricing to compare — DIY run-rate is "
             f"~${total_run_rate_mo:,.0f}/mo (+${setup_one_time:,.0f} one-time); "
-            "get a Roboflow quote and re-run with --managed-usd-mo"
+            "get a dated Roboflow quote and re-run with --managed-usd-mo and "
+            "--managed-quote-as-of"
         )
     elif managed_mo > total_run_rate_mo:
         recommendation = "diy"
@@ -423,6 +440,8 @@ def compute(args: argparse.Namespace, snapshot: dict[str, Any]) -> dict[str, Any
             "gpu_rate_usd_hr": gpu_rate,
             "hours_per_mo": hours,
             "pricing_mode": _pricing_mode(args),
+            "fps_per_stream": args.fps,
+            "capacity_basis_fps": BASELINE_FPS,
         },
         "managed": {
             "total_mo": managed_mo,
@@ -440,7 +459,7 @@ def compute(args: argparse.Namespace, snapshot: dict[str, Any]) -> dict[str, Any
             "gpu_source_url": gpu_src["source_url"],
             "gpu_as_of": gpu_src.get("as_of", as_of),
             "managed_source_url": managed_url,
-            "managed_as_of": managed_src.get("as_of", as_of),
+            "managed_as_of": managed_as_of,
             "engineer_usd_hr": engineer_hourly,
             "engineer_source_url": eng_src["source_url"],
             "engineer_as_of": eng_src.get("as_of", as_of),
@@ -471,7 +490,7 @@ def render_json(result: dict[str, Any]) -> str:
             "source": result["managed"]["source"],
             "caveat": (
                 None
-                if result["managed"]["source"] == "user-provided"
+                if result["managed"]["source"] == "user-supplied managed quote"
                 else result["managed"]["caveat"]
             ),
         },
@@ -480,7 +499,7 @@ def render_json(result: dict[str, Any]) -> str:
         "scaling_cliff_incremental_usd_mo": result["scaling_cliff_incremental_usd_mo"],
         "sources": result["sources"],
     }
-    return json.dumps(payload, indent=2)
+    return json.dumps(payload, indent=2, allow_nan=False)
 
 
 def render_text(
@@ -499,7 +518,9 @@ def render_text(
         f"Back-of-envelope (as of {as_of} — re-confirm if >30 days old){staleness}:"
     )
     lines.append("")
-    lines.append(f"Self-host ({args.streams} streams, {args.uptime}):")
+    lines.append(
+        f"Self-host ({args.streams} streams, {args.fps} FPS each, {args.uptime}):"
+    )
 
     gpu_label = (
         "existing hardware, $0"
@@ -533,9 +554,7 @@ def render_text(
     lines.append("")
 
     managed = result["managed"]
-    managed_src_label = (
-        "user-provided" if managed["source"] == "user-provided" else managed["source"]
-    )
+    managed_src_label = managed["source"]
     if managed["total_mo"] is None:
         lines.append(f"Roboflow managed ({args.streams} streams): no comparable figure")
         lines.append(
@@ -576,7 +595,8 @@ def render_text(
             "Recommendation: none — insufficient managed pricing to compare. "
             f"DIY run-rate is ~${diy['total_run_rate_mo']:,.0f}/mo "
             f"(+${diy['setup_one_time']:,.0f} one-time). Get a Roboflow quote "
-            "(https://roboflow.com/pricing) and re-run with --managed-usd-mo <quote>."
+            "(https://roboflow.com/pricing) and re-run with --managed-usd-mo <quote> "
+            "--managed-quote-as-of <YYYY-MM-DD>."
         )
     else:
         rec_label = "DIY" if result["recommendation"] == "diy" else "Managed"
@@ -586,6 +606,11 @@ def render_text(
         )
     lines.append("")
     lines.append(f"Scaling cliff: {result['scaling_cliff']}")
+    lines.append(
+        "Capacity assumption: committed streams-per-instance estimates are calibrated "
+        f"at {BASELINE_FPS} FPS and scale linearly with requested FPS; benchmark the "
+        "selected runtime before purchase."
+    )
     lines.append("")
     lines.append("Sources:")
     lines.append(f"  GPU rate:  {src['gpu_source_url']} (as_of: {src['gpu_as_of']})")
@@ -595,7 +620,7 @@ def render_text(
     )
     lines.append("")
     lines.append(
-        "All inputs editable — pass --managed-usd-mo, --override-gpu-spot, "
+        "All inputs editable — pass a dated managed quote, --override-gpu-spot, "
         "or --override-engineer with corrected values."
     )
     return "\n".join(lines)
@@ -626,7 +651,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Uptime profile (business = ~176h/mo).",
     )
     p.add_argument(
-        "--region", default="us-east-1", help="Cloud region for GPU pricing."
+        "--region",
+        choices=["us-east-1"],
+        default="us-east-1",
+        help="Cloud region covered by the committed GPU-price snapshot.",
     )
     p.add_argument(
         "--existing-gpu",
@@ -650,6 +678,11 @@ def build_parser() -> argparse.ArgumentParser:
         type=float,
         default=None,
         help="Override managed cost per month (e.g. enterprise quote).",
+    )
+    p.add_argument(
+        "--managed-quote-as-of",
+        default=None,
+        help="ISO date of the user-supplied managed quote; required with its amount.",
     )
     p.add_argument(
         "--override-gpu-spot",
@@ -678,8 +711,47 @@ def _validate(args: argparse.Namespace) -> None:
         ("--override-gpu-spot", args.override_gpu_spot),
         ("--override-engineer", args.override_engineer),
     ):
-        if val is not None and val < 0:
+        if val is None:
+            continue
+        if not math.isfinite(val):
+            raise CostModelError(f"{name} must be finite")
+        if val < 0:
             raise CostModelError(f"{name} must be >= 0")
+    if args.managed_usd_mo is None and args.managed_quote_as_of is not None:
+        raise CostModelError("--managed-quote-as-of requires --managed-usd-mo")
+    if args.managed_usd_mo is not None and args.managed_quote_as_of is None:
+        raise CostModelError(
+            "--managed-usd-mo requires --managed-quote-as-of YYYY-MM-DD"
+        )
+    if args.managed_quote_as_of is not None:
+        try:
+            quote_date = datetime.strptime(args.managed_quote_as_of, "%Y-%m-%d").date()
+        except ValueError as exc:
+            raise CostModelError(
+                "--managed-quote-as-of must be an ISO date (YYYY-MM-DD)"
+            ) from exc
+        if quote_date > date.today():
+            raise CostModelError("--managed-quote-as-of cannot be in the future")
+
+
+def _validate_finite_result(value: Any, path: str = "result") -> None:
+    """Reject arithmetic overflow before rendering a business decision.
+
+    Args:
+        value: Nested result value to inspect.
+        path: Human-readable location used in validation errors.
+
+    Raises:
+        CostModelError: If any computed floating-point value is non-finite.
+    """
+    if isinstance(value, float) and not math.isfinite(value):
+        raise CostModelError(f"computed {path} must be finite; reduce override values")
+    if isinstance(value, dict):
+        for key, child in value.items():
+            _validate_finite_result(child, f"{path}.{key}")
+    elif isinstance(value, (list, tuple)):
+        for index, child in enumerate(value):
+            _validate_finite_result(child, f"{path}[{index}]")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -696,7 +768,8 @@ def main(argv: list[str] | None = None) -> int:
         >>> with contextlib.redirect_stdout(io.StringIO()):
         ...     rc = main(["--streams", "1", "--model-size", "nano",
         ...                "--uptime", "business", "--existing-gpu",
-        ...                "--managed-usd-mo", "500"])
+        ...                "--managed-usd-mo", "500",
+        ...                "--managed-quote-as-of", "2026-07-13"])
         >>> rc
         0
     """
@@ -713,7 +786,12 @@ def main(argv: list[str] | None = None) -> int:
     probe_live_sources()
     stale_days = snapshot_age_days(snapshot["as_of"])
 
-    result = compute(args, snapshot)
+    try:
+        result = compute(args, snapshot)
+        _validate_finite_result(result)
+    except (CostModelError, OverflowError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
 
     if args.json:
         print(render_json(result))

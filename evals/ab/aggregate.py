@@ -152,12 +152,16 @@ def main() -> int:
         p, b = stats.get("P", {}), stats.get("B", {})
         row_cells = []
         for m, direction in METRICS.items():
-            pm = p.get(m, (None, None))[0]
-            bm = b.get(m, (None, None))[0]
-            s_txt = "—" if pm is None else f"{pm:g}"
-            p_txt = "—" if bm is None else f"{bm:g}"
-            if pm is not None and bm is not None and pm != bm:
-                if (pm > bm) == (direction == "higher"):
+            pm_median = p.get(m, (None, None))[0]
+            bm_median = b.get(m, (None, None))[0]
+            s_txt = "—" if pm_median is None else f"{pm_median:g}"
+            p_txt = "—" if bm_median is None else f"{bm_median:g}"
+            if (
+                pm_median is not None
+                and bm_median is not None
+                and pm_median != bm_median
+            ):
+                if (pm_median > bm_median) == (direction == "higher"):
                     s_txt = f"**{s_txt}**"
                 else:
                     p_txt = f"**{p_txt}**"
