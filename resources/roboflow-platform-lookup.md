@@ -22,15 +22,15 @@ If no upstream source is available, fallback is scaffold-only. It must not autho
 
 ## Delegation map
 
-| Platform need | First official skill | MCP resource fallback | Sentinel retains |
-| --- | --- | --- | --- |
-| Training candidates, checkpoints, evaluation | `roboflow:training-and-evaluation` | `roboflow://skills/training-and-evaluation/...` | Whether training is justified by the independent eval gap. |
-| Inference, Workflows, deployment options, live video | `roboflow:inference` | `roboflow://skills/inference/...` | Evidence, latency/data constraints, artifact kind, and delivery decision. |
-| Projects, uploads, annotation, versions, exports | `roboflow:data-management` | `roboflow://skills/data-management/...` | Dataset purpose, consent, eval linkage, and provenance. |
-| Current API/auth/SDK shapes | `roboflow:api-reference` | `roboflow://skills/api-reference/...` | Secret handling, provider boundary, and executable artifact checks. |
-| Universe datasets and public models | `roboflow:universe` | `roboflow://skills/universe/...` | Relevance, license review, and measurement on user samples. |
-| Plans, credits, and pricing | `roboflow:plans-and-pricing` | `roboflow://skills/plans-and-pricing/...` | Sourced economics, assumptions, and spend confirmation. |
-| Product navigation | `roboflow:product-navigation` | `roboflow://skills/product-navigation/...` | Only the next delivery step and return to the eval gate. |
+| Platform need                                        | First official skill               | MCP resource fallback                           | Sentinel retains                                                          |
+| ---------------------------------------------------- | ---------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------- |
+| Training candidates, checkpoints, evaluation         | `roboflow:training-and-evaluation` | `roboflow://skills/training-and-evaluation/...` | Whether training is justified by the independent eval gap.                |
+| Inference, Workflows, deployment options, live video | `roboflow:inference`               | `roboflow://skills/inference/...`               | Evidence, latency/data constraints, artifact kind, and delivery decision. |
+| Projects, uploads, annotation, versions, exports     | `roboflow:data-management`         | `roboflow://skills/data-management/...`         | Dataset purpose, consent, eval linkage, and provenance.                   |
+| Current API/auth/SDK shapes                          | `roboflow:api-reference`           | `roboflow://skills/api-reference/...`           | Secret handling, provider boundary, and executable artifact checks.       |
+| Universe datasets and public models                  | `roboflow:universe`                | `roboflow://skills/universe/...`                | Relevance, license review, and measurement on user samples.               |
+| Plans, credits, and pricing                          | `roboflow:plans-and-pricing`       | `roboflow://skills/plans-and-pricing/...`       | Sourced economics, assumptions, and spend confirmation.                   |
+| Product navigation                                   | `roboflow:product-navigation`      | `roboflow://skills/product-navigation/...`      | Only the next delivery step and return to the eval gate.                  |
 
 ## Response pattern
 

@@ -1,6 +1,6 @@
 ---
 name: check-sentinel-setup
-description: |
+description: |-
   Run an offline Sentinel package doctor and separate local installation defects from host enablement or Roboflow sign-in problems. TRIGGER when: the user asks to check, verify, diagnose, or troubleshoot a Sentinel plugin installation; run the setup doctor; find missing skills, packaged files, or Roboflow tools; or confirm Sentinel installed correctly. SKIP when: Sentinel and Roboflow work and the user wants to count boxes or solve a CV task; the package is healthy but OAuth/sign-in alone failed (auth-setup); or the request is deployment economics/crossover only (estimate-economics).
 ---
 

@@ -12,15 +12,15 @@ Read `roboflow-platform-lookup.md` for the action handshake. Validate every vola
 
 ## Candidate Categories
 
-| Need | Candidate category | Required evidence |
-| --- | --- | --- |
-| common object | general pretrained detector | relevance on user samples, license, latency |
-| custom/fine-grained object | transferable detector | baseline gap and label availability |
-| masks/contours | no-training or trainable segmenter | overlap and business measurement error on gold masks |
-| pose/gesture | keypoint model plus explicit rule/classifier | skeleton contract and event metrics |
-| whole-image verdict | no-training or trainable classifier | class balance, confusion matrix, per-class floor |
-| structured text | text/code reader | exact field match, character error, latency |
-| identity over time | detector plus association stage | identity/event/count error on clips |
+| Need                       | Candidate category                           | Required evidence                                    |
+| -------------------------- | -------------------------------------------- | ---------------------------------------------------- |
+| common object              | general pretrained detector                  | relevance on user samples, license, latency          |
+| custom/fine-grained object | transferable detector                        | baseline gap and label availability                  |
+| masks/contours             | no-training or trainable segmenter           | overlap and business measurement error on gold masks |
+| pose/gesture               | keypoint model plus explicit rule/classifier | skeleton contract and event metrics                  |
+| whole-image verdict        | no-training or trainable classifier          | class balance, confusion matrix, per-class floor     |
+| structured text            | text/code reader                             | exact field match, character error, latency          |
+| identity over time         | detector plus association stage              | identity/event/count error on clips                  |
 
 ## Selection Rules
 

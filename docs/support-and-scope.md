@@ -17,27 +17,27 @@ The entry barrier is intentionally low, but it is not zero. A safe first session
 
 ## Support tiers
 
-| Tier                   | What you may infer                                                               | What you may not infer                                                                            |
-| ---------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| **Historical evidence** | A result was recorded under its listed conditions and caveats.                   | Current-route support, independent reproducibility, production readiness, or domain transfer.      |
-| **Guided**             | A specialist workflow can frame the task, define an eval, and request artifacts. | That the route has been authenticated and completed end to end on a representative live workload. |
-| **Delegated upstream** | Sentinel can decide when current platform truth is needed and defer to it.       | That copied or remembered Roboflow API/model/pricing details are current.                         |
-| **Expert required**    | Sentinel may help structure questions and evidence.                              | That the plugin alone can authorize, validate, or sign off the work.                              |
+| Tier                    | What you may infer                                                               | What you may not infer                                                                            |
+| ----------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| **Historical evidence** | A result was recorded under its listed conditions and caveats.                   | Current-route support, independent reproducibility, production readiness, or domain transfer.     |
+| **Guided**              | A specialist workflow can frame the task, define an eval, and request artifacts. | That the route has been authenticated and completed end to end on a representative live workload. |
+| **Delegated upstream**  | Sentinel can decide when current platform truth is needed and defer to it.       | That copied or remembered Roboflow API/model/pricing details are current.                         |
+| **Expert required**     | Sentinel may help structure questions and evidence.                              | That the plugin alone can authorize, validate, or sign off the work.                              |
 
 ## Route status
 
-| Route                           | Support                                             | Evidence status                                        | Material limit                                                                           |
-| ------------------------------- | --------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| Route                           | Support                                             | Evidence status                                        | Material limit                                                                                       |
+| ------------------------------- | --------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
 | Object detection and counting   | Guided                                              | B1 records one small private historical vehicle result | Private data prevents independent reproduction; current-route and domain transfer remain unverified. |
-| Classification and flagging     | Guided                                              | B2 fixture defined                                     | No equivalent live result committed.                                                     |
-| Tracking and counting over time | Guided                                              | B3 fixture defined                                     | RTSP, identity, latency, privacy, and production state handling are not live-proven.     |
-| OCR and structured text         | Guided                                              | B4 fixture defined                                     | No equivalent live field-accuracy result committed.                                      |
-| Segmentation and measurement    | Guided; expert required for physical claims         | B5 fixture defined                                     | Pixel-to-physical calibration and domain validation are not supplied by the plugin.      |
-| Pose, gesture, and action       | Guided; expert required for consequential use       | Skill route exists                                     | No equivalent live benchmark; safety and fairness review remain external.                |
-| Multi-step pipelines            | Guided; expert required for production architecture | Decomposition route exists                             | Cross-stage error propagation and operations are not broadly benchmarked.                |
-| Economics                       | Guided                                              | Reproducible deployment calculator and dated snapshots | Annotation/training inputs may be assumptions; prices can become stale.                  |
-| Roboflow platform operations    | Delegated upstream                                  | MCP configuration exists                               | Exact tools, models, Workflows, plans, pricing, and account behavior are upstream.       |
-| Delivery and integration        | Guided                                              | Artifact and handoff validators exist                  | Real hosted/offline consumer smokes and production operations remain environment-specific. |
+| Classification and flagging     | Guided                                              | B2 fixture defined                                     | No equivalent live result committed.                                                                 |
+| Tracking and counting over time | Guided                                              | B3 fixture defined                                     | RTSP, identity, latency, privacy, and production state handling are not live-proven.                 |
+| OCR and structured text         | Guided                                              | B4 fixture defined                                     | No equivalent live field-accuracy result committed.                                                  |
+| Segmentation and measurement    | Guided; expert required for physical claims         | B5 fixture defined                                     | Pixel-to-physical calibration and domain validation are not supplied by the plugin.                  |
+| Pose, gesture, and action       | Guided; expert required for consequential use       | Skill route exists                                     | No equivalent live benchmark; safety and fairness review remain external.                            |
+| Multi-step pipelines            | Guided; expert required for production architecture | Decomposition route exists                             | Cross-stage error propagation and operations are not broadly benchmarked.                            |
+| Economics                       | Guided                                              | Reproducible deployment calculator and dated snapshots | Annotation/training inputs may be assumptions; prices can become stale.                              |
+| Roboflow platform operations    | Delegated upstream                                  | MCP configuration exists                               | Exact tools, models, Workflows, plans, pricing, and account behavior are upstream.                   |
+| Delivery and integration        | Guided                                              | Artifact and handoff validators exist                  | Real hosted/offline consumer smokes and production operations remain environment-specific.           |
 
 ## Claim register
 

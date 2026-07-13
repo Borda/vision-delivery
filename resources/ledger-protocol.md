@@ -21,17 +21,17 @@ Every JSON Lines record contains:
 }
 ```
 
-| Field       | Contract                                                                 |
-| ----------- | ------------------------------------------------------------------------ |
+| Field       | Contract                                                                   |
+| ----------- | -------------------------------------------------------------------------- |
 | `ts`        | ISO 8601 UTC                                                               |
-| `session`   | Stable session slug                                                       |
-| `skill`     | Owning skill or `hook`                                                    |
-| `action`    | Canonical lowercase action                                                |
-| `entity_id` | Provider entity path when known; empty for local-only actions             |
-| `version`   | Installed plugin version                                                  |
+| `session`   | Stable session slug                                                        |
+| `skill`     | Owning skill or `hook`                                                     |
+| `action`    | Canonical lowercase action                                                 |
+| `entity_id` | Provider entity path when known; empty for local-only actions              |
+| `version`   | Installed plugin version                                                   |
 | `event_id`  | Idempotency key; identical real actions must reuse the same value          |
 | `status`    | `attempted`, `success`, `failed`, `timeout`, `cancelled`, or `unknown`     |
-| `source`    | `hook`, `skill`, or `import`                                              |
+| `source`    | `hook`, `skill`, or `import`                                               |
 | `notes`     | Non-secret evidence; include acceptance ID and measured values when useful |
 
 Unknown is never success. `attempted` and `unknown` prove only that work was requested or could not be classified. Reports must count successful training or deployment only when the canonical event has `status: success`.
@@ -59,10 +59,10 @@ Example after resolving both absolute paths:
 
 ```bash
 python3 "/absolute/plugin/root/scripts/ledger_append.py" \
-  --ledger "/absolute/user/project/.vision-delivery/ledger.jsonl" \
-  --session "SESSION" --skill "SKILL" --action "ACTION" \
-  --entity-id "ENTITY" --event-id "manual:SESSION:ACTION:ORDINAL" \
-  --status "success" --source "skill" --notes "NON_SECRET_EVIDENCE"
+    --ledger "/absolute/user/project/.vision-delivery/ledger.jsonl" \
+    --session "SESSION" --skill "SKILL" --action "ACTION" \
+    --entity-id "ENTITY" --event-id "manual:SESSION:ACTION:ORDINAL" \
+    --status "success" --source "skill" --notes "NON_SECRET_EVIDENCE"
 ```
 
 Use a monotonically increasing local ordinal, artifact digest, or another stable non-secret discriminator in manual `event_id` values. Reuse the event ID when retrying the same logical append. Never use `echo`, shell interpolation of free-form values, or a repository-relative `python scripts/...` command.

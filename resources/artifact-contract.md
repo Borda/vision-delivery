@@ -58,23 +58,27 @@ python /absolute/path/to/inference.py --self-test
 Before claiming completion:
 
 1. Install the documented dependencies in a clean environment.
+
 2. Run the helper from the absolute path derived from this loaded file:
 
    ```bash
    python /absolute/plugin/root/resources/scripts/artifact_smoke.py \
-     /absolute/path/to/inference.py \
-     --expect-json /absolute/path/to/expected-self-test.json
+       /absolute/path/to/inference.py \
+       --expect-json /absolute/path/to/expected-self-test.json
    ```
 
 3. The helper runs `--help` and `--self-test` from an arbitrary fresh working directory, scans source for embedded secret assignments, and compares output with the exact expected JSON.
+
 4. Run one live-path smoke on representative user media. For `hosted-client`, obtain explicit data-movement approval first. For `local-runtime`, disable network during the acceptance run.
+
 5. Record dependency versions, command, exit status, and output location in `RUN.md` and the delivery handoff.
+
 6. Validate the final handoff before reporting delivery:
 
    ```bash
    python /absolute/plugin/root/resources/scripts/validate_delivery_handoff.py \
-     /absolute/path/to/.vision-delivery/delivery-handoff-<session>.json \
-     --project-root /absolute/path/to/project
+       /absolute/path/to/.vision-delivery/delivery-handoff-<session>.json \
+       --project-root /absolute/path/to/project
    ```
 
 The artifact helper injects a Python network guard for both checks and strips credential-shaped environment variables. A self-test that attempts DNS or socket access fails. This is an executable Python boundary, not an operating-system sandbox; non-Python child processes remain outside the helper's guarantee and must not be used by `--self-test`.

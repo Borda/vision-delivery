@@ -111,12 +111,12 @@ Read [Trust and Safety](trust.md) and the repository [security policy](https://g
 
 ## Continue
 
-| Need                                  | Read                                                                            |
-| ------------------------------------- | ------------------------------------------------------------------------------- |
-| Exact first-session commands          | [Quick Start](quickstart.md)                                                    |
-| Pick the right output route           | [Use Cases](use-cases.md)                                                       |
-| Understand the delivery sequence      | [Workflow](workflow.md)                                                         |
-| Check claims and limitations          | [Support, Scope, and Evidence](support-and-scope.md)                            |
-| Separate Sentinel from platform truth | [Roboflow Skills Integration](roboflow-skills.md)                               |
-| Interpret current proof               | [Benchmarks](benchmarks/index.md)                                               |
+| Need                                  | Read                                                                                    |
+| ------------------------------------- | --------------------------------------------------------------------------------------- |
+| Exact first-session commands          | [Quick Start](quickstart.md)                                                            |
+| Pick the right output route           | [Use Cases](use-cases.md)                                                               |
+| Understand the delivery sequence      | [Workflow](workflow.md)                                                                 |
+| Check claims and limitations          | [Support, Scope, and Evidence](support-and-scope.md)                                    |
+| Separate Sentinel from platform truth | [Roboflow Skills Integration](roboflow-skills.md)                                       |
+| Interpret current proof               | [Benchmarks](benchmarks/index.md)                                                       |
 | Get community help                    | [Support policy](https://github.com/Borda/vision-delivery/blob/main/.github/SUPPORT.md) |

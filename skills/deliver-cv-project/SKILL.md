@@ -11,7 +11,7 @@ Deliver a previously evaluated CV capability as a replayable artifact and an exp
 
 </objective>
 
-<entry_gate>
+\<entry_gate>
 
 Read existing code, model metadata, `.vision-delivery/eval-*.md`, ledger rows, generated artifacts, and sample outputs before asking questions.
 
@@ -30,7 +30,7 @@ For a novice request such as “make this useful in my factory,” ask at most t
 - “Where do the images come from: files, an application, or a live camera?”
 - “Must data stay on this machine, or may it go to a hosted service?”
 
-</entry_gate>
+\</entry_gate>
 
 <methodology>
 
@@ -40,12 +40,12 @@ For a novice request such as “make this useful in my factory,” ask at most t
 
 Classify the requested outcome:
 
-| Outcome | Artifact kind | Required proof |
-| --- | --- | --- |
-| Calls a hosted provider endpoint | `hosted-client` | current upstream client shape, approved data movement, live request smoke |
-| Runs exported weights on the user's machine | `local-runtime` | current upstream export, dependency lock, offline inference smoke |
-| Contract only; transport/model unavailable | `scaffold` | deterministic self-test plus explicit missing live check |
-| Managed service/device configuration | provider-managed handoff plus client kind | economic/spend consent, upstream status evidence, consumer smoke |
+| Outcome                                     | Artifact kind                             | Required proof                                                            |
+| ------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------- |
+| Calls a hosted provider endpoint            | `hosted-client`                           | current upstream client shape, approved data movement, live request smoke |
+| Runs exported weights on the user's machine | `local-runtime`                           | current upstream export, dependency lock, offline inference smoke         |
+| Contract only; transport/model unavailable  | `scaffold`                                | deterministic self-test plus explicit missing live check                  |
+| Managed service/device configuration        | provider-managed handoff plus client kind | economic/spend consent, upstream status evidence, consumer smoke          |
 
 Never call a hosted client local inference. Never call exported weights a local runtime until they load and infer with networking disabled.
 
@@ -107,10 +107,21 @@ Write `.vision-delivery/delivery-handoff-<session>.json`:
   "output_schema": {},
   "provider_dependency": "<name or none>",
   "data_boundary": "<local or approved destination>",
-  "commands": {"self_test": "<command>", "live": "<command>"},
-  "checks": {"self_test": "passed", "live_or_offline": "passed|not-run"},
-  "rollback": {"target": "<version>", "owner": "<person/team>"},
-  "monitoring": {"status": "verified|external|not-configured"},
+  "commands": {
+    "self_test": "<command>",
+    "live": "<command>"
+  },
+  "checks": {
+    "self_test": "passed",
+    "live_or_offline": "passed|not-run"
+  },
+  "rollback": {
+    "target": "<version>",
+    "owner": "<person/team>"
+  },
+  "monitoring": {
+    "status": "verified|external|not-configured"
+  },
   "remaining_external_checks": []
 }
 ```
@@ -125,7 +136,7 @@ Follow `../../resources/ledger-protocol.md`. After the artifact checks pass, man
 
 </ledger>
 
-<stop_rules>
+\<stop_rules>
 
 - No independent acceptance for the selected version → return to the modality skill.
 - Missing current upstream platform truth → emit only a scaffold and the exact dependency needed.
@@ -133,4 +144,4 @@ Follow `../../resources/ledger-protocol.md`. After the artifact checks pass, man
 - Paid or destructive action lacks sourced impact and explicit current-turn consent → stop before the action.
 - Live/offline smoke not run → do not call delivery complete.
 
-</stop_rules>
+\</stop_rules>
