@@ -506,6 +506,25 @@ def render_text(
     result: dict[str, Any], args: argparse.Namespace, stale_days: int | None
 ) -> str:
     """Render the human-readable report with per-line source provenance."""
+    lines = _render_diy_section(result, args, stale_days)
+    lines.extend(_render_managed_section(result, args))
+    lines.extend(_render_decision_section(result, args))
+    return "\n".join(lines)
+
+
+def _render_diy_section(
+    result: dict[str, Any], args: argparse.Namespace, stale_days: int | None
+) -> list[str]:
+    """Render the header and self-host cost lines.
+
+    Args:
+        result: Computed cost-model result.
+        args: Parsed CLI namespace.
+        stale_days: Snapshot age in days, or None when unknown.
+
+    Returns:
+        Report lines for the DIY section.
+    """
     diy = result["diy"]
     src = result["sources"]
     as_of = result["as_of"]
@@ -552,7 +571,23 @@ def render_text(
         + f"~${diy['total_run_rate_mo']:,.0f}/mo + ${diy['setup_one_time']:,.0f} one-time"
     )
     lines.append("")
+    return lines
 
+
+def _render_managed_section(
+    result: dict[str, Any], args: argparse.Namespace
+) -> list[str]:
+    """Render the managed-offer comparison lines.
+
+    Args:
+        result: Computed cost-model result.
+        args: Parsed CLI namespace.
+
+    Returns:
+        Report lines for the managed section.
+    """
+    src = result["sources"]
+    lines: list[str] = []
     managed = result["managed"]
     managed_src_label = managed["source"]
     if managed["total_mo"] is None:
@@ -577,6 +612,26 @@ def render_text(
         "dedicated GPU = Enterprise."
     )
     lines.append("")
+    return lines
+
+
+def _render_decision_section(
+    result: dict[str, Any], args: argparse.Namespace
+) -> list[str]:
+    """Render crossover, recommendation, scaling cliff, and source lines.
+
+    Args:
+        result: Computed cost-model result.
+        args: Parsed CLI namespace.
+
+    Returns:
+        Report lines for the decision section.
+    """
+    diy = result["diy"]
+    src = result["sources"]
+    managed = result["managed"]
+    managed_src_label = managed["source"]
+    lines: list[str] = []
 
     # Crossover sentence.
     if result["recommendation"] == "insufficient-data":
@@ -623,7 +678,7 @@ def render_text(
         "All inputs editable — pass a dated managed quote, --override-gpu-spot, "
         "or --override-engineer with corrected values."
     )
-    return "\n".join(lines)
+    return lines
 
 
 # --------------------------------------------------------------------------- #
@@ -717,6 +772,18 @@ def _validate(args: argparse.Namespace) -> None:
             raise CostModelError(f"{name} must be finite")
         if val < 0:
             raise CostModelError(f"{name} must be >= 0")
+    _validate_managed_quote(args)
+
+
+def _validate_managed_quote(args: argparse.Namespace) -> None:
+    """Require a dated, non-future managed quote when one is supplied.
+
+    Args:
+        args: Parsed CLI namespace.
+
+    Raises:
+        CostModelError: If the quote/date pairing or the date itself is invalid.
+    """
     if args.managed_usd_mo is None and args.managed_quote_as_of is not None:
         raise CostModelError("--managed-quote-as-of requires --managed-usd-mo")
     if args.managed_usd_mo is not None and args.managed_quote_as_of is None:

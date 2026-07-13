@@ -36,6 +36,8 @@ Generate a small artifact directory rather than a context-free snippet:
 - acceptance ID and the evaluated model/data version;
 - whether live-path and offline-path smokes passed.
 
+The smoke validator greps `RUN.md` for these literal field labels (case-insensitive): `artifact kind`, `provider dependency`, `python`, `install`, `live command`, `output schema`, `data movement`, `environment variables`, `acceptance id`, `model/data version`, `smoke status`. Each label must appear verbatim; a `RUN.md` that paraphrases them fails `artifact_smoke.py`.
+
 ## Secret And Path Rules
 
 - Read each secret named by current upstream guidance with `os.environ`; never freeze a provider-specific credential name or put a key, token, placeholder key, or query-secret literal in source, examples, output, or exception messages.

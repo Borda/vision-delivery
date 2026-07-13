@@ -23,6 +23,8 @@ The dataset is not distributed by this repository. Independent reproduction, lic
 | Zero-shot baseline   | torchvision Faster R-CNN ResNet50 FPN, COCO |   3.0% | not recorded here | not recorded here | 1.39 per class/image overall |
 | Post-training record | RF-DETR medium, 23 epochs                   |  84.6% |             92.8% |             76.1% |            not recorded here |
 
+Zero-shot per-class Count MAE breakdown (recorded 2026-06-25): car 1.82, motorcycle 1.36, truck 1.00 per image. A Roboflow hosted COCO model (`coco-detection-ei0ii/4`) was also recorded at 0% mAP@50 on the same split, misclassifying vehicles as unrelated COCO classes — consistent with the ground-level/aerial distribution mismatch.
+
 The fixture document records a 65% mAP@50 gate. That value is a benchmark assumption, not a generally valid business threshold. Count MAE was not recorded for the post-training result, so the count objective cannot be declared passed from mAP alone.
 
 A Roboflow deployment path was recorded at the time of the run. Current endpoint availability, credentials, service behavior, and deployment status have not been reverified for this page.

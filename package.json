@@ -9,7 +9,7 @@
   "name": "sentinel-plugin-quality",
   "private": true,
   "scripts": {
-    "lint:js": "eslint hooks/cta.js"
+    "lint:js": "eslint ."
   },
   "version": "0.2.0"
 }

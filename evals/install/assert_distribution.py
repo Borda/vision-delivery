@@ -10,8 +10,20 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
-VERSION = "0.2.0"
 MCP_URL = "https://mcp.roboflow.com/mcp"
+
+
+def canonical_version() -> str:
+    """Read the release version from the canonical Claude manifest.
+
+    Examples:
+        >>> isinstance(canonical_version(), str)
+        True
+    """
+    version = read_object(".claude-plugin/plugin.json").get("version")
+    if not isinstance(version, str) or not re.fullmatch(r"\d+\.\d+\.\d+", version):
+        raise DistributionError(".claude-plugin/plugin.json version must be semver")
+    return version
 
 
 class DistributionError(RuntimeError):
@@ -38,6 +50,7 @@ def require(condition: bool, message: str) -> None:
 
 def validate_distribution() -> None:
     """Validate synchronized manifests, marketplaces, and OAuth-only MCP config."""
+    version = canonical_version()
     codex = read_object(".codex-plugin/plugin.json")
     claude = read_object(".claude-plugin/plugin.json")
     codex_marketplace = read_object(".agents/plugins/marketplace.json")
@@ -49,7 +62,7 @@ def validate_distribution() -> None:
         require(
             manifest.get("name") == "sentinel", f"{host} plugin name must be sentinel"
         )
-        require(manifest.get("version") == VERSION, f"{host} version must be {VERSION}")
+        require(manifest.get("version") == version, f"{host} version must be {version}")
         require(manifest.get("skills") == "./skills/", f"{host} skills path drifted")
         require(manifest.get("mcpServers") == "./.mcp.json", f"{host} MCP path drifted")
 
@@ -81,7 +94,7 @@ def validate_distribution() -> None:
     )
     require(claude_entry.get("source") == "./", "Claude marketplace source must be ./")
     require(
-        claude_entry.get("version") == VERSION, "Claude marketplace version drifted"
+        claude_entry.get("version") == version, "Claude marketplace version drifted"
     )
 
     codex_entries = codex_marketplace.get("plugins")

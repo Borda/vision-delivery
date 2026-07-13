@@ -141,18 +141,16 @@ def parse_args() -> argparse.Namespace:
     return args
 
 
-def main() -> None:
-    """Measure the zero-shot baseline without changing the acceptance target."""
-    args = parse_args()
-    print("=== B1 Baseline: FasterRCNN COCO zero-shot on Cars test split ===\n")
+def _load_export(export_url: str) -> tuple:
+    """Download the COCO export and index the test split.
 
-    export_url = args.export_url
-    if not export_url:
-        sys.exit(
-            "ERROR: set ROBOFLOW_EXPORT_URL or pass --export-url. "
-            "Use the current platform export flow to obtain the private URL."
-        )
+    Args:
+        export_url: Private export URL; treated as a secret.
 
+    Returns:
+        Tuple of (zip file, member names, images by id, category names by id,
+        ground-truth annotations by image id, annotation count).
+    """
     print("Downloading COCO export...")
     r = requests.get(export_url, timeout=90)
     r.raise_for_status()
@@ -175,7 +173,28 @@ def main() -> None:
     print(
         f"  Images: {len(images_meta)}, annotations: {len(ann_data['annotations'])}\n"
     )
+    return zf, names, images_meta, categories, gt_by_image, len(ann_data["annotations"])
 
+
+def _collect_detections(
+    zf: zipfile.ZipFile,
+    names: list,
+    images_meta: dict,
+    categories: dict,
+    gt_by_image: dict,
+) -> tuple:
+    """Run zero-shot inference over the test split and accumulate records.
+
+    Args:
+        zf: Opened export archive.
+        names: Archive member names.
+        images_meta: Image metadata by image id.
+        categories: Category names by category id.
+        gt_by_image: Ground-truth annotations by image id.
+
+    Returns:
+        Tuple of (ground-truth records, prediction records, per-class count errors).
+    """
     print("Loading FasterRCNN (COCO pretrained)...")
     weights = FasterRCNN_ResNet50_FPN_Weights.COCO_V1
     model = fasterrcnn_resnet50_fpn(weights=weights)
@@ -237,6 +256,27 @@ def main() -> None:
 
         print(f"  {fname.split('/')[-1]}: gt={len(gt_boxes)} pred={len(pred_boxes)}")
 
+    return all_gt, all_pred, count_errors
+
+
+def _report_and_write(
+    args: argparse.Namespace,
+    all_gt: list,
+    all_pred: list,
+    count_errors: dict,
+    n_images: int,
+    n_annotations: int,
+) -> None:
+    """Compute metrics against the pre-registered target and persist the result.
+
+    Args:
+        args: Parsed CLI namespace (acceptance target and output path).
+        all_gt: Ground-truth records per image.
+        all_pred: Prediction records per image.
+        count_errors: Absolute per-class count errors per image.
+        n_images: Number of test images.
+        n_annotations: Number of ground-truth annotations.
+    """
     map50 = compute_map50(all_gt, all_pred)
     all_errs = [e for errs in count_errors.values() for e in errs]
     count_mae = float(np.mean(all_errs)) if all_errs else 0.0
@@ -257,8 +297,8 @@ def main() -> None:
         "fixture": "sandbox-ibs0b/cars-jnnoy-mmrcu/1",
         "problem": "Vehicle detection (car/motorcycle/truck) — aerial/overhead view",
         "model": "fasterrcnn_resnet50_fpn (COCO pretrained, zero-shot)",
-        "test_images": len(images_meta),
-        "annotations": len(ann_data["annotations"]),
+        "test_images": n_images,
+        "annotations": n_annotations,
         "conf_threshold": CONF_THRESH,
         "iou_threshold": IOU_THRESH,
         "map50": round(map50, 4),
@@ -277,6 +317,28 @@ def main() -> None:
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, indent=2), encoding="utf-8")
     print(f"\nWritten → {args.output}")
+
+
+def main() -> None:
+    """Measure the zero-shot baseline without changing the acceptance target."""
+    args = parse_args()
+    print("=== B1 Baseline: FasterRCNN COCO zero-shot on Cars test split ===\n")
+
+    if not args.export_url:
+        sys.exit(
+            "ERROR: set ROBOFLOW_EXPORT_URL or pass --export-url. "
+            "Use the current platform export flow to obtain the private URL."
+        )
+
+    zf, names, images_meta, categories, gt_by_image, n_annotations = _load_export(
+        args.export_url
+    )
+    all_gt, all_pred, count_errors = _collect_detections(
+        zf, names, images_meta, categories, gt_by_image
+    )
+    _report_and_write(
+        args, all_gt, all_pred, count_errors, len(images_meta), n_annotations
+    )
 
 
 if __name__ == "__main__":

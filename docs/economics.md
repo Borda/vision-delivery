@@ -24,6 +24,8 @@ Separate measured inputs from assumptions and show the managed-vs-DIY crossover.
 
 This avoids relying on host-specific slash-command namespaces. The installed `estimate-economics` skill should route the request.
 
+Where the host exposes skill commands directly, `/sentinel:estimate-economics` (Claude Code) or `$estimate-economics` (Codex) invoke the same skill without prompt routing.
+
 Use it when:
 
 - the eval has passed,
