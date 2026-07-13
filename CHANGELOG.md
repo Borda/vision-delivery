@@ -2,9 +2,9 @@
 
 All notable changes to Sentinel are recorded here. This project uses semantic versioning; see the [release policy](docs/release-policy.md).
 
-## Unreleased
+## 0.2.0 (unreleased)
 
-The plugin manifests currently target version `0.2.0`. This section does not assert that a remote tag, marketplace release, or GitHub release has been published.
+The repository manifests, package metadata, citation metadata, runtime ledger records, and documentation examples target version `0.2.0`. This entry does not assert that a remote tag, marketplace release, or GitHub release has been published.
 
 ### Changed
 

@@ -126,6 +126,12 @@ repos:
 
   - repo: local
     hooks:
+      - id: sentinel-version-sync
+        name: 🔢 Sentinel version sync
+        language: system
+        entry: python3 scripts/check_versions.py
+        pass_filenames: false
+        always_run: true
       - id: no-hardcoded-user-paths
         name: 🚫 No hardcoded user paths
         language: pygrep

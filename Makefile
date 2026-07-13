@@ -1,4 +1,4 @@
-.PHONY: ci lint js-lint format types eval eval-install eval-doctor eval-trigger eval-entrypoints eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-decision-report eval-trigger-live eval-ab-smoke
+.PHONY: ci lint js-lint format types eval eval-version eval-install eval-doctor eval-trigger eval-entrypoints eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-decision-report eval-trigger-live eval-ab-smoke
 
 ci: lint js-lint format types eval
 
@@ -14,7 +14,10 @@ format:
 types:
 	python3 -m mypy scripts evals resources/scripts
 
-eval: eval-install eval-doctor eval-trigger eval-entrypoints eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-decision-report
+eval: eval-version eval-install eval-doctor eval-trigger eval-entrypoints eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-decision-report
+
+eval-version:
+	python3 scripts/check_versions.py
 
 eval-install:
 	python3 evals/install/assert_distribution.py
