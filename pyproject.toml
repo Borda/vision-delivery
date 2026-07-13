@@ -1,0 +1,17 @@
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+extend-exclude = ["evals/ab/runs"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.10"
+check_untyped_defs = true
+ignore_missing_imports = true
+no_implicit_optional = true
+show_error_codes = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+exclude = ["evals/ab/runs/"]

@@ -1,6 +1,26 @@
-.PHONY: eval eval-trigger eval-entrypoints eval-cost-model eval-platform-routing eval-hooks eval-trigger-live eval-ab-smoke eval-e2e
+.PHONY: ci lint js-lint format types eval eval-install eval-doctor eval-trigger eval-entrypoints eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-decision-report eval-trigger-live eval-ab-smoke
 
-eval: eval-trigger eval-entrypoints eval-cost-model eval-platform-routing eval-hooks eval-e2e
+ci: lint js-lint format types eval
+
+lint:
+	ruff check .
+
+js-lint:
+	npm run lint:js
+
+format:
+	ruff format --check .
+
+types:
+	python3 -m mypy scripts evals resources/scripts
+
+eval: eval-install eval-doctor eval-trigger eval-entrypoints eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-decision-report
+
+eval-install:
+	python3 evals/install/assert_distribution.py
+
+eval-doctor:
+	python3 evals/install/assert_doctor.py
 
 eval-trigger:  # description lint (vocabulary coverage) — real routing = eval-trigger-live
 	python3 evals/trigger/run.py
@@ -25,5 +45,14 @@ eval-platform-routing:
 eval-hooks:
 	node evals/hooks/cta_smoke.mjs
 
-eval-e2e:
-	@echo "eval-e2e: no executable harness yet — see evals/e2e/*.e2e.md for manual steps (M-later)"
+eval-ledger:
+	python3 evals/ledger/assert_ledger.py
+
+eval-methodology:
+	python3 evals/methodology/assert_methodology_contracts.py
+
+eval-artifacts:
+	python3 evals/artifacts/assert_artifact_contracts.py
+
+eval-decision-report:
+	python3 evals/decision-report/assert_contract.py
