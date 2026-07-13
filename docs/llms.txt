@@ -1,51 +1,70 @@
-# vision-delivery
+# Sentinel / vision-delivery
 
-> Eval-first Codex and Claude Code plugin for turning vague computer-vision requests into measured Roboflow proofs, local artifacts, paid-action guardrails, and CV economics decisions.
+> Business-first computer-vision delivery copilot for Codex and Claude Code. It translates an operational request into a CV task, success gate, cheapest baseline, inspectable proof plan, and evidence-bound economics decision.
 
-Use this file to orient LLMs and coding agents. Prefer the docs and repository links below over inferred behavior. The project is a plugin, not a model. Its claim is process discipline: define the eval first, measure a baseline before training, confirm before paid actions, and record provenance.
+Sentinel is a plugin and workflow layer, not a model, security boundary, autonomous deployer, or production certifier. A user can begin without CV vocabulary but must provide or confirm data authority, business outcome, representative examples, error consequences, and human ownership. No independent novice outcome study exists.
 
-## Primary Docs
+## Support contract
 
-- [Documentation home](https://borda.github.io/vision-delivery/): Value proposition, quick start, features, workflow, use cases, economics, security, and agent map.
-- [Quick start](https://borda.github.io/vision-delivery/quickstart/): Codex and Claude Code install, key setup, first prompt, and expected first-session behavior.
-- [Use cases](https://borda.github.io/vision-delivery/use-cases/): Route selection for detection, classification, tracking, OCR, segmentation, pose, pipelines, and economics.
-- [Workflow](https://borda.github.io/vision-delivery/workflow/): Eval-first sequence from context reading through baseline, proof artifacts, economics, and ledger records.
-- [CV economics](https://borda.github.io/vision-delivery/economics/): Annotation, training, deployment, and managed-vs-DIY economics with assumption boundaries.
-- [Roboflow skills integration](https://borda.github.io/vision-delivery/roboflow-skills/): When to use vision-delivery, Roboflow MCP tools, Roboflow's official computer-vision-skills plugin, or MCP skill resources, and why platform recipes should not be copied here.
-- [Trust and safety](https://borda.github.io/vision-delivery/trust/): API keys, prose-enforced paid-action gates, local ledger behavior, pricing provenance, and evidence boundaries.
-- [FAQ](https://borda.github.io/vision-delivery/faq/): Short answers for humans, search engines, and agents.
-- [Benchmark overview](https://borda.github.io/vision-delivery/benchmarks/): Evidence matrix and claim boundaries.
-- [B1 measured benchmark](https://borda.github.io/vision-delivery/benchmarks/b1-conveyor-detect/): Measured object detection/counting path with post-train result and caveats.
-- [Repository](https://github.com/Borda/vision-delivery): Source code, plugin manifests, skills, hooks, scripts, and evals.
+- **Historical evidence:** one pre-v0.2 Claude/Sonnet routing run, one directional mocked process A/B, and one small private detection result; none is a current support guarantee.
+- **Guided:** detection, classification, tracking, OCR, segmentation, pose/gesture, pipelines, delivery, and economics have workflow routes but not equivalent live evidence.
+- **Delegated upstream:** current Roboflow MCP semantics, models, Workflows, plans, pricing, and navigation belong to official Roboflow sources.
+- **Expert required:** regulated/safety-critical work, people surveillance, medical use, physical measurement, production streaming/edge architecture, governance, and final acceptance.
 
-## Install
+## Verified invocation
 
-- [Codex plugin source](https://github.com/Borda/vision-delivery/tree/main/.codex-plugin): Codex plugin manifest.
-- [Claude plugin source](https://github.com/Borda/vision-delivery/tree/main/.claude-plugin): Claude Code plugin manifest.
-- [Roboflow MCP config](https://github.com/Borda/vision-delivery/blob/main/.mcp.json): MCP server configuration; requires `ROBOFLOW_API_KEY` in the host environment.
-- [Roboflow official skills](https://github.com/roboflow/computer-vision-skills): Use installed local skills first for product/API truth, platform navigation, Workflows, model IDs, inference modes, training options, plans, and pricing references. If not installed, use Roboflow MCP skill resources such as `roboflow://skills/...` when the client exposes them.
+Codex:
 
-## Canonical Skills
+```bash
+codex plugin marketplace add https://github.com/Borda/vision-delivery
+codex plugin add sentinel@sentinel
+```
 
-- [solve-cv-task](https://github.com/Borda/vision-delivery/tree/main/skills/solve-cv-task): Canonical CV task router and orchestrator.
-- [estimate-economics](https://github.com/Borda/vision-delivery/tree/main/skills/estimate-economics): CV economics recipe for annotation, training, deployment run-rate, and managed-vs-DIY decisions.
-- [detect-and-analyze](https://github.com/Borda/vision-delivery/tree/main/skills/detect-and-analyze): Object detection, counting, per-class metrics, and local proof artifacts.
-- [classify-or-flag](https://github.com/Borda/vision-delivery/tree/main/skills/classify-or-flag): Image-level pass/fail and compliance workflows.
-- [track-and-count](https://github.com/Borda/vision-delivery/tree/main/skills/track-and-count): Video tracking, dwell time, and line-cross counts.
-- [read-text](https://github.com/Borda/vision-delivery/tree/main/skills/read-text): OCR and structured text extraction.
-- [segment-and-analyze](https://github.com/Borda/vision-delivery/tree/main/skills/segment-and-analyze): Masks, contours, and area/width measurement.
-- [recognize-pose-or-gesture](https://github.com/Borda/vision-delivery/tree/main/skills/recognize-pose-or-gesture): Keypoints, posture, gesture, and action recognition.
+Claude Code:
 
-## Evidence Boundaries
+```bash
+claude plugin marketplace add Borda/vision-delivery
+claude plugin install sentinel@sentinel
+```
 
-- B1 has measured evidence.
-- B2-B5 are fixture-defined and pending live measurements.
-- Plugin-vs-plain-agent comparison is a process-efficiency claim, not a model-quality claim.
-- vision-delivery can replace delivery-workflow guidance, but it should defer to installed Roboflow skills or MCP skill resources for platform-reference details.
-- Deployment run-rate comes from `scripts/cost_model.py` and committed pricing snapshots; annotation and training costs must be project-backed or explicitly marked as assumptions.
+No credential environment variable is required for plugin installation. When the host or account requires it, using the MCP capability requests hosted authorization; an existing authorized session may need no prompt. The v0.2 package passed local clean-home marketplace simulations, but its public-GitHub install remains unverified until publication and retest. Use `claude --plugin-dir .` only for local development from a checkout. Cursor support is unverified. Never paste credentials into chat or commit them.
 
-## Optional
+## Evidence limits
 
-- [Full LLM context](https://borda.github.io/vision-delivery/llms-full.txt): Longer project-convention context file for agents with larger context windows.
-- [Security policy](https://github.com/Borda/vision-delivery/blob/main/SECURITY.md): Vulnerability reporting and key-handling expectations.
-- [Trigger evals](https://github.com/Borda/vision-delivery/tree/main/evals/trigger): Structural trigger coverage for skill frontmatter.
+- Routing: 143 prompts in one pre-v0.2 Claude Sonnet run; precision 0.94, recall 0.85, 4 false positives, 11 false negatives. It excludes the delivery/setup routes and is not current-route, Codex, or task-completion evidence.
+- Synthetic A/B: 16 mocked runs, N=1 per cell; 1 supported, 6 mixed/parity, 1 loss; developer contamination and live confirmation gap.
+- B1: 11 private test images; no controlled plain comparator, no public independent reproduction, post-train count MAE absent, conveyor proxy equivalence unverified.
+- B2-B5: specifications only; live results pending.
+- Generated scripts, IDs, eval files, and ledger rows require inspection and execution.
+- Paid-action consent is an instruction, not a hard block. Ledger coverage is best-effort and not independent proof.
+
+## Primary docs
+
+- [Home](https://borda.github.io/vision-delivery/)
+- [Quick start](https://borda.github.io/vision-delivery/quickstart/)
+- [Support, scope, and evidence](https://borda.github.io/vision-delivery/support-and-scope/)
+- [Use cases](https://borda.github.io/vision-delivery/use-cases/)
+- [Workflow](https://borda.github.io/vision-delivery/workflow/)
+- [Roboflow skills integration](https://borda.github.io/vision-delivery/roboflow-skills/)
+- [Trust and safety](https://borda.github.io/vision-delivery/trust/)
+- [Benchmarks](https://borda.github.io/vision-delivery/benchmarks/)
+- [Support policy](https://github.com/Borda/vision-delivery/blob/main/.github/SUPPORT.md)
+- [Compatibility](https://borda.github.io/vision-delivery/compatibility/)
+- [Release policy](https://borda.github.io/vision-delivery/release-policy/)
+- [Security](https://github.com/Borda/vision-delivery/blob/main/.github/SECURITY.md)
+
+## Canonical routes
+
+- `solve-cv-task`: task router and orchestrator.
+- `detect-and-analyze`: boxes and counts.
+- `classify-or-flag`: image/frame labels.
+- `track-and-count`: identity, events, and dwell.
+- `read-text`: OCR and structured fields.
+- `segment-and-analyze`: masks and calibrated measurement questions.
+- `recognize-pose-or-gesture`: keypoints and actions.
+- `decompose-to-pipeline`: typed multi-stage handoffs.
+- `estimate-economics`: project/run-rate assumptions and decisions.
+- `deliver-cv-project`: verified packaging, integration, consumer smoke, monitoring status, and rollback for an accepted capability.
+- `check-sentinel-setup`: offline package doctor that separates install, host enablement, and hosted authorization.
+
+Prefer installed official [Roboflow computer-vision skills](https://github.com/roboflow/computer-vision-skills), then exposed `roboflow://skills/...` resources, for current platform truth.

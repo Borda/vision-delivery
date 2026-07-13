@@ -15,11 +15,14 @@ It is deliberately not a sales flow. It can recommend managed deployment, DIY se
 
 ## When To Invoke
 
-Invoke economics directly:
+Use a host-independent prompt:
 
 ```text
-/sentinel:estimate-economics
+Estimate the annotation, training, and deployment economics for this CV project.
+Separate measured inputs from assumptions and show the managed-vs-DIY crossover.
 ```
+
+This avoids relying on host-specific slash-command namespaces. The installed `estimate-economics` skill should route the request.
 
 Use it when:
 

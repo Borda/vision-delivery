@@ -1,63 +1,63 @@
 ---
-description: Security, paid-action guardrails, local ledger behavior, pricing provenance, and evidence boundaries for vision-delivery.
+description: Sentinel credentials, data flow, permissions, paid-action consent, ledger semantics, sensitive-use gates, and evidence limits.
 title: Trust And Safety
 ---
 
 # Trust And Safety
 
-`vision-delivery` touches API keys, paid Roboflow actions, local artifacts, and cost assumptions. The safety model is part of the product.
+Sentinel is an agent workflow with project tools and a third-party MCP service. It is not a security boundary, authorization system, or autonomous production approver.
 
-## API Keys
+## Authentication and data flow
 
-- Keep `ROBOFLOW_API_KEY` in the host environment or `.env`.
-- Do not paste API keys into chat.
-- `.mcp.json` passes the key to the Roboflow MCP server through the `x-api-key` header.
-- Restart the host after changing the key because MCP servers read environment variables at startup.
+- Plugin installation uses a URL-only MCP configuration; no credential environment variable is required.
+- Codex metadata requests authorization on use. Verify the actual host-managed sign-in, account, and authorization scope before live work.
+- Never paste authentication tokens or other credentials into chat or commit them.
+- MCP calls can send task data to Roboflow. Confirm the allowed purpose before using private or sensitive media.
+- Credentials for a generated standalone client are separate from plugin installation and must follow current official Roboflow guidance.
 
-## Paid Actions
+## Permissions
 
-Training and deployment-class actions are guarded by skill instructions that require explicit user confirmation before spend. This is prose-enforced workflow guidance, not a hard runtime block.
+Skills can request project reads, writes, edits, searches, and shell commands. The Claude hook can read host event payloads, append a local ledger, and read that ledger for event deduplication. Review host permission prompts and generated commands; installing the plugin does not confine those capabilities to a separate sandbox.
 
-A correct session states:
+## Paid actions
 
-- what action will happen,
-- why the eval evidence justifies it,
-- what the cost impact is expected to be,
-- what local or hosted artifact will be created.
+The workflow instructs the agent to state the action, rationale, expected cost, and target, then wait for confirmation before training or deployment-class spend. That instruction is not a machine-enforced block.
 
-## Ledger Behavior
+Use host approvals, least-privilege account authorization or sessions, account budgets, and non-production targets as the real control. A separately generated standalone client may require a provider key; follow current provider guidance and scope it to the minimum permissions. Prompt injection, reasoning errors, or upstream changes can bypass prose guidance.
 
-The PostToolUse hook writes selected train, eval, and deploy lifecycle records to:
+## Ledger semantics
+
+Selected Roboflow tool lifecycle events can be appended to:
 
 ```text
 .vision-delivery/ledger.jsonl
 ```
 
-The ledger supports later reporting and audit reconstruction. It is not a complete telemetry system and should not be described as full observability.
+Where the host exposes a lifecycle result, records can distinguish successful, failed, cancelled, or unknown outcomes and use stable event IDs for deduplication. This remains best-effort: hosts may omit events, disable hooks, or change payloads, and skill-side writes are not guaranteed.
 
-## Consent Gate Limitation
+A ledger row is not proof from Roboflow, complete telemetry, an authorization receipt, or evidence that a generated artifact works. Project/workspace slugs and notes can still be sensitive. Ignore the directory in version control, minimize identifiers, inspect before sharing, and apply a retention policy.
 
-The consent gate is not machine-enforced. The skills tell the agent to show a cost estimate and wait for explicit confirmation before calling credit-spending tools, but there is no runtime pre-tool hook that blocks execution if consent was not recorded.
+## Sensitive-use gate
 
-The mitigation is auditability: the hook writes ledger entries after selected train and deploy events, and reporting can surface sessions that reached deployment.
+Before faces, license plates, people tracking, forms, medical images, worker monitoring, minors, or location-linked media are uploaded or analyzed, require:
 
-## Pricing Provenance
+1. documented authority and allowed purpose,
+2. minimum necessary data and retention,
+3. controlled access and incident ownership,
+4. representative evaluation and relevant subgroup checks,
+5. explicit false-positive/false-negative consequences,
+6. named human review and appeal/override,
+7. appropriate legal, privacy, security, and domain review.
 
-Deployment run-rate estimates come from `scripts/cost_model.py` and `scripts/PRICING_SNAPSHOT.json`. The script probes source reachability but uses committed snapshot values unless overridden.
+Do not use Sentinel alone for medical, employment, law-enforcement, access-control, or physical-safety decisions.
 
-Annotation and training costs must be:
+## Evidence and generated outputs
 
-- found in project evidence,
-- supplied by the user,
-- or clearly marked as assumptions or unknowns.
+- B1 is a small private detection fixture; B2-B5 live results are pending.
+- The process A/B is mocked, `N=1` per cell, and directional.
+- Routing evidence is one Claude Sonnet run, not task completion or Codex evidence.
+- No independent novice usability study exists.
+- Generated files, scripts, IDs, and ledger entries require inspection and execution before reliance.
+- Pricing snapshots are dated; annotation and training inputs may remain assumptions.
 
-## Evidence Boundaries
-
-- B1 has measured evidence.
-- B2-B5 are fixture-defined and pending live runs.
-- The plugin-vs-plain-agent claim is process discipline, not superior model quality.
-- A plain agent with the same Roboflow MCP tools can reach comparable model metrics if it follows the same sequence.
-
-## Reporting Vulnerabilities
-
-Use the repository [security policy](https://github.com/Borda/vision-delivery/blob/main/SECURITY.md) for vulnerability reporting.
+Read [Support, Scope, and Evidence](support-and-scope.md) for the full claim register and the repository [security policy](https://github.com/Borda/vision-delivery/blob/main/.github/SECURITY.md) for private reporting.

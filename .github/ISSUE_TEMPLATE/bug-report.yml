@@ -1,0 +1,51 @@
+name: Report a bug
+description: Report a reproducible problem in Sentinel.
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Report only public-safe information. Do not include credentials, private media, customer data, faces, license plates, medical data, or information you are not authorized to share.
+
+        Suspected vulnerabilities must be reported privately through a GitHub Security Advisory.
+  - type: input
+    id: version
+    attributes:
+      label: Sentinel version or commit
+      description: Give the release, commit SHA, or installation source.
+    validations:
+      required: true
+  - type: input
+    id: host
+    attributes:
+      label: Host and version
+      description: For example, Codex or Claude Code and its version.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Provide the smallest public-safe sequence that reproduces the problem.
+      placeholder: "1. Install...\n2. Run...\n3. Observe..."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment and safe evidence
+      description: Include OS, runtime versions, and a redacted error or fixture if relevant.
+    validations:
+      required: false

@@ -1,214 +1,121 @@
-# 🛠️ vision-delivery: solve real CV with measured proof
+# Sentinel: the business-first computer-vision delivery copilot
 
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/Borda/vision-delivery/main.svg)](https://results.pre-commit.ci/latest/github/Borda/vision-delivery/main) [![Docs](https://img.shields.io/badge/docs-online-0F766E.svg)](https://borda.github.io/vision-delivery/) [![docs](https://github.com/Borda/vision-delivery/actions/workflows/docs.yml/badge.svg)](https://github.com/Borda/vision-delivery/actions/workflows/docs.yml) [![evals](https://github.com/Borda/vision-delivery/actions/workflows/evals.yml/badge.svg)](https://github.com/Borda/vision-delivery/actions/workflows/evals.yml) [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-`vision-delivery` ships the `sentinel` plugin for Codex and Claude Code. It handles the messy part of computer vision: turning a vague operational request into a scoped Roboflow proof of concept with a clear success check, local artifacts, and a concrete economics decision.
+`vision-delivery` ships the `sentinel` plugin for Codex and Claude Code. Tell it the operational outcome you need from images or video; it helps turn that request into a measurable computer-vision proof, checks a baseline before recommending training, and frames the cost and next decision.
 
-It is built for the moment when someone says, "Can AI count this from camera footage?" and the real work is still undefined: what object is being counted, what failure rate is acceptable, whether a pretrained model is enough, what a miss costs, how much labeling or training is justified, and whether the project economics make sense. The plugin keeps that work in order so the session does not drift into model shopping before the problem is actually measured.
+Sentinel is designed to lower the computer-vision methodology burden. You do not need to arrive knowing model families, metric names, or Roboflow APIs. You still own four things the plugin cannot infer safely: permission to use the data, the business outcome, representative examples, and the consequence of a wrong answer. Production acceptance remains a human decision.
 
-It is intentionally not a replacement for Roboflow's platform source of truth. Use Roboflow's local skills or MCP-provided skill resources when the question is "how do I use this Roboflow API, model family, Workflow, or platform page?" Use the installed `sentinel` plugin when the question is "what should we build, how do we prove it works, and what decision does the proof support?"
+```text
+"Count pallets crossing this line and report the hourly total. I have 60 sample frames.
+A missed pallet is worse than a duplicate count."
+```
+
+Sentinel should turn that into a task definition, success gate, baseline, evidence artifact, and go/no-go recommendation—not a model shopping list.
+
+## What it can support today
+
+| Support tier            | Meaning                                                                                             | Current scope                                                                                                                                                                        |
+| ----------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Historical evidence** | A recorded result exists with its original limits; it is not a current support guarantee.           | One pre-v0.2 Claude routing run, a synthetic process A/B, and one small private detection fixture.                                                                                   |
+| **Guided**              | The plugin contains a structured workflow, but the route lacks equivalent live end-to-end evidence. | Detection, classification, tracking, OCR, segmentation, pose/gesture, multi-step decomposition, delivery, and economics.                                                             |
+| **Delegated upstream**  | Sentinel frames and evaluates the work; current product details come from the official source.      | Roboflow MCP operations, model IDs, Workflows, plans, pricing, and platform navigation.                                                                                              |
+| **Expert required**     | Do not rely on the plugin alone.                                                                    | Regulated or safety-critical decisions, people surveillance, medical use, physical measurement, production streaming/edge architecture, legal review, and final production sign-off. |
+
+Read [Support, Scope, and Evidence](docs/support-and-scope.md) before treating a guided route as production-ready.
+
+## Evidence, without the headline inflation
+
+- **Historical routing sample:** one pre-v0.2 Claude Sonnet run over 143 labeled prompts reported micro precision `0.94` and recall `0.85`: 63 true positives, 4 false positives, and 11 false negatives. Direct specialist routes raised tolerant positive coverage to 65/74 (`0.88`), but four negative prompts still fired incorrectly. The run predates `deliver-cv-project` and `check-sentinel-setup`; it is not evidence for the current route set, Codex, or user outcomes. See [`2026-07-10-full-summary.txt`](evals/trigger-live/runs/2026-07-10-full-summary.txt).
+- **Process A/B:** 16 mocked runs, one repeat per cell. One cell supported the preregistered hypothesis, six were mixed/parity, and one was a loss. The result is directional because `N=1`, the environment was developer-contaminated, and live capability confirmation is pending. See [A/B benchmark](docs/benchmarks/ab-plugin-vs-plain.md).
+- **CV fixture:** B1 contains measured post-training evidence on 11 private test images. It does not establish conveyor-domain equivalence, a controlled plain-agent advantage, or broad modality coverage. B2-B5 are specifications with live measurements pending. See [benchmark status](docs/benchmarks/index.md).
+
+No novice user study has been run. Sentinel is intended to reduce the entry barrier; the repository does not yet prove that a novice can independently reach a production result.
+
+## Quick start
+
+The v0.2 package has passed local clean-home marketplace simulations with the commands below. The public-GitHub path remains unverified until these files are published to `main` and retested there.
+
+### Codex marketplace install
+
+```bash
+codex plugin marketplace add https://github.com/Borda/vision-delivery
+codex plugin add sentinel@sentinel
+```
+
+### Claude Code marketplace install
+
+```bash
+claude plugin marketplace add Borda/vision-delivery
+claude plugin install sentinel@sentinel
+```
+
+For plugin development from a checkout, validate with `claude plugin validate .` and launch with `claude --plugin-dir .`.
+
+No credential environment variable is required for plugin installation. Codex metadata requests authorization on first use, and the URL-only MCP connection is expected to use the host-managed sign-in flow; actual host/account authorization remains a live check. If a generated standalone client later requires credentials, follow current official Roboflow guidance; never paste credentials into chat or commit them.
+
+## The delivery loop
 
 ```mermaid
 flowchart LR
-    A[Messy CV request] --> B[Read project and samples]
-    B --> C[Classify the task]
-    C --> D[Define the success check]
-    D --> E[Measure a pretrained baseline]
-    E --> F{Passes?}
-    F -->|yes| G[Write local PoC artifacts]
-    F -->|no| H[Try cheapest improvement first]
-    H --> I[Confirm before credit spend]
-    I --> E
-    G --> J[Estimate project economics]
-    J --> K[Leave an audit trail]
+    A[Business outcome] --> B[Data authority and samples]
+    B --> C[Task and success gate]
+    C --> D[Cheapest baseline]
+    D --> E{Gate passed?}
+    E -->|yes| F[Inspectable proof]
+    E -->|no| G[Investigate misses]
+    G --> H[Confirm before paid action]
+    H --> D
+    F --> I[Economics and human decision]
 ```
 
-## 📏 Measured, Not Promised
+1. Read the project and representative samples.
+2. Translate the business request into boxes, labels, text, masks, tracks, or keypoints.
+3. Agree on a metric, threshold, sample slice, and consequence of failure.
+4. Measure a pretrained or existing baseline before training.
+5. Investigate misses and try the cheapest justified improvement.
+6. Ask before credit-spending training or deployment actions.
+7. Produce local proof artifacts and an evidence-bound recommendation.
+8. Estimate economics and leave production acceptance to the user.
 
-These are cell-scoped, measured results, not blanket claims. The plugin loses some cells too — see the linked benchmark page for the full picture, wins and losses together.
+Generated scripts, eval files, and ledger rows are requested workflow outputs, not proof that they were created correctly or ran successfully. Inspect and execute them in your own environment before relying on them.
 
-- **Live skill routing:** micro precision 0.94 / recall 0.85 over 143 labeled prompts (74 positive, 69 negative). Zero wrong-skill routings — every miss was a no-fire, not a misroute. See [`evals/trigger-live/runs/2026-07-10-full-summary.txt`](evals/trigger-live/runs/2026-07-10-full-summary.txt).
-- **Deploy hand-holding** (benchmark cell `s3-deploy-fresh` × roleplay novice persona): progress 1.0 vs 0.15, zero blind credit spend vs 3. The naive agent's low score is a real finding, not a metric artifact: asked to deploy a model the user claimed already worked, it deployed an empty, untrained model and reported it as done — the overclaim the delta table counts for that cell.
-- **Dataset discovery:** with only 3 user images available, the plugin arm was the only one that searched Roboflow Universe for a similar public dataset in the affected cells.
-- **Honesty:** 1 verified overclaim across 16 benchmark runs for the plugin arm vs 2 for the naive agent; every count is hand-verified against transcripts. The benchmark page publishes the plugin's losses on the same page as its wins.
+## Sentinel and official Roboflow skills
 
-Full delta table, methodology, and caveats: [docs/benchmarks/ab-plugin-vs-plain.md](docs/benchmarks/ab-plugin-vs-plain.md).
+Sentinel owns the delivery question: *What should we build, what evidence would be enough, and what decision follows?*
 
-## ⚡ Quick Start
+Roboflow owns current product truth: MCP tool semantics, model families and IDs, Workflows, platform navigation, account plans, and current pricing. Use the installed official [`roboflow/computer-vision-skills`](https://github.com/roboflow/computer-vision-skills) content first, then `roboflow://skills/...` MCP resources when exposed. If neither is available, mark platform-specific guidance unverified.
 
-Install the plugin in either host, make `ROBOFLOW_API_KEY` available to the app that starts the Roboflow MCP server, then ask for a concrete detection or counting task. The restart matters because the MCP server reads environment variables at startup.
+Installing two full plugins can duplicate a `roboflow` MCP server definition on hosts that do not deduplicate configuration. See [Roboflow Skills Integration](docs/roboflow-skills.md) before combining them.
 
-### For Codex
+## Safety boundary
 
-```bash
-# Add this repository as a Codex plugin marketplace
-codex plugin marketplace add https://github.com/Borda/vision-delivery
+The paid-action confirmation is an instruction to the agent, not a machine-enforced block. The hook and local ledger improve reconstruction but are not complete telemetry or authorization controls.
 
-# Install Sentinel from that marketplace
-codex plugin add sentinel@sentinel
+Before work involving faces, license plates, people tracking, forms, medical imagery, worker monitoring, or other sensitive data, require all of the following:
 
-# Launch Codex with the Roboflow key in its environment
-export ROBOFLOW_API_KEY=your_key_here
-```
+- documented authority and allowed purpose,
+- minimum necessary data and retention rules,
+- a representative, bias-aware evaluation set,
+- a named human reviewer and appeal/override path,
+- legal, privacy, and security review appropriate to the consequences.
 
-### For Claude Code
+Do not use Sentinel as the sole basis for medical, employment, law-enforcement, access-control, or physical-safety decisions. Read [Trust and Safety](docs/trust.md) and the [security policy](.github/SECURITY.md).
 
-```bash
-# Install the plugin from this repository
-claude plugin install https://github.com/Borda/vision-delivery
+## Project resources
 
-# Keep the Roboflow key local; never paste it in chat
-echo "ROBOFLOW_API_KEY=your_key_here" >> .env
-echo ".env" >> .gitignore
-```
+- [Documentation](https://borda.github.io/vision-delivery/)
+- [Quick start](docs/quickstart.md)
+- [Use cases](docs/use-cases.md)
+- [Support, scope, and evidence](docs/support-and-scope.md)
+- [Benchmarks](docs/benchmarks/index.md)
+- [Contributing](.github/CONTRIBUTING.md)
+- [Support policy](.github/SUPPORT.md)
+- [Compatibility](docs/compatibility.md)
+- [Release policy](docs/release-policy.md)
+- [Security](.github/SECURITY.md)
+- [Changelog](CHANGELOG.md)
 
-Get a key at `app.roboflow.com/settings/api`, restart Codex or Claude Code, and start with the camera, object, and output you need:
+Have a reproducible bug or actionable suggestion? [Open an issue](https://github.com/Borda/vision-delivery/issues/new/choose). External pull requests are temporarily paused while CI and contribution rules are fortified. Do not attach secrets, private customer data, faces, license plates, medical data, or media you are not authorized to share.
 
-```text
-I have an overhead camera above a parking lot. I need to count vehicles in view.
-```
-
-Good requests are operational rather than model-first:
-
-```text
-Count pallets on a conveyor from these 60 sample frames.
-Detect cracks in product photos and report the count per image.
-Find parked vehicles in drone imagery and write a local inference script.
-```
-
-## 📣 Share Your Use Case
-
-Have a real camera, image, or video problem? [Share your use case](https://github.com/Borda/vision-delivery/issues/new?template=use-case.yml) to get help turning it into a concrete CV route, success check, and first proof. If your work is public, the issue can also point back to your project, dataset, company, paper, demo, or field problem so others can discover it.
-
-Use the template to describe what you need to inspect, count, read, track, measure, or decide from images and video. Keep the issue public-safe: do not include secrets, API keys, private customer data, faces, license plates, medical data, or media you are not allowed to share.
-
-## ✨ Features
-
-- **Problem-first routing:** `solve-cv-task` separates object-instance detection and counting from other CV intents before any model search starts. Claude Code exposes the same recipe through the `cv-problem-solver` role.
-- **Eval-first workflow:** the plugin asks practical success questions first: do you need to catch every object, how many misses are acceptable, and which error is worse?
-- **Pretrained baseline before training:** Roboflow MCP and Universe candidates are checked before labeling or training so an existing model can win quickly when it is good enough.
-- **Model-improvement sparring partner:** when a model misses the target, the workflow checks metrics, loss curves, confusion matrix, hard cases, class balance, augmentation, then data or training.
-- **Explicit credit gate:** skills instruct the agent to ask for confirmation with a cost preview before training or deployment-class actions.
-- **Local proof artifacts:** the detection workflow is designed to leave a runnable `detect_analyze.py`, an `eval_definition.md`, and `.vision-delivery/` records instead of only a chat transcript.
-- **Audit trail:** `hooks/cta.js` records selected Roboflow train, eval, and deploy events to `.vision-delivery/ledger.jsonl` for later reporting.
-- **CV economics:** `estimate-economics` frames annotation, training, deployment, and build-vs-buy costs as one decision. `scripts/cost_model.py` provides the reproducible deployment run-rate using committed pricing snapshots and explicit inputs. Claude Code exposes the same recipe through the `economics-consultant` role.
-
-## 🧭 Why It Exists
-
-Computer-vision failures are often process failures before they are model failures. A team can spend credits, label data, or deploy infrastructure while still being unclear about the target object, the pass/fail metric, or the cost of mistakes.
-
-`vision-delivery` adds guardrails around those decisions. It does not promise magical accuracy. A careful human using the same Roboflow tools can reach the same model metrics. The value is that the careful sequence becomes the default: read the project, classify the task, define success, measure a baseline, investigate misses, improve only where needed, and make the deployment choice with numbers in front of you.
-
-This is the main difference from [`roboflow/computer-vision-skills`](https://github.com/roboflow/computer-vision-skills). Roboflow's source should own product truth: live MCP tools, MCP skill resources when available, local plugin skills when installed, platform navigation, model IDs, Workflows, inference modes, training options, and current pricing guidance. `vision-delivery` should own delivery discipline: task framing, success checks, local proof artifacts, provenance, and project economics. Duplicating Roboflow's platform recipes here would make this package less useful, not more useful, because the copied guidance would drift from the source that users should trust.
-
-See the docs page [Roboflow Skills Integration](https://borda.github.io/vision-delivery/roboflow-skills/) for when this plugin can partially replace Roboflow's skills and when it should defer to them.
-
-| Common failure mode                            | What `vision-delivery` enforces                                                                                     |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| The user asks for "AI" instead of a CV task.   | The router narrows the request to a concrete detection/counting job.                                                |
-| Success is judged after seeing a demo.         | The success check is defined before model search or training.                                                       |
-| Training starts before a baseline is measured. | Pretrained candidates are measured first.                                                                           |
-| Paid actions happen too casually.              | Skills instruct the agent to ask before credit use and record selected train/deploy events afterward.               |
-| Results live only in chat history.             | Artifacts and ledger entries are written locally.                                                                   |
-| Economic advice is based on memory or vibes.   | Deployment run-rate comes from a script and dated pricing snapshots; annotation and training assumptions are named. |
-
-## 🔁 How The Solver Works
-
-The workflow is intentionally conservative because the expensive mistake is solving the wrong task. It starts by reading the repository and sample data, then narrows the problem before touching training or deployment.
-
-1. **Read the context:** inspect relevant files, sample images, annotations, and user constraints.
-2. **Classify the CV job:** decide whether the request is object detection/counting and clarify ambiguous wording.
-3. **Define success:** ask guiding questions: do misses matter more than false alarms, how many misses are acceptable, and how fast does it need to run?
-4. **Measure a baseline:** try pretrained or Universe candidates and report exact metrics against the gate.
-5. **Investigate misses:** review metrics, loss curves, confusion matrix, hard cases, class balance, and augmentation before recommending more data or training.
-6. **Write the PoC:** produce local inference and eval artifacts the user can inspect or run.
-7. **Estimate economics:** compare annotation, training, managed deployment, and self-hosting assumptions when the model is worth taking further.
-8. **Record provenance:** append ledger rows for train, eval, and deploy events so reporting can reconstruct what happened.
-
-## 💬 Example Session
-
-The expected interaction is short, concrete, and metric-driven:
-
-> User: "Count cracked items on my packaging line. I have 40 sample images."
->
-> Plugin: "This is an object-instance detection/counting task: one box per visible crack, count per image. Do you need to catch nearly every crack, or is an occasional miss acceptable?"
->
-> User: "A missed crack reaches the customer. Missing up to 2 in 10 during the first proof is acceptable."
->
-> Plugin: "Success check defined: catch at least 8 of 10 visible cracks on your 40 images. Measuring a pretrained candidate."
->
-> Plugin: "Baseline catches about 7 of 10 cracks. That misses the target. First I will check the confidence threshold and hard cases."
->
-> Plugin: "Best threshold reaches 83% recall. Eval passes. Writing the local PoC and ledger entry."
-
-## 📊 Benchmark
-
-The benchmark suite anchors the landing page claims in reproducible CV work. The detection benchmark exercises the counting path on an aerial vehicle fixture and checks that the workflow reaches an eval-gated result with deployment handoff evidence.
-
-| Problem                 | Workflow             | Eval artifact | Deployment handoff |
-| ----------------------- | -------------------- | :-----------: | :----------------: |
-| Conveyor / aerial count | `detect-and-analyze` |      Yes      |        Yes         |
-
-See [benchmark docs](docs/benchmarks/index.md) for the benchmark definitions and evidence files.
-
-## 💸 CV Economics
-
-After a model passes the success check, invoke the economics consultant directly:
-
-```text
-/sentinel:estimate-economics
-```
-
-The consultant reads the project and separates one-time project costs from run-rate costs. Annotation and training estimates must come from project evidence or explicit user assumptions. Deployment run-rate uses missing inputs such as stream count, FPS, uptime, and region, then runs:
-
-```bash
-python scripts/cost_model.py --streams 5 --fps 10 --model-size medium --uptime 24x7 --region us-east-1
-```
-
-The cost model uses `scripts/PRICING_SNAPSHOT.json` and explicit overrides. It probes source reachability, but it does not scrape live pricing pages into the result. That keeps deployment estimates reproducible and makes stale pricing visible instead of burying it in prose. Labeling and training costs remain visible assumptions unless the repository already contains measured evidence for them.
-
-## 🔐 Security
-
-This package touches API keys and paid Roboflow actions, so the safety model is part of the product:
-
-- `ROBOFLOW_API_KEY` stays in `.env`; do not paste it into chat.
-- `.mcp.json` passes the key to the Roboflow MCP server through the `x-api-key` header.
-- Skills instruct the agent to get confirmation before training and deployment-class spend; this is prose-enforced, not a runtime block.
-- The PostToolUse hook writes local JSONL records under `.vision-delivery/`; it does not make network calls.
-
-See [.github/SECURITY.md](SECURITY.md).
-
-## 🗂️ Repository Map
-
-```text
-vision-delivery/
-├── .codex-plugin/plugin.json          # Codex plugin manifest
-├── .agents/plugins/marketplace.json   # Codex marketplace entry
-├── .claude-plugin/plugin.json         # Claude Code plugin manifest
-├── .mcp.json                          # Roboflow MCP server configuration
-├── agents/
-│   ├── cv-problem-solver.md           # Claude adapter for the CV router
-│   └── economics-consultant.md        # Claude adapter for CV economics
-├── skills/
-│   ├── solve-cv-task/                 # Canonical CV task-solving recipe
-│   ├── estimate-economics/            # Canonical CV economics recipe
-│   ├── detect-and-analyze/            # Object detection and counting
-│   ├── classify-or-flag/              # Image-level pass/fail workflows
-│   ├── track-and-count/               # Video tracking and line-cross counts
-│   ├── read-text/                     # OCR and structured text extraction
-│   ├── segment-and-analyze/           # Masks, contours, and area measurement
-│   ├── recognize-pose-or-gesture/     # Keypoints, posture, and gestures
-│   └── _shared/                       # Shared protocols and methodology
-├── hooks/cta.js                       # PostToolUse ledger hook
-├── scripts/
-│   ├── cost_model.py                  # Deployment run-rate calculator
-│   └── ledger_report.py               # Ledger reporting helper
-├── docs/benchmarks/                   # Benchmark definitions and evidence
-└── evals/trigger/                     # Trigger coverage checks
-```
-
-## 🤝 Contributing
-
-Open issues at [github.com/Borda/vision-delivery](https://github.com/Borda/vision-delivery/issues). Keep README claims tied to runnable plugin behavior and benchmark evidence, and keep user-facing docs focused on what the package does rather than when each capability entered the repository.
-
-Released under the Apache-2.0 license. If you use this project, please cite it — see [CITATION.cff](CITATION.cff); redistributions must retain [NOTICE](NOTICE) per Apache-2.0 §4(d).
+Released under Apache-2.0. See [CITATION.cff](CITATION.cff) for citation metadata and [NOTICE](NOTICE) for redistribution notices.

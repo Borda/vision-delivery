@@ -1,156 +1,104 @@
-# vision-delivery full LLM context
+# Sentinel / vision-delivery — full agent context
 
-> `vision-delivery` ships the `sentinel` plugin for eval-first computer-vision delivery in Codex and Claude Code. It turns vague image, video, or camera requests into scoped Roboflow proofs of concept with an eval gate, local artifacts, paid-action guardrails, provenance records, and a concrete CV economics decision.
+`vision-delivery` ships the `sentinel` plugin for business-first CV delivery in Codex and Claude Code. Start from the operational outcome, not a model. The plugin translates plain language into a CV output type and evidence plan, measures a baseline before recommending training, asks before paid actions, requests inspectable artifacts, and frames economics and the next human decision.
 
-This file is optimized for LLMs and coding agents that need a longer single-file description of the public project. It intentionally excludes secrets, private paths, and unpublished behavior. Use repository files as the source of truth when behavior matters.
+## Non-negotiable boundary
 
-## Core Positioning
+Sentinel is not a model, sandbox, hard authorization system, autonomous production owner, domain expert, legal reviewer, or safety certifier. It is designed to lower the methodology burden. The user still owns:
 
-`vision-delivery` exists for the moment when a user asks something like:
+1. authority and allowed purpose for data and accounts,
+2. the business outcome,
+3. representative examples,
+4. consequences of misses and false alarms,
+5. final acceptance and operational governance.
 
-```text
-Can AI count vehicles from this overhead camera?
-```
+No independent novice study establishes “no knowledge required.” Use “designed to lower the CV methodology burden.”
 
-The plugin does not begin with model shopping. It first clarifies the task, output shape, acceptable failure rate, available samples, and consequence of mistakes. It then defines an eval threshold before model search, measures a pretrained baseline before training, and only proposes paid actions after the evidence says they are needed.
+## Support tiers
 
-The plugin's value is process discipline:
+- **Historical evidence:** a result was recorded under its original conditions; it is not current support or independent reproduction evidence.
+- **Guided:** a workflow exists but equivalent live end-to-end evidence is missing.
+- **Delegated upstream:** current product facts must come from official Roboflow sources.
+- **Expert required:** Sentinel may structure evidence but cannot independently validate or approve the work.
 
-1. Read the project and sample data.
-2. Classify the CV task.
-3. Define the eval before model selection.
-4. Measure a pretrained or Universe baseline.
-5. Improve in cost order.
-6. Ask for explicit user confirmation before training or deployment spend.
-7. Write local proof artifacts.
-8. Estimate project economics when the model is worth taking further.
-9. Record provenance in `.vision-delivery/ledger.jsonl`.
+Detection/counting has one historical private B1 result but remains guided. Classification, tracking, OCR, segmentation, pose/gesture, pipelines, delivery, and economics are guided. Regulated or safety-critical work, people surveillance, medical use, physical measurement, production streams/edge systems, governance, and production sign-off are expert-required.
 
-## Relationship To Roboflow MCP And computer-vision-skills
+## Roboflow relationship
 
-`vision-delivery` overlaps with Roboflow MCP and Roboflow's official [`computer-vision-skills`](https://github.com/roboflow/computer-vision-skills) plugin, but it should not copy that repository's platform-reference skills.
+Sentinel owns task framing, success gates, baseline-first decisions, proof requests, provenance interpretation, and economics. Roboflow owns current MCP tool semantics, model families/IDs, Workflows, platform navigation, plans, billing, and pricing.
 
-The intended split is:
+Lookup order for platform truth:
 
-- Roboflow's source owns product truth: live MCP tools, MCP-provided skill resources when available, local plugin skills when installed, platform navigation, model families, model IDs, Workflows, inference modes, training options, Universe, account plans, and pricing references.
-- `vision-delivery` owns delivery discipline: task framing, eval gates, baseline-first proof, local artifacts, consent prompts before spend, ledger records, and project economics.
+1. installed official `roboflow/computer-vision-skills`,
+2. exposed `roboflow://skills/...` MCP resources,
+3. official current documentation or a request to install the official skills,
+4. otherwise mark guidance unverified.
 
-`vision-delivery` can partially replace Roboflow's skills when the user needs problem-solving workflow rather than product navigation. It should defer to Roboflow's local skills or MCP skill resources for platform-specific questions such as exact model IDs, Workflow authoring, current plan limits, UI paths, and MCP tool semantics.
+Do not copy platform recipes into Sentinel. Two full plugins may duplicate a `roboflow` MCP server definition on hosts that do not deduplicate configuration.
 
-Platform lookup order: use local Roboflow plugin skills first, then Roboflow MCP skill resources such as `roboflow://skills/inference/...` when the client exposes them, then ask the user to install Roboflow's official plugin or mark platform-specific guidance unverified.
-
-If both skill sets are available, start with `vision-delivery` for framing, eval definition, proof artifacts, and economics. Use Roboflow MCP tools for live operations. Use local Roboflow skills or MCP skill resources for platform-specific implementation details. Return to `vision-delivery` to judge whether the result passes the eval gate and what decision follows.
-
-## Install Summary
+## Invocation
 
 Codex:
 
 ```bash
 codex plugin marketplace add https://github.com/Borda/vision-delivery
 codex plugin add sentinel@sentinel
-export ROBOFLOW_API_KEY=your_key_here
 ```
 
 Claude Code:
 
 ```bash
-claude plugin install https://github.com/Borda/vision-delivery
-echo "ROBOFLOW_API_KEY=your_key_here" >> .env
-echo ".env" >> .gitignore
+claude plugin marketplace add Borda/vision-delivery
+claude plugin install sentinel@sentinel
 ```
 
-The Roboflow API key must be available to the process that starts the Roboflow MCP server. Never paste the key into chat.
+No credential environment variable is required for plugin installation. When the host or account requires it, using the MCP capability requests hosted authorization; an existing authorized session may need no prompt. The v0.2 package passed local clean-home marketplace simulations, while its public-GitHub path remains unverified until publication and retest. Use `claude plugin validate .` and `claude --plugin-dir .` only for development from a checkout. Cursor support is unverified. Credentials must never appear in chat or tracked files.
 
-## Canonical Entry Points
+## Workflow
 
-`skills/solve-cv-task/` is the canonical CV task router. Claude Code exposes the same behavior through `agents/cv-problem-solver.md`, which is intentionally a thin adapter.
+1. Confirm data/account authority, allowed purpose, and human ownership.
+2. Read only authorized project context and representative samples.
+3. Translate the output into boxes, labels, text, masks, tracks, keypoints, or a typed pipeline.
+4. Define metric, threshold, eval slice, failure consequence, and mode before model selection.
+5. Measure an existing/pretrained baseline.
+6. Investigate misses and try the cheapest justified improvement.
+7. Explain and confirm credit-spending/state-changing actions.
+8. Request local proof artifacts and execute/inspect them.
+9. Compare observations with the gate and preserve failures/unknowns.
+10. Estimate economics and hand final acceptance to the human owners.
 
-`skills/estimate-economics/` is the canonical CV economics recipe. Claude Code exposes the same behavior through `agents/economics-consultant.md`, also as a thin adapter.
+Paid-action consent is a prose instruction, not a hard block. Use host approvals, least-privilege account authorization or sessions, account budgets, and non-production targets. A separately generated standalone client may require a provider key; follow current provider guidance and scope it to the minimum permissions.
 
-## Specialist Skill Routes
+## Artifacts and ledger
 
-| Skill                       | Use when the user asks for                 | Primary measurements                      |
-| --------------------------- | ------------------------------------------ | ----------------------------------------- |
-| `detect-and-analyze`        | object detection, counting, per-box crops  | mAP@50, count MAE                         |
-| `classify-or-flag`          | image-level pass/fail, compliance, defects | precision, recall, F1                     |
-| `track-and-count`           | identity tracking, dwell time, line-cross  | MOTA, dwell time MAE, line-cross counts   |
-| `read-text`                 | OCR, serial numbers, labels, barcodes      | field match rate, CER, latency            |
-| `segment-and-analyze`       | masks, contours, area/width measurement    | mask mAP, IoU, area or width error        |
-| `recognize-pose-or-gesture` | keypoints, posture, gestures, actions      | OKS mAP, gesture recall                   |
-| `decompose-to-pipeline`     | multi-step visual monitoring or pipelines  | typed artifacts between specialist routes |
+Routes may request `eval_definition.md`, scripts, JSONL outputs, model/workflow identifiers, and `.vision-delivery/ledger.jsonl`. Requested or generated artifacts are not self-validating. Inspect dependencies and data flow, run syntax checks, execute a representative fixture, and compare observed outputs with the committed gate.
 
-## Workflow Details
+The Claude hook can record selected host-reported Roboflow outcomes, deduplicate stable event IDs, and print a deployment link after an event classified as successful. Coverage remains best-effort. A ledger row is not complete telemetry, authorization proof, or an independent receipt from Roboflow. Identifiers and notes can still be sensitive.
 
-The solver starts by reading relevant files, sample data, annotation exports, and user constraints. It classifies the output modality before selecting a route:
+## Evidence register
 
-- boxes: object instances, counts, crops, per-box metadata
-- masks: pixel-precise outlines, area, shape
-- tracks: identity-linked trajectories, line-cross, dwell time
-- keypoints: pose, posture, gestures, action
-- label: image-level category or pass/fail verdict
-- text: OCR and structured field extraction
+- One pre-v0.2 Claude Sonnet trigger run: 143 labeled prompts, precision 0.94, recall 0.85, 4 false positives, 11 false negatives. Two direct specialist routes increased tolerant positive coverage to 65/74 (0.88). The run excludes delivery/setup routes and is not current-route, Codex, or task-completion evidence.
+- Synthetic process A/B: 16 mocked runs at N=1 per cell; one supported cell, six mixed/parity, one loss. Developer-machine contamination and live capability confirmation remain unresolved.
+- B1: historical private aerial vehicle fixture, 11 test images; recorded post-train mAP@50 84.6%. No controlled plain arm, public independent reproduction, post-train count MAE, verified conveyor transfer, or current endpoint verification.
+- B2-B5: specifications only. Do not turn proposed models or thresholds into measured claims.
+- No novice usability study, broad modality study, production reliability study, or security certification exists.
 
-Each route defines its eval metric and threshold before model search. If a pretrained model passes, the plugin stops early and writes the proof. If it fails, the route tries the cheapest next lever first. Skills instruct the agent to ask for explicit confirmation before training and deployment-class actions; this is not a hard runtime block.
+## Sensitive uses
 
-## CV Economics
+Before faces, plates, people tracking, forms, medical imagery, worker monitoring, minors, or location-linked media, require authority/purpose, minimization/retention, access control, representative and subgroup evaluation, error consequences, named human review/appeal, and applicable legal/privacy/security/domain review.
 
-Invoke economics with:
+Do not use Sentinel alone for medical, employment, law-enforcement, access-control, or physical-safety decisions. Physical units require calibrated capture and domain validation.
 
-```text
-/sentinel:estimate
-```
-
-The economics recipe separates one-time project effort from run-rate costs:
-
-- annotation and QA assumptions
-- training/eval iteration assumptions
-- deployment run-rate from streams, FPS, uptime, region, model size, and existing GPU availability
-- managed-vs-DIY recommendation and crossover
-
-Deployment run-rate is calculated by `scripts/cost_model.py` using committed pricing snapshots. The script probes source reachability but does not scrape live pricing pages into the result. Annotation and training costs must come from project evidence, user-provided assumptions, or be marked unknown.
-
-## Artifacts And Provenance
-
-Expected local artifacts include:
-
-- `eval_definition.md`: eval threshold and rationale
-- `.vision-delivery/detections.jsonl`: detection handoff records
-- `.vision-delivery/ledger.jsonl`: train, eval, deployment, and economics records
-- generated local PoC scripts when the active skill produces them
-
-The PostToolUse hook in `hooks/cta.js` records selected Roboflow train, eval, and deploy events. It writes local JSONL records and does not make network calls.
-
-## Benchmarks And Evidence
-
-Benchmarks live under `docs/benchmarks/`.
-
-- B1: measured `detect-and-analyze` vehicle-counting path. The benchmark includes a pretrained baseline and post-train result.
-- B2: fixture-defined PPE compliance route, live measurements pending.
-- B3: fixture-defined shopper tracking / dwell route, live measurements pending.
-- B4: fixture-defined OCR extraction route, live measurements pending.
-- B5: fixture-defined crack measurement route, live measurements pending.
-
-Important caveat: the plugin-vs-plain-agent comparison is a process-efficiency claim, not a model-quality claim. A plain agent with the same Roboflow MCP tools can reach comparable model metrics if it performs the same steps. The plugin makes the careful sequence automatic.
-
-## Security And Safety
-
-- Keep `ROBOFLOW_API_KEY` out of chat.
-- Store keys in the host environment or `.env`.
-- Skills instruct the agent to ask before paid Roboflow training and deployment-class calls; the consent gate is prose-enforced, not runtime-enforced.
-- Pricing claims must be sourced, dated, or clearly labeled as assumptions.
-- `llms.txt` and `llms-full.txt` are public and must never include secrets, customer data, private paths, or unpublished internal behavior.
-
-## Important Public URLs
+## Source map
 
 - Documentation: https://borda.github.io/vision-delivery/
-- Quick start: https://borda.github.io/vision-delivery/quickstart/
-- Use cases: https://borda.github.io/vision-delivery/use-cases/
+- Scope/evidence: https://borda.github.io/vision-delivery/support-and-scope/
 - Workflow: https://borda.github.io/vision-delivery/workflow/
-- CV economics: https://borda.github.io/vision-delivery/economics/
-- Trust and safety: https://borda.github.io/vision-delivery/trust/
-- FAQ: https://borda.github.io/vision-delivery/faq/
-- Roboflow skills integration: https://borda.github.io/vision-delivery/roboflow-skills/
+- Roboflow boundary: https://borda.github.io/vision-delivery/roboflow-skills/
+- Trust: https://borda.github.io/vision-delivery/trust/
 - Benchmarks: https://borda.github.io/vision-delivery/benchmarks/
-- Compact LLM map: https://borda.github.io/vision-delivery/llms.txt
-- Repository: https://github.com/Borda/vision-delivery
-- Security policy: https://github.com/Borda/vision-delivery/blob/main/SECURITY.md
+- Support: https://github.com/Borda/vision-delivery/blob/main/.github/SUPPORT.md
+- Compatibility: https://borda.github.io/vision-delivery/compatibility/
+- Release policy: https://borda.github.io/vision-delivery/release-policy/
+- Security: https://github.com/Borda/vision-delivery/blob/main/.github/SECURITY.md
+- Official Roboflow skills: https://github.com/roboflow/computer-vision-skills

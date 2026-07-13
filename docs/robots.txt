@@ -4,5 +4,5 @@ Allow: /
 Sitemap: https://borda.github.io/vision-delivery/sitemap.xml
 
 # Published at /vision-delivery/robots.txt on GitHub Pages.
-# Host-root robots policy would need https://borda.github.io/robots.txt.
+# A host-root robots policy would require a separate file at the account Pages root.
 # LLM guide: https://borda.github.io/vision-delivery/llms.txt

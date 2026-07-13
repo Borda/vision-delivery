@@ -1,5 +1,5 @@
 site_name: vision-delivery
-site_description: Eval-first Codex and Claude Code plugin for solving real computer-vision tasks with measured proof, Roboflow artifacts, and CV economics.
+site_description: Business-first computer-vision delivery copilot for Codex and Claude Code, with explicit evidence, safety, and production boundaries.
 site_url: https://borda.github.io/vision-delivery/
 repo_url: https://github.com/Borda/vision-delivery
 repo_name: Borda/vision-delivery
@@ -55,12 +55,15 @@ plugins:
 nav:
   - Start Here: index.md
   - Quick Start: quickstart.md
+  - Support, Scope, And Evidence: support-and-scope.md
   - Use Cases: use-cases.md
   - Workflow: workflow.md
   - CV Economics: economics.md
   - Roboflow Skills: roboflow-skills.md
   - Trust And Safety: trust.md
   - FAQ: faq.md
+  - Compatibility: compatibility.md
+  - Release Policy: release-policy.md
   - Benchmarks:
       - Overview: benchmarks/index.md
       - B1 — Conveyor detect: benchmarks/b1-conveyor-detect.md
@@ -68,3 +71,5 @@ nav:
       - B3 — Shopper tracking: benchmarks/b3-track-in-video.md
       - B4 — OCR extraction: benchmarks/b4-read-text-ocr.md
       - B5 — Measurement: benchmarks/b5-measure-in-image.md
+      - Synthetic A/B: benchmarks/ab-plugin-vs-plain.md
+      - Annotated A/B transcripts: benchmarks/ab-transcripts.md

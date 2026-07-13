@@ -5,11 +5,12 @@ title: Eval-First Workflow
 
 # Eval-First Workflow
 
-The workflow is conservative on purpose. The expensive mistake is not a weak model; it is solving the wrong visual task with no agreed success threshold.
+The workflow is conservative on purpose. The expensive mistake is not a weak model; it is solving the wrong visual task with no authority, representative evidence, or agreed success threshold.
 
 ```mermaid
 flowchart LR
-    A[Messy CV request] --> B[Read project and samples]
+    A[Business outcome] --> Z[Confirm authority and owner]
+    Z --> B[Read project and samples]
     B --> C[Classify the task]
     C --> D[Define the eval gate]
     D --> E[Measure a pretrained baseline]
@@ -22,9 +23,13 @@ flowchart LR
     J --> K[Record provenance]
 ```
 
+## 0. Confirm Authority And Ownership
+
+Before private or sensitive data is opened, uploaded, or sent through MCP, establish the allowed purpose, data authority, minimum necessary scope, and the human who owns the result. Stop if those facts are missing for faces, plates, people tracking, forms, medical imagery, worker monitoring, or other consequential uses.
+
 ## 1. Read Context
 
-The plugin should inspect relevant project files, sample images, annotations, inference scripts, configs, and user constraints before asking broad questions.
+The plugin should inspect relevant project files, sample images, annotations, inference scripts, configs, and user constraints only within the authorized scope before asking broad questions.
 
 ## 2. Classify The Task
 
@@ -75,10 +80,16 @@ Expected artifacts depend on the route, but common outputs include:
 - `.vision-delivery/ledger.jsonl`,
 - deployment or workflow IDs after explicit confirmation.
 
+These are requested outputs, not self-validating proof. Inspect each file, run relevant syntax/dependency checks, execute a representative fixture, and compare the observed output with the committed gate. Do not describe an artifact as runnable or a deployment as successful solely because the workflow asked for it or a ledger row exists.
+
 ## 7. Estimate Economics
 
 Economics comes after the model is worth taking further or after the user explicitly asks for a rough estimate. The estimate should name assumptions and separate one-time effort from run-rate.
 
 ## 8. Record Provenance
 
-The ledger is for reconstruction later: what was trained, what was evaluated, what deployed, and why. It is not complete observability; it records selected lifecycle events.
+The ledger supports reconstruction of selected lifecycle events. Where the host exposes an outcome, records may distinguish success, failure, cancellation, or unknown state. Coverage remains best-effort; the ledger is not complete observability, authorization proof, or an independent receipt from Roboflow.
+
+## 9. Human Acceptance
+
+Production acceptance belongs to the user and relevant domain, privacy, security, and operations owners. Sentinel can organize the evidence but cannot certify that a workload is lawful, fair, calibrated, secure, reliable, or safe.

@@ -1,90 +1,86 @@
 ---
-description: Install vision-delivery in Codex or Claude Code, configure the Roboflow API key, and run the first eval-first computer-vision task.
+description: Install Sentinel from its public GitHub marketplace in Codex or Claude Code, connect Roboflow safely, and define a first business-first CV task.
 title: Quick Start
 ---
 
 # Quick Start
 
-Install the `sentinel` plugin from the `vision-delivery` repository, expose your Roboflow API key to the host process, restart the host, then start with a concrete operational CV task.
+Start with an operational outcome, representative samples, and the consequence of a wrong answer. Sentinel supplies CV methodology; it cannot supply data authority or decide what failure your organization can accept.
 
-## Before You Start
+## Before you start
 
 You need:
 
-- Codex or Claude Code.
-- A Roboflow account and API key from [app.roboflow.com/settings/api](https://app.roboflow.com/settings/api).
-- A real CV task: camera, image/video source, target object or field, and the output you need.
+- Codex or Claude Code,
+- a Roboflow account for the host-managed sign-in flow,
+- permission to use the project and media,
+- a concrete output such as a count, flag, text field, mask, track, or keypoint,
+- a human owner for the result.
 
-!!! warning "Key handling"
+!!! warning "Authentication and data"
 
-    Keep `ROBOFLOW_API_KEY` in the shell environment or `.env`. Do not paste API keys into chat.
+    Plugin installation does not require a credential environment variable. Codex metadata requests authorization on use; verify the actual host-managed sign-in, account, and scope in your live host. Never paste credentials into chat or commit them. MCP operations can send task data to Roboflow; do not use private or sensitive media until its allowed purpose and handling are established.
 
-## Install In Codex
+## Codex marketplace install
+
+The v0.2 package has passed a local clean-home marketplace simulation. Its public-GitHub path remains unverified until this release is published to `main` and retested from the repository URL.
 
 ```bash
 codex plugin marketplace add https://github.com/Borda/vision-delivery
 codex plugin add sentinel@sentinel
-export ROBOFLOW_API_KEY=your_key_here
 ```
 
-Restart Codex after setting the key so the Roboflow MCP server starts with the right environment.
+These marketplace commands match the current Codex CLI help and repository marketplace manifest.
 
-## Install In Claude Code
+## Claude Code marketplace install
 
 ```bash
-claude plugin install https://github.com/Borda/vision-delivery
-echo "ROBOFLOW_API_KEY=your_key_here" >> .env
-echo ".env" >> .gitignore
+claude plugin marketplace add Borda/vision-delivery
+claude plugin install sentinel@sentinel
 ```
 
-Restart Claude Code after writing `.env`.
+For local plugin development from a checkout, run `claude plugin validate .` and then `claude --plugin-dir .`.
 
-## First Prompt
+If setup is unclear, invoke `$check-sentinel-setup` in Codex or `/sentinel:check-sentinel-setup` in Claude Code. Its offline doctor verifies the installed package first and reports host enablement and Roboflow authorization separately.
 
-Start with the operational job, not the model name:
+## Sign in to Roboflow
+
+Use a read-only Roboflow MCP action after installation. Verify whether the host opens its managed sign-in flow, then review the requested account and authorization scope. Credentials for a generated standalone hosted client, if needed later, are separate from plugin installation and must follow current official Roboflow guidance.
+
+## First prompt
+
+Start with the job, not a model name:
 
 ```text
-I have an overhead camera above a parking lot. I need to count vehicles in view.
+Count pallets crossing this line and report the hourly total. I have 60 sample
+frames from the real camera. A missed pallet is worse than a duplicate count.
 ```
 
-Better prompts include:
+Useful details are:
 
-- input source: images, video, RTSP, camera, folder, dataset
-- target: object, defect, text field, person, pose, area
-- output: count, pass/fail, CSV, alert, endpoint, local script
-- success check: what must be caught, how many misses are acceptable, which false alarms matter, and how fast it needs to run
+- input: images, video, stream, folder, or dataset,
+- target: object, defect, text field, region, person, pose, or event,
+- output: count, CSV, flag, alert, endpoint, or local script,
+- consequence: which miss or false alarm matters more,
+- operating constraint: latency, throughput, environment, and review process.
 
-## What The Plugin Should Do First
+If you do not know a metric or threshold, say what the error costs in plain language. The plugin should translate that into a proposed eval and ask you to confirm it.
 
-The first useful response should not be a model shopping list. It should:
+## Expected first response
 
-1. classify the CV task,
-2. clarify ambiguity if needed,
-3. define or ask for the success check,
-4. measure a baseline before training,
-5. confirm before any paid training or deployment action.
+A useful first response should:
 
-## Good Starter Prompts
+1. restate the business outcome and check data authority,
+2. classify the required output,
+3. ask only for missing business facts,
+4. propose a metric, threshold, and representative eval slice,
+5. measure an existing or pretrained baseline before recommending training,
+6. stop for confirmation before a paid or state-changing action.
 
-```text
-Count pallets on a conveyor from these 60 sample frames.
-```
+If it skips the eval, assumes permission, promises production accuracy, or starts a paid action without a clear confirmation, stop the session and report the behavior.
 
-```text
-Detect cracks in product photos and report the count per image.
-```
+## What success looks like
 
-```text
-Read serial numbers from circuit board images and write a local inference script.
-```
+A first proof is complete only when the expected artifacts were inspected or executed, the measured result is compared with the agreed gate, failures are visible, and a human accepts the next step. A chat statement or ledger row alone is not proof.
 
-```text
-Track shoppers through aisle zones and estimate dwell time from RTSP footage.
-```
-
-## Next Steps
-
-- Read [Use Cases](use-cases.md) to choose the right CV route.
-- Read [Workflow](workflow.md) to understand the eval-first sequence.
-- Read [CV Economics](economics.md) when the proof is good enough to price.
-- Read [Trust And Safety](trust.md) for key handling, prose-enforced paid-action gates, and ledger behavior.
+Continue with [Use Cases](use-cases.md), [Workflow](workflow.md), [Support, Scope, and Evidence](support-and-scope.md), and [Trust and Safety](trust.md).

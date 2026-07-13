@@ -1,0 +1,31 @@
+name: Suggest an improvement
+description: Suggest a product, documentation, or workflow improvement.
+title: "[Suggestion] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Suggestions are welcome as public issues. This repository is not accepting uninvited pull requests while its CI and contribution rules are being fortified.
+
+        Do not include credentials, private media, customer data, faces, license plates, medical data, or information you are not authorized to share.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: Explain the user need or friction, not only a proposed implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Suggested outcome
+      description: Describe the improvement and how a user would benefit.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Public-safe context
+      description: Optional links, examples, alternatives, or constraints.
+    validations:
+      required: false

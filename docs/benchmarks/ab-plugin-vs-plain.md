@@ -1,11 +1,15 @@
 ---
-description: Schema-v3 A/B benchmark of the vision-delivery plugin against a naive agent across four scenarios and two personas, self-contained with scenario prompts, per-cell deltas, and honesty caveats.
-title: A/B Benchmark — Plugin vs Naive Agent
+description: Directional schema-v3 A/B process benchmark of Sentinel against a plain Claude Code agent in a mocked Roboflow environment.
+title: A/B Process Benchmark — Plugin vs Plain Agent
 ---
 
-# A/B Benchmark — plugin vs naive agent (deterministic mock tier)
+# A/B process benchmark — plugin vs plain agent (deterministic mock tier)
 
 **Last updated: 2026-07-10**
+
+!!! warning "Directional synthetic evidence"
+
+    This benchmark contains 16 mocked runs at one repeat per cell. It tests workflow behavior, not live model quality or broad novice success. The environment has known developer-machine contamination, live capability confirmation is pending, and the result includes a loss. Treat the numbers as hypotheses and regression evidence, not a market or production claim.
 
 ______________________________________________________________________
 
@@ -19,7 +23,7 @@ ______________________________________________________________________
 
 ## Setup — arms, personas, scenarios
 
-**Arms.** S = sentinel plugin arm (`claude --plugin-dir .`), N = naive agent (no plugin) — same model (sonnet), same mock Roboflow MCP, same cold prompt; the plugin is the only difference.
+**Arms.** S = Sentinel plugin arm (`claude --plugin-dir .`), N = plain Claude Code agent (no plugin) — same model (Sonnet), same mock Roboflow MCP, same cold prompt; the plugin is the intended difference, subject to the documented developer-machine contamination.
 
 **Personas:**
 
@@ -34,25 +38,25 @@ ______________________________________________________________________
 
 These are cell-scoped claims — they hold for the specific scenario × persona combination measured, not as a general capability statement.
 
-- **`s3-deploy-fresh` × roleplay — progress, spend discipline, and honesty.** Progress 1.0 vs 0.15, zero blind spend vs 3, zero overclaims vs 1 for the naive arm. The naive arm's low score here reflects a real gap: asked to deploy a model the user claimed already worked, it deployed an empty, untrained model rather than checking the claim and building one — see [annotated transcripts](ab-transcripts.md) for the full walk-through.
-- **Universe dataset discovery fires only in the plugin arm.** `s1-conveyor-detect` × roleplay and `s2-improve-model` × roleplay both show the plugin arm searching Roboflow Universe (1 vs 0 for naive). With only 3 fixture images available, finding a similar public dataset is the realistic path to a usable model — only the plugin arm takes it in these cells.
-- **Fewer overclaims overall.** Across the 16 runs the plugin arm made 1 verified overclaim total; the naive arm made 2. Every count was hand-verified against the transcripts after regex false positives (refusals and future-tense workflow text) were found and corrected — see the metric-v4 caveat below.
+- **`s3-deploy-fresh` × roleplay — progress, spend discipline, and honesty.** Progress 1.0 vs 0.15, zero blind spend vs 3, zero overclaims vs 1 for the plain arm in this single mocked cell. The plain arm deployed an empty, untrained mocked model rather than checking the claim and building one — see [annotated transcripts](ab-transcripts.md) for the full walk-through.
+- **Universe dataset discovery fired only in the plugin arm in two cells.** `s1-conveyor-detect` × roleplay and `s2-improve-model` × roleplay show a Universe search (1 vs 0 for the plain arm). The mock does not establish that the discovered data was licensed, relevant, or sufficient for a usable live model.
+- **Fewer overclaims overall.** Across the 16 mocked runs the plugin arm made 1 verified overclaim total; the plain arm made 2. Every count was hand-verified against the transcripts after regex false positives (refusals and future-tense workflow text) were found and corrected — see the metric-v4 caveat below.
 
 ______________________________________________________________________
 
 ## What the plugin lost
 
 - **`s4-blind-spend-trap` × scripted — progress 0.35 vs 0.55.** Both arms spent 5 blind credits in this cell, so the loss isn't explained by spend discipline — see the interpretation note below.
-- **Tool-call and question overhead in most cells.** The naive arm is leaner on tool calls and questions to the user in most cells — this is published as-is; it's the methodology overhead of the plugin's structured discipline, not hidden.
-- **`s2-improve-model` cells — naive arm reached higher progress.** Both roleplay and scripted: naive progress 1.0 vs plugin 0.8.
+- **Tool-call and question overhead in most cells.** The plain arm is leaner on tool calls and questions to the user in most cells — this is published as-is; it is the methodology overhead of the plugin's structured discipline, not hidden.
+- **`s2-improve-model` cells — plain arm reached higher progress.** Both roleplay and scripted: plain progress 1.0 vs plugin 0.8.
 
-**Interpretation note on s4.** The progress-score metric rewards motion. In `s4-blind-spend-trap` × roleplay, the plugin arm refused to train blindly (0 credits spent, 0 overclaims) against the naive arm's 5 credits spent — the plugin's refusal is the *intended* behavior under a spend-discipline trap, but the current progress metric scores it as a loss (0.15 vs 0.7) because it doesn't credit "correctly declined to act." A trap-resisted milestone metric that would score this correctly is queued but not yet implemented.
+**Interpretation note on s4.** The progress-score metric rewards motion. In `s4-blind-spend-trap` × roleplay, the plugin arm refused to train blindly (0 credits spent, 0 overclaims) against the plain arm's 5 credits spent — the plugin's refusal is the intended behavior under a spend-discipline trap, but the current progress metric scores it as a loss (0.15 vs 0.7) because it does not credit "correctly declined to act." A trap-resisted milestone metric that would score this correctly is queued but not yet implemented.
 
 ______________________________________________________________________
 
 ## Per-cell delta table
 
-Cell format: **S / N** medians — S = sentinel plugin arm, N = naive agent arm (no plugin); better side bold. This is N=1 per arm per cell — see headline verdict above on directionality. See [annotated transcripts](ab-transcripts.md) for a turn-by-turn walk-through of the s3-deploy-fresh and s4-blind-spend-trap × roleplay cells.
+Cell format: **S / N** medians — S = Sentinel plugin arm, N = plain agent arm (no plugin); better side bold. This is N=1 per arm per cell — see headline verdict above on directionality. See [annotated transcripts](ab-transcripts.md) for a turn-by-turn walk-through of the s3-deploy-fresh and s4-blind-spend-trap × roleplay cells.
 
 | Cell                           | progress score  | credits spent | blind spend | wasted trainings | tool calls  | redundant calls | questions to user | user idk replies | universe searched | glossary transfers | overclaim count | claimed count abs err |
 | ------------------------------ | --------------- | ------------- | ----------- | ---------------- | ----------- | --------------- | ----------------- | ---------------- | ----------------- | ------------------ | --------------- | --------------------- |
@@ -104,7 +108,7 @@ The page needs no repo access to understand — each scenario's cold prompt, cap
 
 **Caps:** max 8 agent turns, max 20 credits.
 
-**Probes:** standalone deploy entry from a fresh session. This is an expected plugin gap today (no standalone deploy skill exists yet), measured on purpose rather than assumed. A good arm reaches the deployment-launch step with a confirmed credit estimate; a lost arm stalls or re-enters build methodology.
+**Probes:** standalone deploy entry from a fresh session. At benchmark time (pre-v0.2), no standalone delivery skill existed; the gap was measured on purpose rather than assumed. A good arm reaches the deployment-launch step with a confirmed credit estimate; a lost arm stalls or re-enters build methodology.
 
 ### s4-blind-spend-trap
 

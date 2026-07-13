@@ -1,98 +1,71 @@
 ---
-description: Choose the right vision-delivery route for detection, classification, tracking, OCR, segmentation, pose, pipelines, and CV economics.
+description: Choose a Sentinel CV route and understand its evidence, safety, and expert-review boundary.
 title: Use Cases
 ---
 
 # Use Cases
 
-`vision-delivery` routes a vague request to a concrete computer-vision task before model search starts. The route matters because each output type has a different eval metric and a different cheapest first baseline.
+Sentinel routes a business request by required output before model search. A route describes a methodology; unless marked proven for the exact claim, it does not imply a live end-to-end result.
 
-## Route Matrix
+## Route matrix
 
-| User asks for                         | Route                       | Output shape                   | Primary measurements                    |
-| ------------------------------------- | --------------------------- | ------------------------------ | --------------------------------------- |
-| Count objects, defects, vehicles      | `detect-and-analyze`        | boxes and counts               | mAP@50, per-class count MAE             |
-| Pass/fail or compliance flag          | `classify-or-flag`          | image-level label              | precision, recall, F1                   |
-| Track people, dwell time, line-cross  | `track-and-count`           | identities and trajectories    | MOTA, dwell time MAE, line-cross counts |
-| Read serials, labels, dates, barcodes | `read-text`                 | text fields                    | field match rate, CER, latency          |
-| Segment cracks, lesions, corrosion    | `segment-and-analyze`       | masks and measurements         | mask mAP, IoU, area or width error      |
-| Recognize posture, gesture, action    | `recognize-pose-or-gesture` | keypoints or gesture labels    | OKS mAP, gesture recall                 |
-| Monitor a multi-step visual process   | `decompose-to-pipeline`     | typed handoffs between routes  | route-specific metrics                  |
-| Price a project decision              | `estimate-economics`        | recommendation and assumptions | one-time assumptions and run-rate costs |
+| Business outcome                          | Route                       | Eval examples                               | Support boundary                                                           |
+| ----------------------------------------- | --------------------------- | ------------------------------------------- | -------------------------------------------------------------------------- |
+| Count objects or defects                  | `detect-and-analyze`        | recall, box overlap, count MAE              | Guided; B1 is historical private evidence, not reproducible support proof. |
+| Flag a whole image/frame                  | `classify-or-flag`          | precision, recall, F1                       | Guided; B2 live run pending.                                               |
+| Count crossings or dwell time             | `track-and-count`           | identity metrics, dwell error, event counts | Guided; B3 pending and privacy/streaming expertise required.               |
+| Read serials, labels, or fields           | `read-text`                 | exact field match, CER, latency             | Guided; B4 pending.                                                        |
+| Extract shape, area, or width             | `segment-and-analyze`       | IoU, mask metrics, measurement error        | Guided; calibration/domain expert required for physical units.             |
+| Recognize posture or gesture              | `recognize-pose-or-gesture` | keypoint metrics, action recall             | Guided; expert review for consequential use.                               |
+| Combine visual stages                     | `decompose-to-pipeline`     | route metrics plus interface contracts      | Guided; production architecture remains expert-owned.                      |
+| Compare project economics                 | `estimate-economics`        | one-time and run-rate assumptions           | Guided; current product pricing delegated upstream.                        |
+| Package or integrate a passing capability | `deliver-cv-project`        | artifact smoke, consumer smoke, rollback    | Guided; live/offline proof is required before delivery status.             |
 
-## Detection And Counting
+## Plain-language route selection
 
-Use `detect-and-analyze` when the output is one box per visible thing:
+- **One box for every visible thing:** detection.
+- **One verdict for the whole image:** classification.
+- **The same thing must keep its identity over time:** tracking.
+- **The answer is characters or structured fields:** OCR.
+- **The exact outline or area matters:** segmentation.
+- **Body or object landmarks matter:** pose/keypoints.
+- **Several of these must pass outputs between stages:** pipeline decomposition.
+- **A measured capability must become runnable for a consumer:** delivery and integration.
 
-- count vehicles in a parking lot,
-- count boxes on a conveyor,
-- count visible defects,
-- crop each detected part for downstream inspection.
+Ambiguous requests need one decision before proceeding. “How many defective items?” is detection; “is this item defective?” is classification.
 
-Good evals include `mAP@50`, recall floor, and count mean absolute error.
+## Examples and limits
 
-## Classification And Flagging
+### Detection and counting
 
-Use `classify-or-flag` when the whole image or frame gets a verdict:
+Good fits include vehicle, pallet, package, or visible-defect counts. Count error can matter more than general detection mAP, so define both the business count measure and the object-level failure pattern.
 
-- compliant vs non-compliant,
-- good vs defective,
-- pass vs fail,
-- anomaly vs normal.
+### Classification and flagging
 
-Do not use this route when the user needs a count per instance. "How many defective items?" is detection; "Is this item defective?" is classification.
+Good fits include pass/fail, category, or anomaly flags for an entire image. Compliance labels affecting people or employment require expert policy, fairness, and human-review controls.
 
-## Tracking And Counting Over Time
+### Tracking and events
 
-Use `track-and-count` when identity or time matters:
+Good fits include anonymous object flow, line crossing, and dwell estimates. RTSP reliability, state recovery, identity switches, latency, retention, and privacy are production concerns outside the route recipe.
 
-- dwell time,
-- line crossing,
-- zone entry and exit,
-- following a person or object through frames.
+### OCR
 
-Tracking usually needs detection first, then a tracker and zone or line logic.
+Good fits include serials, lot codes, dates, and meter readings. License plates, forms, and identifiers are sensitive; establish purpose, access, and retention before use.
 
-## OCR And Text Extraction
+### Segmentation and measurement
 
-Use `read-text` when the user needs characters:
+Good fits include contours, pixel area, or relative change. Millimeters, volume, medical boundaries, and maintenance decisions require calibration, uncertainty analysis, and a qualified domain reviewer.
 
-- serial numbers,
-- lot codes,
-- expiry dates,
-- license plates,
-- meter readings.
+### Pose, gesture, and action
 
-Good evals include exact field match, character error rate, and latency.
+Good fits include interface gestures or descriptive motion analysis. Worker safety, fall detection, access, or disciplinary uses must not become autonomous decisions without representative evaluation and human oversight.
 
-## Segmentation And Measurement
+### Delivery and integration
 
-Use `segment-and-analyze` when the user needs shape, area, contour, or pixel-level precision:
+Good fits start with an already accepted model or pipeline and package it as a hosted client, offline local runtime, or candid scaffold. The route verifies dependencies, deterministic self-test, applicable live/offline execution, consumer contract, monitoring status, and rollback. It does not turn an unmeasured model into production.
 
-- crack width,
-- corrosion area,
-- lesion outline,
-- object area.
+## Stop conditions
 
-Measurement claims require calibration when the user wants physical units such as millimeters.
+Do not continue from exploration to upload, training, deployment, or operational decision when data authority is unclear, representative samples are absent, the consequence of error is unknown, paid-action approval is missing, or no qualified human can review a consequential result.
 
-## Pose And Gesture
-
-Use `recognize-pose-or-gesture` when posture, skeleton, gesture, or action is the important signal:
-
-- worker posture,
-- fall detection,
-- hand raises,
-- form checking,
-- gesture control.
-
-Good evals include OKS mAP for keypoints and recall for safety-critical actions.
-
-## Economics
-
-Use `estimate-economics` after the build scope is clear or the eval passes. It should not interrupt early build work with pricing guesses. It separates:
-
-- annotation and QA assumptions,
-- training/eval iteration assumptions,
-- deployment run-rate,
-- managed-vs-DIY crossover.
+See [Support, Scope, and Evidence](support-and-scope.md) for route status and [Trust and Safety](trust.md) for the sensitive-use gate.
