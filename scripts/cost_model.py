@@ -42,7 +42,7 @@ from typing import Any
 try:
     import requests
 except ImportError:  # pragma: no cover - requests optional
-    requests = None  # type: ignore
+    requests = None
 
 SNAPSHOT_PATH = Path(__file__).parent / "PRICING_SNAPSHOT.json"
 

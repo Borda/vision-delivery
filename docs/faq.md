@@ -15,7 +15,7 @@ It is designed for them: a user can describe the outcome and consequences in pla
 
 ## What evidence exists?
 
-A pre-v0.2 live routing sample, a directional synthetic process A/B, and one small private detection result exist as historical evidence. The private data is not independently reproducible, and current routes are guided rather than proven end to end. See [Support, Scope, and Evidence](support-and-scope.md).
+A pre-v0.2 live routing sample, a directional synthetic process A/B, and one small private detection result exist as historical evidence. The private data is not independently reproducible, and current routes are guided rather than proven end to end. See [Support & Evidence](support-and-scope.md).
 
 ## Does it guarantee accuracy or production readiness?
 

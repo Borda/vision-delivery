@@ -1,9 +1,9 @@
 ---
 description: Sentinel support tiers, evidence register, user responsibilities, sensitive-use gates, and the limits that remain before broad go-to CV claims are justified.
-title: Support, Scope, and Evidence
+title: Support & Evidence
 ---
 
-# Support, Scope, and Evidence
+# Support & Evidence
 
 Sentinel is a business-first delivery copilot, not a model and not an autonomous production owner. It is designed to let a user begin with an operational outcome while the plugin supplies CV task framing, evaluation discipline, improvement order, and decision structure.
 

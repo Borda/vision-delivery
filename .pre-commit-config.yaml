@@ -30,6 +30,8 @@ repos:
         name: 🔍 check-json
       - id: check-yaml
         name: 🔍 check-yaml
+        # MkDocs-Mermaid2 registers its Material fence loader with this YAML tag.
+        args: ["--unsafe"]
       - id: check-toml
         name: 🔍 check-toml
       - id: check-executables-have-shebangs
@@ -78,6 +80,17 @@ repos:
         args: ["--fix"]
       - id: ruff-format
         name: 🦀 ruff-format
+
+  # Keep this version and stub package in sync with evals/requirements.txt.
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v2.2.0
+    hooks:
+      - id: mypy
+        name: 🔎 mypy
+        args: [scripts, evals, resources/scripts]
+        pass_filenames: false
+        additional_dependencies:
+          - types-PyYAML==6.0.12.20260518
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.2

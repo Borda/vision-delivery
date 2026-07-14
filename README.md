@@ -22,7 +22,7 @@ Sentinel should turn that into a task definition, success gate, baseline, eviden
 | **🔗 Delegated upstream**  | Sentinel frames and evaluates the work; current product details come from the official source.      | Roboflow MCP operations, model IDs, Workflows, plans, pricing, and platform navigation.                                                                                              |
 | **🧑‍⚖️ Expert required**     | Do not rely on the plugin alone.                                                                    | Regulated or safety-critical decisions, people surveillance, medical use, physical measurement, production streaming/edge architecture, legal review, and final production sign-off. |
 
-Read [Support, Scope, and Evidence](docs/support-and-scope.md) before treating a guided route as production-ready.
+Read [Support & Evidence](docs/support-and-scope.md) before treating a guided route as production-ready.
 
 ## 📊 Evidence, without the headline inflation
 

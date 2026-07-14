@@ -60,4 +60,4 @@ Do not use Sentinel alone for medical, employment, law-enforcement, access-contr
 - Generated files, scripts, IDs, and ledger entries require inspection and execution before reliance.
 - Pricing snapshots are dated; annotation and training inputs may remain assumptions.
 
-Read [Support, Scope, and Evidence](support-and-scope.md) for the full claim register and the repository [security policy](https://github.com/Borda/vision-delivery/blob/main/.github/SECURITY.md) for private reporting.
+Read [Support & Evidence](support-and-scope.md) for the full claim register and the repository [security policy](https://github.com/Borda/vision-delivery/blob/main/.github/SECURITY.md) for private reporting.

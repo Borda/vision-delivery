@@ -29,17 +29,17 @@ theme:
 extra_css:
   - stylesheets/roboflow.css
 
-extra_javascript:
-  - https://unpkg.com/mermaid@10.9.1/dist/mermaid.min.js
-  - javascripts/mermaid.js
-
 markdown_extensions:
   - admonition
   - attr_list
   - md_in_html
   - meta
   - pymdownx.details
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:mermaid2.fence_mermaid_custom
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.highlight:
@@ -51,19 +51,23 @@ markdown_extensions:
 
 plugins:
   - search
+  - mermaid2:
+      version: 10.9.1
 
 nav:
   - Start Here: index.md
-  - Quick Start: quickstart.md
-  - Support, Scope, And Evidence: support-and-scope.md
-  - Use Cases: use-cases.md
-  - Workflow: workflow.md
-  - CV Economics: economics.md
-  - Roboflow Skills: roboflow-skills.md
-  - Trust And Safety: trust.md
-  - FAQ: faq.md
-  - Compatibility: compatibility.md
-  - Release Policy: release-policy.md
+  - Guides:
+      - Quick Start: quickstart.md
+      - Use Cases: use-cases.md
+      - Workflow: workflow.md
+      - CV Economics: economics.md
+      - Roboflow Skills: roboflow-skills.md
+  - Foundations & Evidence:
+      - Support & Evidence: support-and-scope.md
+      - Trust And Safety: trust.md
+      - FAQ: faq.md
+      - Compatibility: compatibility.md
+      - Release Policy: release-policy.md
   - Benchmarks:
       - Overview: benchmarks/index.md
       - B1 — Conveyor detect: benchmarks/b1-conveyor-detect.md

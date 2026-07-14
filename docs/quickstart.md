@@ -83,4 +83,4 @@ If it skips the eval, assumes permission, promises production accuracy, or start
 
 A first proof is complete only when the expected artifacts were inspected or executed, the measured result is compared with the agreed gate, failures are visible, and a human accepts the next step. A chat statement or ledger row alone is not proof.
 
-Continue with [Use Cases](use-cases.md), [Workflow](workflow.md), [Support, Scope, and Evidence](support-and-scope.md), and [Trust and Safety](trust.md).
+Continue with [Use Cases](use-cases.md), [Workflow](workflow.md), [Support & Evidence](support-and-scope.md), and [Trust and Safety](trust.md).

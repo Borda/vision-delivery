@@ -81,7 +81,7 @@ afterward whether the result was useful.
 
 Sentinel alone can help frame a public-safe task, define an eval, plan a local baseline, review existing project evidence, and structure economics assumptions. It is not enough for authenticated Roboflow operations or exact platform choices unless the live upstream sources are available.
 
-Specialist routes other than the narrow B1 fixture remain guided, not broadly live-proven. See [Support, Scope, and Evidence](support-and-scope.md).
+Specialist routes other than the narrow B1 fixture remain guided, not broadly live-proven. See [Support & Evidence](support-and-scope.md).
 
 ## Combining plugins
 

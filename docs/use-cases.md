@@ -68,4 +68,4 @@ Good fits start with an already accepted model or pipeline and package it as a h
 
 Do not continue from exploration to upload, training, deployment, or operational decision when data authority is unclear, representative samples are absent, the consequence of error is unknown, paid-action approval is missing, or no qualified human can review a consequential result.
 
-See [Support, Scope, and Evidence](support-and-scope.md) for route status and [Trust and Safety](trust.md) for the sensitive-use gate.
+See [Support & Evidence](support-and-scope.md) for route status and [Trust and Safety](trust.md) for the sensitive-use gate.

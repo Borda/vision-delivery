@@ -5,16 +5,14 @@ title: Sentinel — Business-First CV Delivery
 
 # Start with the business problem, not a model
 
-<section class="vd-hero">
+<section class="vd-hero" markdown="1">
   <p class="vd-kicker">Computer-vision delivery copilot for Codex and Claude Code</p>
   <h2>Describe what you need to see, count, read, track, or measure.</h2>
   <p>
     <strong>Sentinel</strong> turns that operational request into a CV task, a success gate, the cheapest sensible baseline, inspectable proof artifacts, and an evidence-bound economics decision.
   </p>
-  <p>
-    <a class="md-button md-button--primary" href="quickstart.md">Start a first proof</a>
-    <a class="md-button" href="support-and-scope.md">Check support and evidence</a>
-  </p>
+  [Start a first proof](quickstart.md){ .md-button .md-button--primary }
+  [Check support and evidence](support-and-scope.md){ .md-button }
 </section>
 
 You do not need to know model families, metric names, or Roboflow APIs before starting. You do need authority to use the data, representative examples, the business consequence of errors, and a human who owns the result.
@@ -54,7 +52,7 @@ Sentinel does not own current Roboflow product truth. Exact MCP behavior, model 
 | **Delegated upstream**  | Use official Roboflow sources for current platform/API/model/plan truth while Sentinel frames and evaluates the delivery decision.                                              |
 | **Expert required**     | Regulated or safety-critical use, people surveillance, medical work, physical measurement, production streaming/edge architecture, legal review, and final production sign-off. |
 
-The full route-by-route claim register is in [Support, Scope, and Evidence](support-and-scope.md).
+The full route-by-route claim register is in [Support & Evidence](support-and-scope.md).
 
 ## Install
 
@@ -116,7 +114,7 @@ Read [Trust and Safety](trust.md) and the repository [security policy](https://g
 | Exact first-session commands          | [Quick Start](quickstart.md)                                                            |
 | Pick the right output route           | [Use Cases](use-cases.md)                                                               |
 | Understand the delivery sequence      | [Workflow](workflow.md)                                                                 |
-| Check claims and limitations          | [Support, Scope, and Evidence](support-and-scope.md)                                    |
+| Check claims and limitations          | [Support & Evidence](support-and-scope.md)                                              |
 | Separate Sentinel from platform truth | [Roboflow Skills Integration](roboflow-skills.md)                                       |
 | Interpret current proof               | [Benchmarks](benchmarks/index.md)                                                       |
 | Get community help                    | [Support policy](https://github.com/Borda/vision-delivery/blob/main/.github/SUPPORT.md) |

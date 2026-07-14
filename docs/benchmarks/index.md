@@ -75,4 +75,4 @@ A pending route becomes “proven” only when its exact claim has:
 6. security, privacy, cost, and domain limitations,
 7. executable artifact acceptance rather than instruction-presence checks.
 
-See [Support, Scope, and Evidence](../support-and-scope.md) for the public support tiers.
+See [Support & Evidence](../support-and-scope.md) for the public support tiers.
