@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
-"""Live trigger eval: feed labeled prompts to a headless plugin session, assert which skill fires.
+"""Live trigger eval: feed labeled prompts to a host session and assert which skill fires.
 
 Unlike ``evals/trigger/run.py`` (a description lint — vocabulary coverage only),
-this harness measures actual routing: each prompt runs in ``claude --plugin-dir .``
-with tools restricted to ``Skill`` and the fired skill is read from the Skill
-tool_use event in the stream-json transcript. Computes per-skill accuracy and a
-confusion listing, plus a router-tolerance view (``solve-cv-task`` counts as
-correct for modality prompts — it is the intended dispatcher).
+this harness measures actual routing. Claude runs from ``--plugin-dir``; Codex
+runs through a preinstalled plugin in ``CODEX_HOME``. The fired skill is read
+from each host's JSON transcript using the same namespaced-skill pattern.
+Computes per-skill accuracy and a confusion listing, plus a router-tolerance
+view (``solve-cv-task`` counts as correct for modality prompts).
 
 Cost: one model call per case. Default samples 1 should_fire case per skill;
 ``--all`` runs every case. NOT wired into ``make eval`` — run on demand:
 
-    python3 evals/trigger-live/run_live.py [--all] [--model sonnet] [--skill NAME]
+    python3 evals/trigger-live/run_live.py --host claude [--all] [--model sonnet]
+    CODEX_HOME=/isolated/home python3 evals/trigger-live/run_live.py --host codex
 
 Results land in ``evals/trigger-live/runs/<UTC-timestamp>.jsonl``.
 """
@@ -34,7 +35,7 @@ PER_CASE_TIMEOUT_S = 180
 ROUTER = "solve-cv-task"
 
 
-def fire_prompt(prompt: str, model: str) -> str | None:
+def fire_prompt(prompt: str, model: str | None, host: str) -> str | None:
     """Run one headless routing turn; return the fired skill name or None.
 
     Runs in a fresh empty temp dir — with the repo as cwd, the session can
@@ -47,28 +48,44 @@ def fire_prompt(prompt: str, model: str) -> str | None:
     """
     import tempfile
 
-    cmd = [
-        "claude",
-        "--plugin-dir",
-        str(ROOT),
-        "--model",
-        model,
-        "--setting-sources",
-        "project",
-        "--max-turns",
-        "2",
-        "--allowedTools",
-        "Skill",
-        "--output-format",
-        "stream-json",
-        "--verbose",
-        "-p",
-        prompt,
-    ]
+    if host == "claude":
+        cmd = ["claude", "--plugin-dir", str(ROOT)]
+        if model:
+            cmd.extend(["--model", model])
+        cmd.extend(
+            [
+                "--setting-sources",
+                "project",
+                "--max-turns",
+                "2",
+                "--allowedTools",
+                "Skill",
+                "--output-format",
+                "stream-json",
+                "--verbose",
+                "-p",
+                prompt,
+            ]
+        )
+    else:
+        cmd = [
+            "codex",
+            "exec",
+            "--json",
+            "--ephemeral",
+            "--sandbox",
+            "read-only",
+            "--cd",
+            "{cwd}",
+            prompt,
+        ]
+        if model:
+            cmd[-1:-1] = ["--model", model]
     with tempfile.TemporaryDirectory(prefix="trigger-live-") as tmp:
         try:
+            resolved_cmd = [part.replace("{cwd}", tmp) for part in cmd]
             res = subprocess.run(
-                cmd,
+                resolved_cmd,
                 capture_output=True,
                 text=True,
                 timeout=PER_CASE_TIMEOUT_S,
@@ -115,17 +132,28 @@ def main() -> int:
     ap.add_argument(
         "--all", action="store_true", help="Run every case (default: 1 per skill)."
     )
-    ap.add_argument("--model", default="sonnet", help="Model for the routed session.")
+    ap.add_argument(
+        "--model",
+        default=None,
+        help="Host model override (Claude defaults to sonnet; Codex keeps its configured default).",
+    )
     ap.add_argument("--skill", default=None, help="Restrict to one skill's cases.")
     ap.add_argument(
         "--negatives",
         action="store_true",
         help="Also run should_not_fire cases (per-skill false positives).",
     )
+    ap.add_argument(
+        "--host",
+        choices=("claude", "codex"),
+        default="claude",
+        help="Host runner; Codex requires Sentinel preinstalled in CODEX_HOME.",
+    )
     ap.add_argument("--out-tag", default=None, help="Suffix for the results file.")
     args = ap.parse_args()
 
-    if "fable" in args.model.lower():
+    model = args.model or ("sonnet" if args.host == "claude" else None)
+    if model and "fable" in model.lower():
         sys.exit("live evals run sonnet or opus only — never fable (owner rule)")
 
     triples = load_cases(args.skill, negatives=args.negatives)
@@ -140,13 +168,13 @@ def main() -> int:
 
     RUNS_DIR.mkdir(exist_ok=True)
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ")
-    tag = f"-{args.out_tag}" if args.out_tag else ""
+    tag = f"-{args.out_tag}" if args.out_tag else f"-{args.host}"
     out_path = RUNS_DIR / f"{ts}{tag}.jsonl"
 
     exact = tolerant = total_pos = 0
     rows = []
     for skill, prompt, positive in triples:
-        fired = fire_prompt(prompt, args.model)
+        fired = fire_prompt(prompt, model, args.host)
         if positive:
             ok_exact = fired == skill
             ok_tolerant = ok_exact or (fired == ROUTER and skill != ROUTER)
@@ -164,7 +192,8 @@ def main() -> int:
             "exact": ok_exact,
             "router_tolerant": ok_tolerant,
             "prompt": prompt,
-            "model": args.model,
+            "model": model,
+            "host": args.host,
         }
         rows.append(row)
         print(f"  {icon} {'+' if positive else '-'} expected={skill:<26} fired={fired}")

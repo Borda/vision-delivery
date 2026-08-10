@@ -1,4 +1,4 @@
-.PHONY: ci docs-setup docs-build docs-serve eval-setup pre-commit-coverage eval eval-version eval-install eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-decision-report eval-trigger-live eval-ab-smoke
+.PHONY: ci docs-setup docs-build docs-serve eval-setup pre-commit-coverage eval eval-version eval-install eval-package eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-decision-report probe-codex probe-claude eval-trigger-live eval-ab-smoke
 
 ci: eval-setup eval
 
@@ -24,13 +24,28 @@ pre-commit-coverage:
 	@echo "pre-commit owns Ruff lint/format, ESLint, and mypy."
 	@echo "make ci retains repository evals."
 
-eval: eval-version eval-install eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-decision-report
+eval: eval-version eval-install eval-package eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-decision-report
 
 eval-version:
 	python scripts/check_versions.py
 
 eval-install:
 	python evals/install/assert_distribution.py
+
+eval-package:
+	python evals/install/assert_package.py
+
+probe-codex:
+	@candidate="$$(mktemp -d)/sentinel"; \
+	python scripts/build_package.py --out "$$candidate"; \
+	python scripts/validate_package.py --package "$$candidate"; \
+	python scripts/probe_codex_install.py --candidate "$$candidate"
+
+probe-claude:
+	@candidate="$$(mktemp -d)/sentinel"; \
+	python scripts/build_package.py --out "$$candidate"; \
+	python scripts/validate_package.py --package "$$candidate"; \
+	python scripts/probe_claude_install.py --candidate "$$candidate"
 
 eval-doctor:
 	python evals/install/assert_doctor.py
