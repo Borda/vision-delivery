@@ -11,6 +11,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
 MCP_URL = "https://mcp.roboflow.com/mcp"
+MCP_SERVER = {"type": "http", "url": MCP_URL}
 
 
 def canonical_version() -> str:
@@ -64,12 +65,17 @@ def validate_distribution() -> None:
         )
         require(manifest.get("version") == version, f"{host} version must be {version}")
         require(manifest.get("skills") == "./skills/", f"{host} skills path drifted")
-        require(manifest.get("mcpServers") == "./.mcp.json", f"{host} MCP path drifted")
 
-    require("hooks" not in codex, "Codex manifest must omit unsupported hooks")
+    codex_servers = codex.get("mcpServers")
+    if not isinstance(codex_servers, dict):
+        raise DistributionError("Codex manifest must inline MCP server definitions")
     require(
-        "hooks" not in claude, "Claude standard hooks must rely on automatic discovery"
+        claude.get("mcpServers") == "./.mcp.json",
+        "Claude manifest must retain the packaged MCP config",
     )
+
+    require("hooks" not in codex, "Codex hook wiring is deferred to Phase 2")
+    require("hooks" not in claude, "Claude explicit hook wiring is deferred to Phase 2")
     require(
         (ROOT / "hooks" / "hooks.json").is_file(), "Claude hook manifest is missing"
     )
@@ -107,7 +113,7 @@ def validate_distribution() -> None:
         "Codex selector must be sentinel@sentinel",
     )
     require(
-        codex_entry.get("source") == {"source": "local", "path": "."},
+        codex_entry.get("source") == {"source": "local", "path": "./"},
         "Codex marketplace source drifted",
     )
 
@@ -117,8 +123,12 @@ def validate_distribution() -> None:
     roboflow = servers.get("roboflow")
     require(isinstance(roboflow, dict), "Roboflow MCP server is missing")
     require(
-        roboflow == {"type": "http", "url": MCP_URL},
+        roboflow == MCP_SERVER,
         "Roboflow MCP must use URL-only OAuth discovery",
+    )
+    require(
+        codex_servers.get("roboflow") == roboflow,
+        "Codex and Claude MCP server semantics diverged",
     )
 
     front_door = ROOT / "skills" / "solve-cv-task" / "SKILL.md"

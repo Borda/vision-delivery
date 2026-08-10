@@ -12,7 +12,7 @@
         "installation": "AVAILABLE"
       },
       "source": {
-        "path": ".",
+        "path": "./",
         "source": "local"
       }
     }

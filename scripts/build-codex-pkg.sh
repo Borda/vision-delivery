@@ -17,13 +17,15 @@ marketplace = json.loads(marketplace_path.read_text(encoding="utf-8"))
 
 assert manifest["name"] == "sentinel"
 assert manifest["skills"] == "./skills/"
-assert manifest["mcpServers"] == "./.mcp.json"
+assert manifest["mcpServers"] == {
+    "roboflow": {"type": "http", "url": "https://mcp.roboflow.com/mcp"}
+}
 assert (root / "skills" / "solve-cv-task" / "SKILL.md").is_file()
 assert (root / "skills" / "estimate-economics" / "SKILL.md").is_file()
 
 entries = [p for p in marketplace["plugins"] if p["name"] == manifest["name"]]
 assert len(entries) == 1
-assert entries[0]["source"] == {"source": "local", "path": "."}
+assert entries[0]["source"] == {"source": "local", "path": "./"}
 
 print("Codex package metadata is present and internally consistent.")
 print()

@@ -63,6 +63,24 @@ def main() -> int:
                 f"doctor exposed a host-only cache-buster: {cachebusted_payload}"
             )
 
+        codex_payload["mcpServers"] = "./.mcp.json"
+        codex_manifest.write_text(json.dumps(codex_payload), encoding="utf-8")
+        invalid_codex_mcp = run_doctor("--plugin-root", str(cachebusted_root), cwd=cwd)
+        invalid_codex_mcp_payload = json.loads(invalid_codex_mcp.stdout)
+        if invalid_codex_mcp.returncode == 0 or (
+            "codex manifest MCP configuration is not the expected "
+            "URL-only Roboflow configuration"
+            not in invalid_codex_mcp_payload.get("errors", [])
+        ):
+            raise AssertionError(
+                "doctor accepted Claude-style MCP wiring for the Codex manifest"
+            )
+
+        codex_payload["mcpServers"] = {
+            "roboflow": {"type": "http", "url": "https://mcp.roboflow.com/mcp"}
+        }
+        codex_manifest.write_text(json.dumps(codex_payload), encoding="utf-8")
+
         claude_manifest = cachebusted_root / ".claude-plugin" / "plugin.json"
         claude_payload = json.loads(claude_manifest.read_text(encoding="utf-8"))
         claude_payload["version"] = "999.0.0"

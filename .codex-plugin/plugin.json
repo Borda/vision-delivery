@@ -32,7 +32,12 @@
     "deployment"
   ],
   "license": "Apache-2.0",
-  "mcpServers": "./.mcp.json",
+  "mcpServers": {
+    "roboflow": {
+      "type": "http",
+      "url": "https://mcp.roboflow.com/mcp"
+    }
+  },
   "name": "sentinel",
   "repository": "https://github.com/Borda/vision-delivery",
   "skills": "./skills/",

@@ -11,6 +11,10 @@ from typing import Any
 
 EXPECTED_NAME = "sentinel"
 EXPECTED_MCP = {"type": "http", "url": "https://mcp.roboflow.com/mcp"}
+EXPECTED_MCP_BY_HOST = {
+    "codex": {"roboflow": EXPECTED_MCP},
+    "claude": "./.mcp.json",
+}
 REQUIRED_RESOURCES = (
     "artifact-contract.md",
     "fde-methodology.md",
@@ -55,8 +59,12 @@ def inspect_package(root: Path) -> dict[str, Any]:
             errors.append(f"{host} manifest name is not {EXPECTED_NAME}")
         if manifest.get("skills") != "./skills/":
             errors.append(f"{host} manifest skills path is not ./skills/")
-        if manifest.get("mcpServers") != "./.mcp.json":
-            errors.append(f"{host} manifest MCP path is not ./.mcp.json")
+        # Hosts serialize the same URL-only server according to their native contract.
+        if manifest.get("mcpServers") != EXPECTED_MCP_BY_HOST[host]:
+            errors.append(
+                f"{host} manifest MCP configuration is not the expected "
+                "URL-only Roboflow configuration"
+            )
 
     codex_version = str(manifests.get("codex", {}).get("version", ""))
     claude_version = str(manifests.get("claude", {}).get("version", ""))
