@@ -23,7 +23,7 @@ def read_text(root: Path, relative: str) -> str:
 
 
 def assert_release_surface(root: Path) -> None:
-    """Require release assets, v0.3 metadata, and honest install wording."""
+    """Require release assets, v0.3 metadata, and consistent install wording."""
     manifest = json.loads(read_text(root, ".codex-plugin/plugin.json"))
     interface = manifest["interface"]
     expected_assets = {
@@ -40,16 +40,30 @@ def assert_release_surface(root: Path) -> None:
         )
 
     require(manifest.get("version") == "0.3.0", "Codex manifest is not v0.3.0")
+    changelog = read_text(root, "CHANGELOG.md")
     require(
-        "## 0.3.0 (unreleased)" in read_text(root, "CHANGELOG.md"),
+        "## 0.3.0 (unreleased)" in changelog,
         "changelog lacks the unreleased v0.3.0 section",
+    )
+    public_install_claim = "manual public-GitHub marketplace installation"
+    require(
+        public_install_claim in changelog,
+        "changelog lacks manual public-install verification",
+    )
+    require(
+        "marketplace installs remain unverified" not in changelog,
+        "changelog contradicts manual public-install verification",
     )
     for relative in ("README.md", "docs/index.md", "docs/quickstart.md"):
         text = read_text(root, relative)
         require("v0.3 release candidate" in text, f"{relative} lacks v0.3 wording")
         require(
-            "public-GitHub path remains unverified" in text,
-            f"{relative} overclaims public install",
+            public_install_claim in text,
+            f"{relative} lacks manual public-install verification",
+        )
+        require(
+            "public-GitHub path remains unverified" not in text,
+            f"{relative} contradicts manual public-install verification",
         )
 
 

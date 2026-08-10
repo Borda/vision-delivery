@@ -34,7 +34,7 @@ No novice user study has been run. Sentinel is intended to reduce the entry barr
 
 ## 🚀 Quick start
 
-The v0.3 release candidate has passed local clean-home marketplace simulations with the commands below. The public-GitHub path remains unverified until these files are published to `main` and retested there.
+The v0.3 release candidate has passed local clean-home marketplace simulations and manual public-GitHub marketplace installation on Codex and Claude Code. Live Roboflow account authorization and service behavior remain upstream checks.
 
 ### 🤖 Codex marketplace install
 

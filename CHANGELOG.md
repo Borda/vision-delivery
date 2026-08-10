@@ -16,7 +16,7 @@ The repository manifests, package metadata, citation metadata, runtime ledger re
 ### Known gaps
 
 - Live routing, installed-host MCP/hook execution, and real Roboflow authorization are not release evidence.
-- Public GitHub marketplace installs remain unverified until a human publishes this release and records clean-host results.
+- The manual public-GitHub marketplace installation of Codex and Claude Code is recorded; automated public-install verification is not yet part of CI.
 - No novice user-outcome study has been completed.
 - Broad live end-to-end evidence exists only for a narrow detection fixture; B2-B5 remain pending.
 - Cursor support is not validated.
