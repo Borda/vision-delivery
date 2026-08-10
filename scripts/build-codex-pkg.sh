@@ -16,12 +16,12 @@ manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 marketplace = json.loads(marketplace_path.read_text(encoding="utf-8"))
 
 assert manifest["name"] == "sentinel"
-assert manifest["skills"] == "./skills/"
+assert manifest["skills"] == "./codex-skills/"
 assert manifest["mcpServers"] == {
     "roboflow": {"type": "http", "url": "https://mcp.roboflow.com/mcp"}
 }
-assert (root / "skills" / "solve-cv-task" / "SKILL.md").is_file()
-assert (root / "skills" / "estimate-economics" / "SKILL.md").is_file()
+assert (root / "codex-skills" / "solve-cv-task" / "SKILL.md").is_file()
+assert (root / "codex-skills" / "estimate-economics" / "SKILL.md").is_file()
 
 entries = [p for p in marketplace["plugins"] if p["name"] == manifest["name"]]
 assert len(entries) == 1

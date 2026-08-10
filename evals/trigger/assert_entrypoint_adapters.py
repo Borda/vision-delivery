@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Assert Claude entry agents remain thin adapters over canonical skills."""
+"""Assert Claude entry agents remain thin adapters over Claude skills."""
 
 from __future__ import annotations
 
@@ -42,7 +42,7 @@ def clause(description: object, label: str) -> str:
 def main() -> None:
     for agent_name, skill_name in ENTRYPOINTS.items():
         agent_path = ROOT / "agents" / f"{agent_name}.md"
-        skill_path = ROOT / "skills" / skill_name / "SKILL.md"
+        skill_path = ROOT / "claude-skills" / skill_name / "SKILL.md"
 
         agent_meta, agent_body = frontmatter(agent_path)
         skill_meta, skill_body = frontmatter(skill_path)
@@ -58,7 +58,7 @@ def main() -> None:
                 )
         for field in ("tools", "model", "color"):
             assert field in agent_meta, f"{agent_path} is missing Claude `{field}`"
-        assert "allowed-tools" in skill_meta, f"{skill_path} is missing Codex tools"
+        assert "allowed-tools" in skill_meta, f"{skill_path} is missing Claude tools"
         assert str(skill_path.relative_to(ROOT)) in agent_body, (
             f"{agent_path} must point to the canonical skill"
         )

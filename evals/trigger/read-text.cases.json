@@ -1,5 +1,5 @@
 {
-  "_comment": "Trigger-eval cases for skills/read-text/SKILL.md. Each case has a prompt and a reason explaining the expected routing decision.",
+  "_comment": "Trigger-eval cases for codex-skills/read-text/SKILL.md. Each case has a prompt and a reason explaining the expected routing decision.",
   "should_fire": [
     {
       "prompt": "Read serial numbers off circuit boards in my manufacturing line",
@@ -69,5 +69,5 @@
     }
   ],
   "skill": "read-text",
-  "skill_path": "skills/read-text/SKILL.md"
+  "skill_path": "codex-skills/read-text/SKILL.md"
 }

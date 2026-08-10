@@ -15,6 +15,10 @@ EXPECTED_MCP_BY_HOST = {
     "codex": {"roboflow": EXPECTED_MCP},
     "claude": "./.mcp.json",
 }
+EXPECTED_SKILLS_BY_HOST = {
+    "codex": "./codex-skills/",
+    "claude": "./claude-skills/",
+}
 REQUIRED_RESOURCES = (
     "artifact-contract.md",
     "fde-methodology.md",
@@ -57,8 +61,9 @@ def inspect_package(root: Path) -> dict[str, Any]:
     for host, manifest in manifests.items():
         if manifest.get("name") != EXPECTED_NAME:
             errors.append(f"{host} manifest name is not {EXPECTED_NAME}")
-        if manifest.get("skills") != "./skills/":
-            errors.append(f"{host} manifest skills path is not ./skills/")
+        expected_skills = EXPECTED_SKILLS_BY_HOST[host]
+        if manifest.get("skills") != expected_skills:
+            errors.append(f"{host} manifest skills path is not {expected_skills}")
         # Hosts serialize the same URL-only server according to their native contract.
         if manifest.get("mcpServers") != EXPECTED_MCP_BY_HOST[host]:
             errors.append(
@@ -86,9 +91,23 @@ def inspect_package(root: Path) -> dict[str, Any]:
     except (OSError, json.JSONDecodeError, ValueError) as exc:
         errors.append(f".mcp.json: {exc}")
 
-    skills_dir = root / "skills"
-    skills = sorted(path.parent.name for path in skills_dir.glob("*/SKILL.md"))
-    if "solve-cv-task" not in skills or "check-sentinel-setup" not in skills:
+    skills_by_host = {
+        host: sorted(
+            path.parent.name
+            for path in (root / relative.removeprefix("./").rstrip("/")).glob(
+                "*/SKILL.md"
+            )
+        )
+        for host, relative in EXPECTED_SKILLS_BY_HOST.items()
+    }
+    codex_skills = skills_by_host["codex"]
+    claude_skills = skills_by_host["claude"]
+    if codex_skills != claude_skills:
+        errors.append("Codex and Claude skill rosters differ")
+    if (
+        "solve-cv-task" not in codex_skills
+        or "check-sentinel-setup" not in codex_skills
+    ):
         errors.append("required front-door or setup-check skill is missing")
 
     missing_resources = [
@@ -101,7 +120,7 @@ def inspect_package(root: Path) -> dict[str, Any]:
         "status": "failed" if errors else "passed",
         "plugin_root": str(root),
         "version": version,
-        "skill_count": len(skills),
+        "skill_count": len(codex_skills),
         "mcp_url": EXPECTED_MCP["url"],
         "errors": errors,
         "external_checks": [

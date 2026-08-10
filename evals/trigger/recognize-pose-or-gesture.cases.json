@@ -1,5 +1,5 @@
 {
-  "_comment": "Trigger-eval cases for skills/recognize-pose-or-gesture/SKILL.md. Each case has a prompt and a reason explaining the expected routing decision.",
+  "_comment": "Trigger-eval cases for codex-skills/recognize-pose-or-gesture/SKILL.md. Each case has a prompt and a reason explaining the expected routing decision.",
   "should_fire": [
     {
       "prompt": "Detect when workers are bending incorrectly at the assembly station",
@@ -69,5 +69,5 @@
     }
   ],
   "skill": "recognize-pose-or-gesture",
-  "skill_path": "skills/recognize-pose-or-gesture/SKILL.md"
+  "skill_path": "codex-skills/recognize-pose-or-gesture/SKILL.md"
 }

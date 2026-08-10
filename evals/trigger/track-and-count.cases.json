@@ -1,5 +1,5 @@
 {
-  "_comment": "Trigger-eval cases for skills/track-and-count/SKILL.md. Each case has a prompt and a reason explaining the expected routing decision.",
+  "_comment": "Trigger-eval cases for codex-skills/track-and-count/SKILL.md. Each case has a prompt and a reason explaining the expected routing decision.",
   "should_fire": [
     {
       "prompt": "Track how long shoppers spend in each aisle \u2014 I have RTSP streams",
@@ -69,5 +69,5 @@
     }
   ],
   "skill": "track-and-count",
-  "skill_path": "skills/track-and-count/SKILL.md"
+  "skill_path": "codex-skills/track-and-count/SKILL.md"
 }

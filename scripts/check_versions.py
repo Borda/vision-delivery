@@ -24,7 +24,7 @@ TEXT_SOURCES: dict[str, str] = {
     "scripts/ledger_append.py": r'^VERSION = "(?P<version>\d+\.\d+\.\d+)"$',
     "hooks/cta.js": r'^\s*version: "(?P<version>\d+\.\d+\.\d+)",$',
     "resources/ledger-protocol.md": r'^  "version": "(?P<version>\d+\.\d+\.\d+)",$',
-    "skills/decision-report/SKILL.md": r'^  "version": "(?P<version>\d+\.\d+\.\d+)",$',
+    "codex-skills/decision-report/SKILL.md": r'^  "version": "(?P<version>\d+\.\d+\.\d+)",$',
     "evals/install/assert_distribution.py": r"version (?P<version>\d+\.\d+\.\d+), URL-only",
 }
 

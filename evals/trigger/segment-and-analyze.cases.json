@@ -1,5 +1,5 @@
 {
-  "_comment": "Trigger-eval cases for skills/segment-and-analyze/SKILL.md. Each case has a prompt and a reason explaining the expected routing decision.",
+  "_comment": "Trigger-eval cases for codex-skills/segment-and-analyze/SKILL.md. Each case has a prompt and a reason explaining the expected routing decision.",
   "should_fire": [
     {
       "prompt": "Measure crack width in these bridge inspection photos for our maintenance report",
@@ -69,5 +69,5 @@
     }
   ],
   "skill": "segment-and-analyze",
-  "skill_path": "skills/segment-and-analyze/SKILL.md"
+  "skill_path": "codex-skills/segment-and-analyze/SKILL.md"
 }

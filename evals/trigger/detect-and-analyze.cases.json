@@ -1,5 +1,5 @@
 {
-  "_comment": "Trigger-eval cases for skills/detect-and-analyze/SKILL.md. Each case has a prompt and a reason explaining the expected routing decision.",
+  "_comment": "Trigger-eval cases for codex-skills/detect-and-analyze/SKILL.md. Each case has a prompt and a reason explaining the expected routing decision.",
   "should_fire": [
     {
       "prompt": "How many boxes are on the conveyor belt right now?",
@@ -89,5 +89,5 @@
     }
   ],
   "skill": "detect-and-analyze",
-  "skill_path": "skills/detect-and-analyze/SKILL.md"
+  "skill_path": "codex-skills/detect-and-analyze/SKILL.md"
 }

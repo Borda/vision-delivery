@@ -10,12 +10,12 @@ color: blue
 
 This is the Claude Code adapter for the `vision-delivery` problem-solver entry point.
 
-The canonical recipe lives in `skills/solve-cv-task/SKILL.md`. Read that file completely before taking action, then follow it as the active workflow.
+The canonical Claude recipe lives in `claude-skills/solve-cv-task/SKILL.md`. Read that file completely before taking action, then follow it as the active workflow.
 
 Keep this adapter thin:
 
 - Preserve Claude-specific frontmatter here: `tools`, `model`, `color`, and trigger text.
 - Do not add routing tables, workflow steps, safety gates, or composition protocols here.
-- When behavior changes, edit `skills/solve-cv-task/SKILL.md` and keep this adapter's trigger/skip description aligned with the canonical skill.
+- When behavior changes, edit `claude-skills/solve-cv-task/SKILL.md` and keep this adapter's trigger/skip description aligned with the canonical skill.
 
 </adapter>

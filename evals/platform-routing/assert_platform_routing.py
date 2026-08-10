@@ -11,7 +11,10 @@ from pathlib import Path
 ROOT = Path(__file__).parent.parent.parent
 CASES = Path(__file__).with_name("cases.json")
 LOOKUP = ROOT / "resources" / "roboflow-platform-lookup.md"
-SOLVER = ROOT / "skills" / "solve-cv-task" / "SKILL.md"
+SOLVERS = (
+    ROOT / "codex-skills" / "solve-cv-task" / "SKILL.md",
+    ROOT / "claude-skills" / "solve-cv-task" / "SKILL.md",
+)
 MODEL_SELECTION = ROOT / "resources" / "model-selection.md"
 
 
@@ -41,7 +44,7 @@ def assert_no_stale_commands() -> None:
     import pathlib
 
     repo = pathlib.Path(__file__).resolve().parents[2]
-    scopes = ["skills", "agents", "docs", "README.md"]
+    scopes = ["codex-skills", "claude-skills", "agents", "docs", "README.md"]
     for scope in scopes:
         p = repo / scope
         files = [p] if p.is_file() else list(p.rglob("*.md"))
@@ -57,7 +60,7 @@ def assert_no_stale_commands() -> None:
 
 def main() -> None:
     lookup = read(LOOKUP)
-    solver = read(SOLVER)
+    solvers = [(path, read(path)) for path in SOLVERS]
     model_selection = read(MODEL_SELECTION)
     cases = json.loads(CASES.read_text(encoding="utf-8"))["platform_routes"]
 
@@ -74,8 +77,9 @@ def main() -> None:
         assert_contains(lookup, case["local_skill"], LOOKUP)
         assert_contains(lookup, case["mcp_resource"], LOOKUP)
 
-    assert_contains(solver, "roboflow-platform-lookup.md", SOLVER)
-    assert_contains(solver, "Roboflow platform knowledge lookup", SOLVER)
+    for path, solver in solvers:
+        assert_contains(solver, "roboflow-platform-lookup.md", path)
+        assert_contains(solver, "Roboflow platform knowledge lookup", path)
     assert_contains(model_selection, "stable fallback only", MODEL_SELECTION)
     assert_contains(
         model_selection,
@@ -93,7 +97,8 @@ def main() -> None:
             "delegate the current catalog upstream"
         )
 
-    active_paths = [*sorted((ROOT / "skills").glob("*/SKILL.md"))]
+    active_paths = [*sorted((ROOT / "codex-skills").glob("*/SKILL.md"))]
+    active_paths.extend(sorted((ROOT / "claude-skills").glob("*/SKILL.md")))
     active_paths.extend(sorted((ROOT / "agents").glob("*.md")))
     active_paths.extend(sorted((ROOT / "evals" / "e2e").glob("*.md")))
     active_paths.extend([ROOT / "resources" / "fde-methodology.md", MODEL_SELECTION])

@@ -27,6 +27,10 @@ import yaml
 
 ROOT = Path(__file__).parent.parent.parent
 EVALS_DIR = Path(__file__).parent
+SKILL_ROOTS = {
+    "Codex": ROOT / "codex-skills",
+    "Claude": ROOT / "claude-skills",
+}
 
 STOP = frozenset(
     "the and or in on of a an to from for with my this me i is it are was "
@@ -62,8 +66,9 @@ def is_covered(kws: list[str], clause: str) -> bool:
     return any(re.search(r"\b" + re.escape(kw) + r"\b", clause) for kw in kws)
 
 
-def run_skill(skill_name: str) -> bool:
-    skill_path = ROOT / "skills" / skill_name / "SKILL.md"
+def run_skill(host: str, skills_root: Path, skill_name: str) -> bool:
+    """Evaluate one host's declared trigger surface against shared cases."""
+    skill_path = skills_root / skill_name / "SKILL.md"
     cases_path = EVALS_DIR / f"{skill_name}.cases.json"
 
     if not skill_path.exists():
@@ -102,7 +107,7 @@ def run_skill(skill_name: str) -> bool:
         else:
             failed += 1
 
-    print(f"\nSkill: {skill_name}")
+    print(f"\nHost: {host} | Skill: {skill_name}")
     print(f"{'TYPE':<16} {'OK':<8} PROMPT")
     print("─" * 80)
     for typ, prompt, covered, kws in rows:
@@ -124,9 +129,10 @@ def main() -> None:
         )
 
     all_passed = True
-    for name in skill_names:
-        if not run_skill(name):
-            all_passed = False
+    for host, skills_root in SKILL_ROOTS.items():
+        for name in skill_names:
+            if not run_skill(host, skills_root, name):
+                all_passed = False
 
     if not all_passed:
         print(

@@ -1,5 +1,5 @@
 {
-  "_comment": "Trigger-eval cases for skills/classify-or-flag/SKILL.md. Each case has a prompt and a reason explaining the expected routing decision.",
+  "_comment": "Trigger-eval cases for codex-skills/classify-or-flag/SKILL.md. Each case has a prompt and a reason explaining the expected routing decision.",
   "should_fire": [
     {
       "prompt": "Flag each construction-site image as PPE compliant or non-compliant with one whole-scene verdict",
@@ -73,5 +73,5 @@
     }
   ],
   "skill": "classify-or-flag",
-  "skill_path": "skills/classify-or-flag/SKILL.md"
+  "skill_path": "codex-skills/classify-or-flag/SKILL.md"
 }

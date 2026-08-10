@@ -11,7 +11,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-SKILLS = ROOT / "skills"
+SKILL_ROOTS = (ROOT / "codex-skills", ROOT / "claude-skills")
 RESOURCES = ROOT / "resources"
 ARTIFACT_CONTRACT = RESOURCES / "artifact-contract.md"
 SMOKE_HELPER = RESOURCES / "scripts" / "artifact_smoke.py"
@@ -54,17 +54,18 @@ def assert_static_contracts() -> None:
     ):
         require(contract, phrase, ARTIFACT_CONTRACT)
 
-    for name in MODALITY_SKILLS:
-        path = SKILLS / name / "SKILL.md"
-        text = read(path)
-        require(text, "artifact-contract.md", path)
-        require(text, "hosted-client", path)
-        if "ROBOFLOW_API_KEY" in text:
-            raise AssertionError(
-                f"{path.relative_to(ROOT)} freezes an upstream credential contract"
-            )
-        if 'API_KEY = "<from environment>"' in text:
-            raise AssertionError(f"{path.relative_to(ROOT)} embeds a fake API key")
+    for skills_root in SKILL_ROOTS:
+        for name in MODALITY_SKILLS:
+            path = skills_root / name / "SKILL.md"
+            text = read(path)
+            require(text, "artifact-contract.md", path)
+            require(text, "hosted-client", path)
+            if "ROBOFLOW_API_KEY" in text:
+                raise AssertionError(
+                    f"{path.relative_to(ROOT)} freezes an upstream credential contract"
+                )
+            if 'API_KEY = "<from environment>"' in text:
+                raise AssertionError(f"{path.relative_to(ROOT)} embeds a fake API key")
 
 
 def assert_smoke_helper() -> None:

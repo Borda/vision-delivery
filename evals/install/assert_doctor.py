@@ -28,7 +28,13 @@ def run_doctor(*args: str, cwd: str) -> subprocess.CompletedProcess[str]:
 
 def copy_plugin_fixture(target: Path) -> None:
     """Copy the package surfaces required by the offline doctor."""
-    for relative in (".codex-plugin", ".claude-plugin", "skills", "resources"):
+    for relative in (
+        ".codex-plugin",
+        ".claude-plugin",
+        "codex-skills",
+        "claude-skills",
+        "resources",
+    ):
         shutil.copytree(ROOT / relative, target / relative)
     shutil.copy2(ROOT / ".mcp.json", target / ".mcp.json")
 
@@ -79,6 +85,21 @@ def main() -> int:
         codex_payload["mcpServers"] = {
             "roboflow": {"type": "http", "url": "https://mcp.roboflow.com/mcp"}
         }
+        codex_manifest.write_text(json.dumps(codex_payload), encoding="utf-8")
+
+        codex_payload["skills"] = "./skills/"
+        codex_manifest.write_text(json.dumps(codex_payload), encoding="utf-8")
+        invalid_codex_skills = run_doctor(
+            "--plugin-root", str(cachebusted_root), cwd=cwd
+        )
+        invalid_codex_skills_payload = json.loads(invalid_codex_skills.stdout)
+        if invalid_codex_skills.returncode == 0 or (
+            "codex manifest skills path is not ./codex-skills/"
+            not in invalid_codex_skills_payload.get("errors", [])
+        ):
+            raise AssertionError("doctor accepted the retired shared skill root")
+
+        codex_payload["skills"] = "./codex-skills/"
         codex_manifest.write_text(json.dumps(codex_payload), encoding="utf-8")
 
         claude_manifest = cachebusted_root / ".claude-plugin" / "plugin.json"

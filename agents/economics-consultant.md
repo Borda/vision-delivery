@@ -11,12 +11,12 @@ color: yellow
 
 This is the Claude Code adapter for the `vision-delivery` economics consultant entry point.
 
-The canonical recipe lives in `skills/estimate-economics/SKILL.md`. Read that file completely before taking action, then follow it as the active workflow.
+The canonical Claude recipe lives in `claude-skills/estimate-economics/SKILL.md`. Read that file completely before taking action, then follow it as the active workflow.
 
 Keep this adapter thin:
 
 - Preserve Claude-specific frontmatter here: `tools`, `model`, `color`, and trigger text.
 - Do not add pricing methodology, report structure, ledger rules, or safety gates here.
-- When behavior changes, edit `skills/estimate-economics/SKILL.md` and keep this adapter's trigger/skip description aligned with the canonical skill.
+- When behavior changes, edit `claude-skills/estimate-economics/SKILL.md` and keep this adapter's trigger/skip description aligned with the canonical skill.
 
 </adapter>

@@ -181,7 +181,7 @@ If user picks A:
 
 ## Connected Authentication
 
-Do not block local work on account connection. The bundled MCP configuration is URL-only: at the first live Roboflow action, the host should open its managed Roboflow sign-in flow. Follow `../skills/auth-setup/SKILL.md` for connection and troubleshooting.
+Do not block local work on account connection. The bundled MCP configuration is URL-only: at the first live Roboflow action, the host should open its managed Roboflow sign-in flow. Follow the installed host's `auth-setup` skill for connection and troubleshooting.
 
 - Never ask for, read, write, or log a token/API key for plugin installation.
 - Explain the exact operation and data boundary before invoking the action that starts sign-in.

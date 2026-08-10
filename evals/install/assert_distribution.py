@@ -99,12 +99,15 @@ def validate_distribution() -> None:
     codex_hooks = read_object("hooks/hooks.json")
     claude_hooks = read_object("hooks/claude-hooks.json")
 
-    for host, manifest in (("Codex", codex), ("Claude", claude)):
+    for host, manifest, skills_path in (
+        ("Codex", codex, "./codex-skills/"),
+        ("Claude", claude, "./claude-skills/"),
+    ):
         require(
             manifest.get("name") == "sentinel", f"{host} plugin name must be sentinel"
         )
         require(manifest.get("version") == version, f"{host} version must be {version}")
-        require(manifest.get("skills") == "./skills/", f"{host} skills path drifted")
+        require(manifest.get("skills") == skills_path, f"{host} skills path drifted")
 
     codex_servers = codex.get("mcpServers")
     if not isinstance(codex_servers, dict):
@@ -174,37 +177,45 @@ def validate_distribution() -> None:
         "Codex and Claude MCP server semantics diverged",
     )
 
-    front_door = ROOT / "skills" / "solve-cv-task" / "SKILL.md"
-    require(front_door.is_file(), "front-door skill is missing")
-    doctor = ROOT / "skills" / "check-sentinel-setup" / "SKILL.md"
-    require(doctor.is_file(), "setup doctor skill is missing")
-
     resource_references = 0
-    for skill_path in sorted((ROOT / "skills").glob("*/SKILL.md")):
-        skill_text = skill_path.read_text(encoding="utf-8")
-        bare_references = []
-        for match in re.finditer(r"resources/[A-Za-z0-9_./-]+", skill_text):
-            prefix = skill_text[max(0, match.start() - 20) : match.start()]
-            if prefix.endswith("../../") or prefix.endswith("<plugin-root>/"):
-                continue
-            bare_references.append(match.group(0))
+    rosters: dict[str, list[str]] = {}
+    for host, directory in (("Codex", "codex-skills"), ("Claude", "claude-skills")):
+        skill_paths = sorted((ROOT / directory).glob("*/SKILL.md"))
+        rosters[host] = [path.parent.name for path in skill_paths]
         require(
-            not bare_references,
-            f"{skill_path.parent.name} has plugin-root-relative resources: {', '.join(bare_references)}",
+            (ROOT / directory / "solve-cv-task" / "SKILL.md").is_file(),
+            f"{host} front-door skill is missing",
         )
-        for relative_path in re.findall(
-            r"\.\./\.\./resources/[A-Za-z0-9_./-]+", skill_text
-        ):
-            resource_references += 1
-            target = (skill_path.parent / relative_path).resolve()
+        require(
+            (ROOT / directory / "check-sentinel-setup" / "SKILL.md").is_file(),
+            f"{host} setup doctor skill is missing",
+        )
+        for skill_path in skill_paths:
+            skill_text = skill_path.read_text(encoding="utf-8")
+            bare_references = []
+            for match in re.finditer(r"resources/[A-Za-z0-9_./-]+", skill_text):
+                prefix = skill_text[max(0, match.start() - 20) : match.start()]
+                if prefix.endswith("../../") or prefix.endswith("<plugin-root>/"):
+                    continue
+                bare_references.append(match.group(0))
             require(
-                target.is_relative_to(ROOT),
-                f"resource escapes plugin root: {relative_path}",
+                not bare_references,
+                f"{skill_path.parent.name} has plugin-root-relative resources: {', '.join(bare_references)}",
             )
-            require(
-                target.is_file(),
-                f"missing resource from {skill_path.parent.name}: {relative_path}",
-            )
+            for relative_path in re.findall(
+                r"\.\./\.\./resources/[A-Za-z0-9_./-]+", skill_text
+            ):
+                resource_references += 1
+                target = (skill_path.parent / relative_path).resolve()
+                require(
+                    target.is_relative_to(ROOT),
+                    f"resource escapes plugin root: {relative_path}",
+                )
+                require(
+                    target.is_file(),
+                    f"missing resource from {skill_path.parent.name}: {relative_path}",
+                )
+    require(rosters["Codex"] == rosters["Claude"], "host skill rosters diverged")
     require(resource_references > 0, "skills must reference packaged root resources")
 
 

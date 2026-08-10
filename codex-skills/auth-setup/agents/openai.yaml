@@ -1,0 +1,11 @@
+dependencies:
+  tools:
+    - type: mcp
+      value: roboflow
+      description: Connect Sentinel to the URL-only Roboflow MCP server.
+      transport: streamable_http
+      url: https://mcp.roboflow.com/mcp
+interface:
+  display_name: Connect Roboflow
+  short_description: Connect or troubleshoot Sentinel Roboflow MCP sign-in
+  default_prompt: Use $auth-setup to connect Sentinel to Roboflow.

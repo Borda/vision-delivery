@@ -8,7 +8,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-SKILLS = ROOT / "skills"
+SKILL_ROOTS = (ROOT / "codex-skills", ROOT / "claude-skills")
+SKILLS = ROOT / "claude-skills"
 RESOURCES = ROOT / "resources"
 BUILD_SKILLS = (
     "classify-or-flag",
@@ -155,6 +156,16 @@ def assert_skill_surface_and_ledger() -> None:
         require(ledger, phrase, ledger_path)
 
 
+def assert_host_skill_rosters() -> None:
+    """Require every methodology-covered workflow on both host roots."""
+    for skills_root in SKILL_ROOTS:
+        for name in (*BUILD_SKILLS, "solve-cv-task", "deliver-cv-project"):
+            path = skills_root / name / "SKILL.md"
+            text = read(path)
+            require(text, "TRIGGER when:", path)
+            require(text, "SKIP when:", path)
+
+
 def main() -> int:
     """Run all methodology assertions and return a shell status."""
     checks = (
@@ -162,6 +173,7 @@ def main() -> int:
         assert_immutable_thresholds,
         assert_routing_and_delegation,
         assert_skill_surface_and_ledger,
+        assert_host_skill_rosters,
     )
     for check in checks:
         check()

@@ -1,4 +1,4 @@
-.PHONY: ci docs-setup docs-build docs-serve eval-setup pre-commit-coverage eval eval-version eval-install eval-doctor eval-trigger eval-entrypoints eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-decision-report eval-trigger-live eval-ab-smoke
+.PHONY: ci docs-setup docs-build docs-serve eval-setup pre-commit-coverage eval eval-version eval-install eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-decision-report eval-trigger-live eval-ab-smoke
 
 ci: eval-setup eval
 
@@ -24,7 +24,7 @@ pre-commit-coverage:
 	@echo "pre-commit owns Ruff lint/format, ESLint, and mypy."
 	@echo "make ci retains repository evals."
 
-eval: eval-version eval-install eval-doctor eval-trigger eval-entrypoints eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-decision-report
+eval: eval-version eval-install eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-decision-report
 
 eval-version:
 	python scripts/check_versions.py
@@ -40,6 +40,9 @@ eval-trigger:  # description lint (vocabulary coverage) — real routing = eval-
 
 eval-entrypoints:
 	python evals/trigger/assert_entrypoint_adapters.py
+
+eval-parity:
+	python evals/parity/assert_skill_parity.py
 
 eval-trigger-live:  # live routing accuracy — one model call per case; on-demand, not per-PR
 	python evals/trigger-live/run_live.py

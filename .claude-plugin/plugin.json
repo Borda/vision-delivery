@@ -18,6 +18,6 @@
   "mcpServers": "./.mcp.json",
   "name": "sentinel",
   "repository": "https://github.com/Borda/vision-delivery",
-  "skills": "./skills/",
+  "skills": "./claude-skills/",
   "version": "0.2.0"
 }
