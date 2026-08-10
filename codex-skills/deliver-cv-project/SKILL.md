@@ -1,6 +1,6 @@
 ---
 name: deliver-cv-project
-description: |
+description: |-
   Turn an independently evaluated CV model or pipeline into a verified delivery handoff without copying volatile platform recipes. TRIGGER when: user has a working model, Workflow, OCR pipeline, or tracker and asks to export it, run locally, integrate an app/camera/RTSP source, deploy, productionize, monitor drift, add active learning, or make a runnable package. SKIP when: user asks to build a detector/model from sample images, the capability is unsolved, or measured acceptance is absent (solve-cv-task or modality skill); the request is cost/crossover only (estimate-economics); it asks only for a current Roboflow API field, UI path, model ID, or platform how-to (official Roboflow resource); or it only post-processes existing masks/data.
 ---
 

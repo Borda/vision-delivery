@@ -1,6 +1,6 @@
 ---
 name: estimate-economics
-description: |
+description: |-
   Estimate CV annotation, training, deployment, and operations economics. TRIGGER when: user invokes `$estimate-economics`, asks labeling/training cost, managed vs self-hosted, build-vs-buy, scale economics, deployment crossover, or selects managed-at-scale after a passing proof. SKIP when: user asks to build/test a detector/classifier/OCR/tracker/pose/mask, count objects, finish the PoC, or keep improving because the eval has not passed yet (solve-cv-task); asks only a current platform how-to; or lacks passing evidence unless explicitly accepting a rough estimate.
 ---
 

@@ -139,6 +139,12 @@ repos:
 
   - repo: local
     hooks:
+      - id: sentinel-host-version-sync
+        name: 🔁 Codex/Claude version parity
+        language: system
+        entry: python3 scripts/check_versions.py --hosts-only
+        pass_filenames: false
+        always_run: true
       - id: sentinel-version-sync
         name: 🔢 Sentinel version sync
         language: system

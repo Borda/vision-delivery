@@ -1,6 +1,6 @@
 ---
 name: classify-or-flag
-description: |
+description: |-
   Produce one whole-image verdict: pass/fail, category, compliance, or anomaly. TRIGGER when: user asks whether an image is defective/compliant; to flag bad parts, classify product images, run image-level quality control, detect an anomaly, or build binary/multi-class classification. SKIP when: user asks how many boxes/pallets or for other object counts or per-person PPE (detect-and-analyze); masks/area (segment-and-analyze); identity across video (track-and-count); OCR/codes (read-text); to compare self-hosting vs managed or cost only (estimate-economics); or delivery/export of a working classifier (deliver-cv-project).
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: read-text
-description: |
+description: |-
   Extract structured text, numbers, labels, and codes from images and evaluate by character or field accuracy. TRIGGER when: user asks to read/scan a serial, part/date/lot number, label, license plate, meter, gauge, barcode, QR code, invoice, document, form field, or other image text. SKIP when: user asks to tally/count boxes or other objects on a conveyor (detect-and-analyze), pass/fail without text (classify-or-flag), measure crack width/masks/area (segment-and-analyze), track objects (track-and-count), cost only (estimate-economics), or integrate/deliver working OCR (deliver-cv-project).
 ---
 

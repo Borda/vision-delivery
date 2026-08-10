@@ -23,6 +23,8 @@ REQUIRED_PATHS = (
     "hooks/claude-hooks.json",
     "hooks/cta.js",
     "hooks/hooks.json",
+    "assets/icon.png",
+    "assets/logo.png",
     "resources/scripts/sentinel_doctor.py",
     "scripts/cost_model.py",
     "scripts/ledger_append.py",

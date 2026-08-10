@@ -1,6 +1,6 @@
 ---
 name: decompose-to-pipeline
-description: |
+description: |-
   Decompose a complex vision-and-reasoning requirement into the cheapest measurable pipeline. TRIGGER when: user asks to monitor/alert, analyze footage over time, combine perception with aggregation/reporting, determine whether something is feasible to detect (including sensor limits or smoldering), or replace repeated vision-language calls with a cheaper system. SKIP when: the request is single-frame detection/counting (detect-and-analyze), whole-image classification (classify-or-flag), deployment cost only (estimate-economics), or the pipeline is already working and needs delivery (deliver-cv-project).
 ---
 

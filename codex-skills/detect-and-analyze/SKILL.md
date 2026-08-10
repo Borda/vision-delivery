@@ -1,6 +1,6 @@
 ---
 name: detect-and-analyze
-description: |
+description: |-
   Detect instances and analyze boxes, counts, crops, regions, or metadata. TRIGGER when: user asks to count/detect objects, report the number of defects, build a model that counts trucks, tally boxes/pallets on a conveyor, find workers lacking PPE, crop detections, extract an ROI, estimate box-relative size, or report per-object confidence/zone metadata. SKIP when: user needs one whole-image verdict (classify-or-flag); identity/path/dwell/line crossing (track-and-count); masks/contours/calibrated area/crack width (segment-and-analyze); OCR/serials (read-text); to compare self-hosting vs managed or cost only (estimate-economics); active learning/export/delivery of a working model (deliver-cv-project).
 ---
 

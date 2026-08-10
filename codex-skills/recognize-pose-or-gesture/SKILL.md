@@ -1,6 +1,6 @@
 ---
 name: recognize-pose-or-gesture
-description: |
+description: |-
   Build keypoint-based pose, gesture, action, ergonomics, posture, or fall analysis. TRIGGER when: user asks for body/hand pose, gestures, action recognition, skeletons, keypoints, joint angles, raised hands, bending, squats, falls, sign language, or posture compliance. SKIP when: user needs an exact body contour/mask (segment-and-analyze), per-person PPE without keypoints (detect-and-analyze), whole-image compliance (classify-or-flag), identity/path tracking without pose (track-and-count), OCR (read-text), to compare cloud-hosted vs self-hosted or cost only (estimate-economics), or integration/delivery of a working pose model (deliver-cv-project).
 ---
 

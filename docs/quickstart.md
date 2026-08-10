@@ -23,7 +23,7 @@ You need:
 
 ## Codex marketplace install
 
-The v0.2 package has passed a local clean-home marketplace simulation. Its public-GitHub path remains unverified until this release is published to `main` and retested from the repository URL.
+The v0.3 release candidate has passed local clean-home marketplace simulations. Its public-GitHub path remains unverified until this release is published to `main` and retested from the repository URL.
 
 ```bash
 codex plugin marketplace add https://github.com/Borda/vision-delivery

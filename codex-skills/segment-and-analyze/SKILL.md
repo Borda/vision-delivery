@@ -1,6 +1,6 @@
 ---
 name: segment-and-analyze
-description: |
+description: |-
   Produce pixel-precise masks plus area, shape, perimeter, calibration, or physical measurements. TRIGGER when: user asks to segment/outline an object or defect; measure exact area, crack width, corrosion, lesion boundary, contours, millimeters, or calibrated dimensions; or quantify mask shape. SKIP when: user only counts boxes (detect-and-analyze), needs one image verdict (classify-or-flag), reads text (read-text), tracks identity (track-and-count), asks cost only (estimate-economics), already has a working mask model and needs delivery (deliver-cv-project), or only post-processes existing masks locally.
 ---
 

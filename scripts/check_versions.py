@@ -18,6 +18,11 @@ JSON_SOURCES: dict[str, tuple[str, ...]] = {
     ".claude-plugin/plugin.json": ("version",),
     ".claude-plugin/marketplace.json": ("plugins", "0", "version"),
 }
+HOST_VERSION_SOURCES: dict[str, tuple[str, ...]] = {
+    ".codex-plugin/plugin.json": ("version",),
+    ".claude-plugin/plugin.json": ("version",),
+    ".claude-plugin/marketplace.json": ("plugins", "0", "version"),
+}
 TEXT_SOURCES: dict[str, str] = {
     "CITATION.cff": r"^version:\s*(?P<version>\d+\.\d+\.\d+)\s*$",
     "CHANGELOG.md": r"^## (?P<version>\d+\.\d+\.\d+)(?: \(unreleased\))?\s*$",
@@ -72,6 +77,14 @@ def declared_versions(root: Path) -> dict[str, str]:
     return versions
 
 
+def declared_host_versions(root: Path) -> dict[str, str]:
+    """Collect only the versions users install through Codex and Claude Code."""
+    return {
+        source: json_version(root, source, path)
+        for source, path in HOST_VERSION_SOURCES.items()
+    }
+
+
 def main() -> int:
     """Compare release declarations and return a shell-friendly status."""
     parser = argparse.ArgumentParser(description=__doc__)
@@ -82,25 +95,38 @@ def main() -> int:
         "--expected",
         help="Require this version in addition to internal consistency.",
     )
+    parser.add_argument(
+        "--hosts-only",
+        action="store_true",
+        help="Check Codex and Claude Code install versions without release metadata.",
+    )
     args = parser.parse_args()
+    scope = "host version sync" if args.hosts_only else "version check"
 
     try:
-        versions = declared_versions(args.root.resolve())
+        versions = (
+            declared_host_versions(args.root.resolve())
+            if args.hosts_only
+            else declared_versions(args.root.resolve())
+        )
     except (OSError, ValueError, KeyError, IndexError, json.JSONDecodeError) as exc:
-        print(f"version check failed: {exc}", file=sys.stderr)
+        print(f"{scope} failed: {exc}", file=sys.stderr)
         return 1
 
-    expected = args.expected or versions["package.json"]
+    expected = (
+        args.expected
+        or versions[".codex-plugin/plugin.json" if args.hosts_only else "package.json"]
+    )
     mismatches = {
         source: version for source, version in versions.items() if version != expected
     }
     if mismatches:
-        print(f"version check failed: expected {expected}", file=sys.stderr)
+        print(f"{scope} failed: expected {expected}", file=sys.stderr)
         for source, version in sorted(mismatches.items()):
             print(f"- {source}: {version}", file=sys.stderr)
         return 1
 
-    print(f"version check passed: {expected} across {len(versions)} declarations")
+    print(f"{scope} passed: {expected} across {len(versions)} declarations")
     return 0
 
 

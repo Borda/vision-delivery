@@ -1,6 +1,6 @@
 ---
 name: solve-cv-task
-description: |
+description: |-
   Turn a plain-language CV goal into the correct measurable build route. TRIGGER when: user asks to detect/count vehicles, read serial numbers, track people through zones, use a factory camera to catch mistakes, solve a CV problem from sample images, test feasibility, or build an end-to-end vision capability without knowing the modality. SKIP when: request clearly matches a specialist; asks managed deployment cost, annotation/training cost, or other economics only; asks current platform how-to; invokes estimate-economics; or says an evaluated model works and only needs package/export/deployment/delivery.
 ---
 

@@ -161,7 +161,7 @@ try {
         operation: observedOperation,
         category: operationCategory(observedOperation),
         entity_id: extractEntityId(payload.tool_input),
-        version: "0.2.0",
+        version: "0.3.0",
         status,
         source: "hook",
         event_id: id,

@@ -5,6 +5,7 @@
   },
   "description": "Business-first computer vision delivery guide for Codex. Turn an operational goal into a scoped proof plan, verified evidence, costs, and a decision.",
   "homepage": "https://borda.github.io/vision-delivery/",
+  "hooks": "./hooks/hooks.json",
   "interface": {
     "brandColor": "#0F766E",
     "capabilities": [
@@ -13,6 +14,7 @@
       "Write"
     ],
     "category": "Developer Tools",
+    "composerIcon": "./assets/icon.png",
     "defaultPrompt": [
       "I need to reduce missed defects on this line. Help me prove whether computer vision is viable.",
       "Turn this plain-language computer vision problem into a measured delivery plan.",
@@ -20,6 +22,8 @@
     ],
     "developerName": "Jirka Borovec",
     "displayName": "Sentinel",
+    "logo": "./assets/logo.png",
+    "logoDark": "./assets/logo.png",
     "longDescription": "Describe the operational outcome in plain language. Sentinel guides you through scoping the computer-vision task, freezing business and evaluation gates, measuring a baseline, recording replayable evidence, and estimating the economics for a go, revise, or stop decision. Generated artifacts and live provider results require execution and verification. Roboflow integrations remain delegated to Roboflow's current MCP and computer-vision-skills plugin.",
     "shortDescription": "Guide a business CV problem toward verified proof and a decision.",
     "websiteURL": "https://borda.github.io/vision-delivery/"
@@ -41,5 +45,5 @@
   "name": "sentinel",
   "repository": "https://github.com/Borda/vision-delivery",
   "skills": "./codex-skills/",
-  "version": "0.2.0"
+  "version": "0.3.0"
 }

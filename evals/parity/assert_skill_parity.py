@@ -51,8 +51,12 @@ def assert_skill_rosters() -> None:
     """Require exactly the frozen thirteen-name roster on both hosts."""
     codex_roster = roster(CODEX_SKILLS)
     claude_roster = roster(CLAUDE_SKILLS)
-    assert codex_roster == EXPECTED_ROSTER, f"Codex roster drifted: {sorted(codex_roster)}"
-    assert claude_roster == EXPECTED_ROSTER, f"Claude roster drifted: {sorted(claude_roster)}"
+    assert codex_roster == EXPECTED_ROSTER, (
+        f"Codex roster drifted: {sorted(codex_roster)}"
+    )
+    assert claude_roster == EXPECTED_ROSTER, (
+        f"Claude roster drifted: {sorted(claude_roster)}"
+    )
 
 
 def assert_host_metadata() -> None:
@@ -72,9 +76,7 @@ def assert_host_metadata() -> None:
         assert "CLAUDE_PLUGIN_" not in codex_body
         assert "/sentinel:" not in str(codex_metadata.get("description", ""))
         if name == "estimate-economics":
-            assert "$estimate-economics" in str(
-                codex_metadata.get("description", "")
-            )
+            assert "$estimate-economics" in str(codex_metadata.get("description", ""))
             assert "/sentinel:estimate-economics" in str(
                 claude_metadata.get("description", "")
             )

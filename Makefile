@@ -1,4 +1,4 @@
-.PHONY: ci docs-setup docs-build docs-serve eval-setup pre-commit-coverage eval eval-version eval-install eval-package eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-decision-report probe-codex probe-claude eval-trigger-live eval-ab-smoke
+.PHONY: ci docs-setup docs-build docs-serve eval-setup pre-commit-coverage eval eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-decision-report probe-codex probe-claude eval-trigger-live eval-e2e-self-test eval-ab-smoke
 
 ci: eval-setup eval
 
@@ -24,7 +24,7 @@ pre-commit-coverage:
 	@echo "pre-commit owns Ruff lint/format, ESLint, and mypy."
 	@echo "make ci retains repository evals."
 
-eval: eval-version eval-install eval-package eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-decision-report
+eval: eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-decision-report eval-e2e-self-test
 
 eval-version:
 	python scripts/check_versions.py
@@ -34,6 +34,9 @@ eval-install:
 
 eval-package:
 	python evals/install/assert_package.py
+
+eval-release:
+	python evals/install/assert_release_surface.py
 
 probe-codex:
 	@candidate="$$(mktemp -d)/sentinel"; \
@@ -61,6 +64,9 @@ eval-parity:
 
 eval-trigger-live:  # live routing accuracy — one model call per case; on-demand, not per-PR
 	python evals/trigger-live/run_live.py
+
+eval-e2e-self-test:  # deterministic mock-smoke parser check; host run needs authenticated disposable homes
+	python evals/e2e/run_dual_host_smoke.py --self-test
 
 eval-ab-smoke:  # one S1 cell, both arms, vs mock MCP — on-demand, not per-PR
 	python evals/ab/runner.py --scenario s1-conveyor-detect --arm P --runs 1

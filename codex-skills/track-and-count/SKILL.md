@@ -1,6 +1,6 @@
 ---
 name: track-and-count
-description: |
+description: |-
   Track identity across video and produce paths, dwell, crossings, zones, or linked counts. TRIGGER when: user asks to follow a person/vehicle/object across frames, track shoppers/forklifts, count entries/line crossings, ask how many vehicles crossed an intersection, analyze video with identity, measure dwell/path, monitor RTSP, or alert on zone entry. SKIP when: user asks to count cars in a parking lot now or other per-image/per-frame counts (detect-and-analyze); masks/area (segment-and-analyze), one image verdict (classify-or-flag), OCR (read-text), cost only (estimate-economics), or export/delivery of a working tracker (deliver-cv-project).
 ---
 

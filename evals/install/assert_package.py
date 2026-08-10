@@ -108,6 +108,11 @@ def remove_front_door_skill(candidate: Path) -> None:
     (candidate / "codex-skills" / "solve-cv-task" / "SKILL.md").unlink()
 
 
+def remove_release_logo(candidate: Path) -> None:
+    """Remove a required package asset to prevent manifest paths drifting from delivery."""
+    (candidate / "assets" / "logo.png").unlink()
+
+
 def main() -> int:
     """Build a candidate, assert deterministic rebuilds, and exercise rejection rules."""
     with tempfile.TemporaryDirectory(prefix="sentinel-package-test-") as temporary:
@@ -131,6 +136,12 @@ def main() -> int:
             "missing-skill",
             remove_front_door_skill,
             "missing payload file",
+        )
+        assert_rejected(
+            candidate,
+            "missing-logo",
+            remove_release_logo,
+            "missing required package path",
         )
         assert_rejected(
             candidate, "manifest-pointer", change_manifest_pointer, "does not point"

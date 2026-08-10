@@ -10,7 +10,7 @@
             "type": "command"
           }
         ],
-        "matcher": "mcp__(plugin_[A-Za-z0-9_-]+_)?roboflow__"
+        "matcher": "^mcp__(plugin_[A-Za-z0-9_-]+_)?roboflow__.*$"
       }
     ],
     "PostToolUseFailure": [
@@ -22,7 +22,7 @@
             "type": "command"
           }
         ],
-        "matcher": "mcp__(plugin_[A-Za-z0-9_-]+_)?roboflow__"
+        "matcher": "^mcp__(plugin_[A-Za-z0-9_-]+_)?roboflow__.*$"
       }
     ]
   }

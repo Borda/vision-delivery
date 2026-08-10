@@ -66,7 +66,7 @@ def require_hook_contract(
         group = groups[0]
         require(isinstance(group, dict), f"{event_name} group must be an object")
         require(
-            group.get("matcher") == "mcp__(plugin_[A-Za-z0-9_-]+_)?roboflow__",
+            group.get("matcher") == "^mcp__(plugin_[A-Za-z0-9_-]+_)?roboflow__.*$",
             f"{event_name} matcher drifted",
         )
         handlers = group.get("hooks")
@@ -117,7 +117,10 @@ def validate_distribution() -> None:
         "Claude manifest must retain the packaged MCP config",
     )
 
-    require("hooks" not in codex, "Codex must use default hooks/hooks.json discovery")
+    require(
+        codex.get("hooks") == "./hooks/hooks.json",
+        "Codex must explicitly point to its hook manifest",
+    )
     require(
         claude.get("hooks") == "./hooks/claude-hooks.json",
         "Claude must point to its explicit hook manifest",
@@ -227,7 +230,7 @@ def main() -> int:
         print(f"distribution assertion failed: {exc}", file=sys.stderr)
         return 1
     print(
-        "distribution assertions passed: sentinel@sentinel, version 0.2.0, URL-only Roboflow MCP"
+        "distribution assertions passed: sentinel@sentinel, version 0.3.0, URL-only Roboflow MCP"
     )
     return 0
 

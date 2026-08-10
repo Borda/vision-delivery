@@ -1,6 +1,6 @@
 ---
 name: decision-report
-description: |
+description: |-
   Generate a portable stakeholder decision report for a CV deployment decision.
   TRIGGER when: user explicitly asks for a decision report, manager report, or stakeholder doc after a cost crossover has been computed; phrases: "write me a decision report", "generate a report for my manager", "I need a stakeholder doc", "produce the decision doc", "decision-report skill", "report for my team".
   SKIP when: no cost crossover exists yet — estimate-economics must run first and deliver a crossover number; user is still in build work; user wants a one-paragraph summary (answer inline instead).
@@ -151,7 +151,7 @@ Follow `../../resources/ledger-protocol.md`. Write one local record when the rep
   "skill": "decision-report",
   "action": "decision_report_emitted",
   "entity_id": "<workspace>/<project>",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "event_id": "manual:<session-id>:decision_report_emitted:1",
   "status": "success",
   "source": "skill",

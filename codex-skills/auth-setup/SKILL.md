@@ -1,6 +1,6 @@
 ---
 name: auth-setup
-description: |
+description: |-
   Connect or troubleshoot Sentinel's URL-only Roboflow MCP sign-in. TRIGGER when: the user asks to connect Roboflow, sign in, authorize OAuth, configure the plugin, or diagnose unavailable/unauthorized Roboflow MCP tools; the user asks whether a Roboflow API key is required for plugin installation. SKIP when: Roboflow MCP tools already work; the task is purely local, such as discussing a labeling approach for raw footage, and needs no Roboflow operation; a generated standalone client needs credentials (delegate its exact auth shape to the current official Roboflow API/inference skill).
 ---
 

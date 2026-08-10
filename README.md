@@ -34,7 +34,7 @@ No novice user study has been run. Sentinel is intended to reduce the entry barr
 
 ## 🚀 Quick start
 
-The v0.2 package has passed local clean-home marketplace simulations with the commands below. The public-GitHub path remains unverified until these files are published to `main` and retested there.
+The v0.3 release candidate has passed local clean-home marketplace simulations with the commands below. The public-GitHub path remains unverified until these files are published to `main` and retested there.
 
 ### 🤖 Codex marketplace install
 
