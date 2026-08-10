@@ -5,6 +5,7 @@
   },
   "description": "Business-first computer vision delivery guide for Claude Code and Codex. Turn an operational goal into a scoped proof plan, verified evidence, costs, and a decision.",
   "homepage": "https://borda.github.io/vision-delivery/",
+  "hooks": "./hooks/claude-hooks.json",
   "keywords": [
     "computer-vision",
     "claude-code",

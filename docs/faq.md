@@ -39,7 +39,7 @@ Skills instruct the agent to explain and confirm credit-spending actions first, 
 
 ## What access does it request?
 
-Routes can request filesystem reads/writes/edits, search, shell commands, and Roboflow MCP operations. Claude Code hooks can append a local activity ledger. Review every host permission prompt.
+Routes can request filesystem reads/writes/edits, search, shell commands, and Roboflow MCP operations. Codex and Claude Code hooks can append a local activity ledger. Review host permission prompts and, in Codex, review and trust changed plugin hooks with `/hooks` before they run.
 
 ## Is the ledger proof that an action succeeded?
 

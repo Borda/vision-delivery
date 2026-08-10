@@ -7,13 +7,52 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const HOOK = resolve(dirname(fileURLToPath(import.meta.url)), "../../hooks/cta.js");
+const HOOKS_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "../../hooks");
 let failures = 0;
+
+function assertHookConfiguration() {
+  for (const [filename, events, rootVariable] of [
+    ["hooks.json", ["PostToolUse"], "PLUGIN_ROOT"],
+    ["claude-hooks.json", ["PostToolUse", "PostToolUseFailure"], "CLAUDE_PLUGIN_ROOT"],
+  ]) {
+    try {
+      const config = JSON.parse(readFileSync(join(HOOKS_DIR, filename), "utf8"));
+      const actualEvents = Object.keys(config.hooks || {}).sort();
+      if (JSON.stringify(actualEvents) !== JSON.stringify(events)) {
+        throw new Error(`events=${actualEvents.join(",")}`);
+      }
+      for (const eventName of events) {
+        const handler = config.hooks[eventName]?.[0]?.hooks?.[0];
+        if (
+          handler?.command !== `node "\${${rootVariable}}/hooks/cta.js"` ||
+          handler?.commandWindows !== `node "$env:${rootVariable}\\hooks\\cta.js"`
+        ) {
+          throw new Error(`${eventName} command is not host-native`);
+        }
+      }
+      console.log(`ok   ${filename} host-native hook configuration`);
+    } catch (error) {
+      failures++;
+      console.error(`FAIL ${filename} hook configuration: ${error.message}`);
+    }
+  }
+}
 
 function runCase(name, payload, expect) {
   const cwd = mkdtempSync(join(tmpdir(), "sentinel-hook-"));
+  const pluginData = expect.pluginData ? join(cwd, "plugin-data") : "";
+  const env = { ...process.env, ...(expect.env || {}) };
+  if (expect.pluginData) env[expect.pluginData] = pluginData;
   const results = [];
   for (let i = 0; i < (expect.repeat || 1); i++) {
-    results.push(spawnSync("node", [HOOK], { cwd, input: JSON.stringify(payload), encoding: "utf8" }));
+    results.push(
+      spawnSync("node", [HOOK], {
+        cwd,
+        env,
+        input: expect.rawInput ?? JSON.stringify(payload),
+        encoding: "utf8",
+      }),
+    );
   }
   const res = results.at(-1);
   const ledgerPath = join(cwd, ".vision-delivery", "ledger.jsonl");
@@ -29,6 +68,31 @@ function runCase(name, payload, expect) {
       if (record[field] !== value) problems.push(`${field}=${record[field]}, expected ${value}`);
     }
     if (!record.event_id) problems.push("event_id is empty");
+    if (expect.maxEntityLength && record.entity_id.length > expect.maxEntityLength) {
+      problems.push(`entity_id length=${record.entity_id.length}, expected <= ${expect.maxEntityLength}`);
+    }
+  }
+  if (expect.diagnostic) {
+    const diagnosticPath = join(pluginData, "sentinel-hook-diagnostics.jsonl");
+    if (!existsSync(diagnosticPath)) {
+      problems.push("missing diagnostic");
+    } else {
+      const diagnosticText = readFileSync(diagnosticPath, "utf8");
+      const diagnosticRows = diagnosticText.trim().split("\n");
+      const diagnostic = JSON.parse(diagnosticRows.at(-1));
+      if (diagnostic.code !== expect.diagnostic.code) {
+        problems.push(`diagnostic code=${diagnostic.code}, expected ${expect.diagnostic.code}`);
+      }
+      if (Buffer.byteLength(diagnosticText) > expect.diagnostic.maxBytes) {
+        problems.push(`diagnostic bytes exceed ${expect.diagnostic.maxBytes}`);
+      }
+      if (diagnosticText.includes(expect.diagnostic.redacted)) {
+        problems.push("diagnostic leaked malformed payload content");
+      }
+    }
+  }
+  if (expect.noPath && existsSync(join(cwd, expect.noPath))) {
+    problems.push(`unsafe relative plugin data path created: ${expect.noPath}`);
   }
   if (res.stdout) problems.push(`unexpected success output: ${res.stdout.trim()}`);
   if (problems.length) {
@@ -44,6 +108,8 @@ const success = (operation, category, extra = {}) => ({
   write: true,
   fields: { action: "roboflow_mcp_call", operation, category, status: "success", ...extra },
 });
+
+assertHookConfiguration();
 
 runCase(
   "unknown future operation is recorded",
@@ -101,6 +167,17 @@ runCase(
 );
 
 runCase(
+  "Claude cancellation is recorded once as cancelled",
+  {
+    hook_event_name: "PostToolUseFailure",
+    tool_use_id: "tool-cancelled",
+    tool_name: "mcp__roboflow__deployment_create",
+    is_interrupt: true,
+  },
+  { write: true, fields: { action: "roboflow_mcp_call", category: "deployment", status: "cancelled" } },
+);
+
+runCase(
   "result-free legacy event is unknown",
   { tool_name: "mcp__roboflow__deployment_create", tool_input: {} },
   { write: true, fields: { action: "roboflow_mcp_call", status: "unknown" } },
@@ -110,6 +187,40 @@ runCase(
   "error-shaped success event is failed",
   { hook_event_name: "PostToolUse", tool_name: "mcp__roboflow__training_start", tool_response: { isError: true } },
   { write: true, fields: { action: "roboflow_mcp_call", status: "failed" } },
+);
+
+runCase(
+  "entity identifiers are bounded",
+  {
+    hook_event_name: "PostToolUse",
+    tool_name: "mcp__roboflow__training_start",
+    tool_input: { project_id: "p".repeat(500) },
+    tool_response: {},
+  },
+  { ...success("training_start", "training"), maxEntityLength: 200 },
+);
+
+runCase(
+  "malformed Codex payload records a bounded redacted diagnostic",
+  null,
+  {
+    write: false,
+    rawInput: '{"tool_name":"mcp__roboflow__training_start","token":"secret-value-must-not-log"',
+    repeat: 80,
+    pluginData: "PLUGIN_DATA",
+    diagnostic: { code: "invalid-json", maxBytes: 4096, redacted: "secret-value-must-not-log" },
+  },
+);
+
+runCase(
+  "relative plugin data is ignored for path safety",
+  null,
+  {
+    write: false,
+    rawInput: "{",
+    env: { CLAUDE_PLUGIN_DATA: "relative-plugin-data" },
+    noPath: "relative-plugin-data",
+  },
 );
 
 runCase(

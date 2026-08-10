@@ -8,6 +8,28 @@ const path = require("path");
 
 const LEDGER_DIR = path.join(process.cwd(), ".vision-delivery");
 const LEDGER_FILE = path.join(LEDGER_DIR, "ledger.jsonl");
+const DIAGNOSTIC_FILE = "sentinel-hook-diagnostics.jsonl";
+const MAX_DIAGNOSTIC_BYTES = 4096;
+
+function writeDiagnostic(code) {
+  const pluginData = process.env.PLUGIN_DATA || process.env.CLAUDE_PLUGIN_DATA;
+  if (!pluginData || !path.isAbsolute(pluginData)) return;
+
+  const diagnosticPath = path.join(path.resolve(pluginData), DIAGNOSTIC_FILE);
+  const line = JSON.stringify({ ts: new Date().toISOString(), code }) + "\n";
+  try {
+    fs.mkdirSync(path.dirname(diagnosticPath), { recursive: true });
+    const existing = fs.existsSync(diagnosticPath) ? fs.readFileSync(diagnosticPath, "utf8") : "";
+    const rows = existing.split("\n").filter(Boolean);
+    rows.push(line.trim());
+    while (rows.length && Buffer.byteLength(`${rows.join("\n")}\n`) > MAX_DIAGNOSTIC_BYTES) {
+      rows.shift();
+    }
+    fs.writeFileSync(diagnosticPath, `${rows.join("\n")}\n`, "utf8");
+  } catch {
+    // Hook diagnostics are best-effort and must never interrupt the host tool call.
+  }
+}
 
 function extractEntityId(toolInput) {
   if (!toolInput || typeof toolInput !== "object") return "";
@@ -87,6 +109,7 @@ function hasEvent(ledgerFile, id) {
         }
       });
   } catch {
+    writeDiagnostic("ledger-read-failed");
     return false;
   }
 }
@@ -109,8 +132,18 @@ try {
       const raw = Buffer.concat(chunks).toString("utf8").trim();
       if (!raw) process.exit(0);
 
-      const payload = JSON.parse(raw);
-      const toolName = payload.tool_name || "";
+      let payload;
+      try {
+        payload = JSON.parse(raw);
+      } catch {
+        writeDiagnostic("invalid-json");
+        process.exit(0);
+      }
+      if (!payload || typeof payload !== "object") {
+        writeDiagnostic("invalid-payload");
+        process.exit(0);
+      }
+      const toolName = typeof payload.tool_name === "string" ? payload.tool_name : "";
 
       const observedOperation = operation(toolName);
       if (!observedOperation) process.exit(0);
@@ -144,11 +177,15 @@ try {
       // The hook intentionally emits no success CTA. Tool names and result
       // schemas are upstream-owned, so the active workflow interprets them.
     } catch {
-      // never block
+      writeDiagnostic("processing-error");
     }
     process.exit(0);
   });
-  process.stdin.on("error", () => process.exit(0));
+  process.stdin.on("error", () => {
+    writeDiagnostic("stdin-error");
+    process.exit(0);
+  });
 } catch {
+  writeDiagnostic("initialization-error");
   process.exit(0);
 }

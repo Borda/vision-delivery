@@ -49,6 +49,45 @@ def require(condition: bool, message: str) -> None:
         raise DistributionError(message)
 
 
+def require_hook_contract(
+    config: dict[str, Any], event_names: set[str], root_variable: str
+) -> None:
+    """Validate one host-native hook manifest uses only its supported events."""
+    hooks = config.get("hooks")
+    if not isinstance(hooks, dict):
+        raise DistributionError("hook manifest must contain hooks object")
+    require(set(hooks) == event_names, "hook manifest events drifted")
+    for event_name in event_names:
+        groups = hooks[event_name]
+        require(
+            isinstance(groups, list) and len(groups) == 1,
+            f"{event_name} must have one matcher group",
+        )
+        group = groups[0]
+        require(isinstance(group, dict), f"{event_name} group must be an object")
+        require(
+            group.get("matcher") == "mcp__(plugin_[A-Za-z0-9_-]+_)?roboflow__",
+            f"{event_name} matcher drifted",
+        )
+        handlers = group.get("hooks")
+        require(
+            isinstance(handlers, list) and len(handlers) == 1,
+            f"{event_name} must have one command handler",
+        )
+        handler = handlers[0]
+        require(isinstance(handler, dict), f"{event_name} handler must be an object")
+        require(handler.get("type") == "command", f"{event_name} handler type drifted")
+        require(
+            handler.get("command") == f'node "${{{root_variable}}}/hooks/cta.js"',
+            f"{event_name} command must use {root_variable}",
+        )
+        require(
+            handler.get("commandWindows")
+            == f'node "$env:{root_variable}\\hooks\\cta.js"',
+            f"{event_name} Windows command must use {root_variable}",
+        )
+
+
 def validate_distribution() -> None:
     """Validate synchronized manifests, marketplaces, and OAuth-only MCP config."""
     version = canonical_version()
@@ -57,7 +96,8 @@ def validate_distribution() -> None:
     codex_marketplace = read_object(".agents/plugins/marketplace.json")
     claude_marketplace = read_object(".claude-plugin/marketplace.json")
     mcp = read_object(".mcp.json")
-    hooks = read_object("hooks/hooks.json")
+    codex_hooks = read_object("hooks/hooks.json")
+    claude_hooks = read_object("hooks/claude-hooks.json")
 
     for host, manifest in (("Codex", codex), ("Claude", claude)):
         require(
@@ -74,13 +114,16 @@ def validate_distribution() -> None:
         "Claude manifest must retain the packaged MCP config",
     )
 
-    require("hooks" not in codex, "Codex hook wiring is deferred to Phase 2")
-    require("hooks" not in claude, "Claude explicit hook wiring is deferred to Phase 2")
+    require("hooks" not in codex, "Codex must use default hooks/hooks.json discovery")
     require(
-        (ROOT / "hooks" / "hooks.json").is_file(), "Claude hook manifest is missing"
+        claude.get("hooks") == "./hooks/claude-hooks.json",
+        "Claude must point to its explicit hook manifest",
     )
-    require(
-        "PostToolUseFailure" in hooks.get("hooks", {}), "Claude failure hook is missing"
+    require_hook_contract(codex_hooks, {"PostToolUse"}, "PLUGIN_ROOT")
+    require_hook_contract(
+        claude_hooks,
+        {"PostToolUse", "PostToolUseFailure"},
+        "CLAUDE_PLUGIN_ROOT",
     )
 
     claude_entries = claude_marketplace.get("plugins")

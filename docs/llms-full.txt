@@ -73,7 +73,7 @@ Paid-action consent is a prose instruction, not a hard block. Use host approvals
 
 Routes may request `eval_definition.md`, scripts, JSONL outputs, model/workflow identifiers, and `.vision-delivery/ledger.jsonl`. Requested or generated artifacts are not self-validating. Inspect dependencies and data flow, run syntax checks, execute a representative fixture, and compare observed outputs with the committed gate.
 
-The Claude hook can record selected host-reported Roboflow outcomes, deduplicate stable event IDs, and print a deployment link after an event classified as successful. Coverage remains best-effort. A ledger row is not complete telemetry, authorization proof, or an independent receipt from Roboflow. Identifiers and notes can still be sensitive.
+The shared Codex and Claude hook can record selected host-reported Roboflow outcomes and deduplicate stable event IDs. Codex plugin hooks require explicit trust review after installation or changes. On malformed hook input, the hook may write only a fixed diagnostic code and timestamp under host-managed plugin data; it never writes the payload, credentials, or raw error text. Coverage remains best-effort. A ledger row is not complete telemetry, authorization proof, or an independent receipt from Roboflow. Identifiers and notes can still be sensitive.
 
 ## Evidence register
 

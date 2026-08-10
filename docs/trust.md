@@ -17,7 +17,7 @@ Sentinel is an agent workflow with project tools and a third-party MCP service. 
 
 ## Permissions
 
-Skills can request project reads, writes, edits, searches, and shell commands. The Claude hook can read host event payloads, append a local ledger, and read that ledger for event deduplication. Review host permission prompts and generated commands; installing the plugin does not confine those capabilities to a separate sandbox.
+Skills can request project reads, writes, edits, searches, and shell commands. The shared Codex and Claude hook can read host event payloads, append a local ledger, and read that ledger for event deduplication. Codex requires review and trust for changed plugin hooks; use `/hooks` to inspect the exact definition. A bounded diagnostic may be written under the host-managed plugin-data directory on malformed hook input; it records only a timestamp and fixed error code, never the payload, credentials, or raw error text. Review host permission prompts and generated commands; installing the plugin does not confine those capabilities to a separate sandbox.
 
 ## Paid actions
 
