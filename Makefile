@@ -1,6 +1,18 @@
-.PHONY: ci docs-setup docs-build docs-serve eval-setup pre-commit-coverage eval eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-decision-report probe-codex probe-claude eval-trigger-live eval-e2e-self-test eval-ab-smoke
+.PHONY: ci lint format lint-js typecheck docs-setup docs-build docs-serve eval-setup pre-commit-coverage eval eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-proof-chain eval-decision-report probe-codex probe-claude eval-trigger-live eval-e2e-self-test eval-ab-smoke
 
-ci: eval-setup eval
+ci: eval-setup lint format lint-js typecheck eval
+
+lint:
+	pre-commit run ruff --all-files
+
+format:
+	pre-commit run ruff-format --all-files
+
+lint-js:
+	pre-commit run eslint --all-files
+
+typecheck:
+	pre-commit run mypy --all-files
 
 docs-setup:
 	python -m pip install -q --requirement docs/requirements.txt
@@ -21,10 +33,9 @@ eval-setup:
 	python -m pip install -q --requirement evals/requirements.txt
 
 pre-commit-coverage:
-	@echo "pre-commit owns Ruff lint/format, ESLint, and mypy."
-	@echo "make ci retains repository evals."
+	@echo "make ci runs the Ruff, Ruff format, ESLint, and mypy pre-commit hooks plus repository evals."
 
-eval: eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-decision-report eval-e2e-self-test
+eval: eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-proof-chain eval-decision-report eval-e2e-self-test
 
 eval-version:
 	python scripts/check_versions.py
@@ -90,6 +101,9 @@ eval-methodology:
 
 eval-artifacts:
 	python evals/artifacts/assert_artifact_contracts.py
+
+eval-proof-chain:
+	python evals/proof-chain/assert_proof_chain.py
 
 eval-decision-report:
 	python evals/decision-report/assert_contract.py

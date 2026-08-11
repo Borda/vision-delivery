@@ -111,9 +111,7 @@ def main() -> int:
 
     cells: dict[tuple, dict[str, list[dict]]] = {}
     for r in rows:
-        cells.setdefault((r["scenario"], r["persona"]), {}).setdefault(
-            r["arm"], []
-        ).append(r)
+        cells.setdefault((r["scenario"], r["persona"]), {}).setdefault(r["arm"], []).append(r)
 
     lines = [
         "| Cell (scenario × persona) | Metric | S median (IQR) | N median (IQR) | better |",
@@ -121,10 +119,7 @@ def main() -> int:
     ]
     verdicts = []
     for (scen, pers), arms in sorted(cells.items()):
-        stats = {
-            arm: {m: med_iqr([r.get(m) for r in runs]) for m in METRICS}
-            for arm, runs in arms.items()
-        }
+        stats = {arm: {m: med_iqr([r.get(m) for r in runs]) for m in METRICS} for arm, runs in arms.items()}
         p, b = stats.get("P", {}), stats.get("B", {})
         n_p, n_b = len(arms.get("P", [])), len(arms.get("B", []))
         for m, direction in METRICS.items():
@@ -132,9 +127,7 @@ def main() -> int:
             better = "—"
             if pm[0] is not None and bm[0] is not None and pm[0] != bm[0]:
                 better = "S" if (pm[0] > bm[0]) == (direction == "higher") else "N"
-            lines.append(
-                f"| {scen} × {pers} | {m} | {fmt(*pm)} | {fmt(*bm)} | {better} |"
-            )
+            lines.append(f"| {scen} × {pers} | {m} | {fmt(*pm)} | {fmt(*bm)} | {better} |")
         v = verdict(p, b) if p and b else "insufficient data"
         verdicts.append(f"- **{scen} × {pers}** (n: S={n_p}, N={n_b}): {v}")
 
@@ -145,10 +138,7 @@ def main() -> int:
     wide_sep = "| --- |" + " --- |" * len(METRICS)
     wide_rows = []
     for (scen, pers), arms in sorted(cells.items()):
-        stats = {
-            arm: {m: med_iqr([r.get(m) for r in runs]) for m in METRICS}
-            for arm, runs in arms.items()
-        }
+        stats = {arm: {m: med_iqr([r.get(m) for r in runs]) for m in METRICS} for arm, runs in arms.items()}
         p, b = stats.get("P", {}), stats.get("B", {})
         row_cells = []
         for m, direction in METRICS.items():
@@ -156,11 +146,7 @@ def main() -> int:
             bm_median = b.get(m, (None, None))[0]
             s_txt = "—" if pm_median is None else f"{pm_median:g}"
             p_txt = "—" if bm_median is None else f"{bm_median:g}"
-            if (
-                pm_median is not None
-                and bm_median is not None
-                and pm_median != bm_median
-            ):
+            if pm_median is not None and bm_median is not None and pm_median != bm_median:
                 if (pm_median > bm_median) == (direction == "higher"):
                     s_txt = f"**{s_txt}**"
                 else:
@@ -188,8 +174,7 @@ def main() -> int:
     if discarded:
         out += [
             "",
-            f"Discarded for persona leak (U1 fidelity audit): {len(discarded)} run(s): "
-            + ", ".join(discarded),
+            f"Discarded for persona leak (U1 fidelity audit): {len(discarded)} run(s): " + ", ".join(discarded),
         ]
     text = "\n".join(out) + "\n"
     print(text)

@@ -31,9 +31,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "evals" / "ab"))
 from runner import write_fixture_images  # noqa: E402
 
-PROMPT = (
-    "count the defective items — I have photos from the line camera in ./line-photos"
-)
+PROMPT = "count the defective items — I have photos from the line camera in ./line-photos"
 
 
 def main() -> int:
@@ -102,11 +100,7 @@ def main() -> int:
             re.I | re.S,
         )
     )
-    per_instance_path = bool(
-        re.search(
-            r"per.instance|per.item|each (item|frame|photo)|detect items", text, re.I
-        )
-    )
+    per_instance_path = bool(re.search(r"per.instance|per.item|each (item|frame|photo)|detect items", text, re.I))
     # The guarded failure mode: a final verdict count delivered with neither a
     # discriminator question nor a per-instance framing. Truncated runs (empty
     # final under the turn cap) are inconclusive, not failures.
@@ -122,9 +116,7 @@ def main() -> int:
         print("H-06 probe: FAIL (verdict with no question and no per-instance framing)")
         return 1
     if not final.strip() and fired:
-        print(
-            "H-06 probe: PASS (inconclusive-truncated — skill fired, no blind verdict)"
-        )
+        print("H-06 probe: PASS (inconclusive-truncated — skill fired, no blind verdict)")
         return 0
     print("H-06 probe: PASS")
     return 0

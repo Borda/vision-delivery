@@ -1,6 +1,6 @@
 # Sentinel / vision-delivery — full agent context
 
-`vision-delivery` ships the `sentinel` plugin for business-first CV delivery in Codex and Claude Code. Start from the operational outcome, not a model. The plugin translates plain language into a CV output type and evidence plan, measures a baseline before recommending training, asks before paid actions, requests inspectable artifacts, and frames economics and the next human decision.
+`vision-delivery` ships the `sentinel` plugin for business-first CV delivery in Codex and Claude Code. Start from the operational outcome, not a model. The plugin translates plain language into a CV output type and evidence plan, measures a baseline before recommending training, stops with an action brief before paid/data-moving/state-changing provider actions, requests inspectable artifacts, and frames economics and the next human decision.
 
 ## Non-negotiable boundary
 
@@ -52,7 +52,7 @@ claude plugin marketplace add Borda/vision-delivery
 claude plugin install sentinel@sentinel
 ```
 
-No credential environment variable is required for plugin installation. When the host or account requires it, using the MCP capability requests hosted authorization; an existing authorized session may need no prompt. The v0.2 package passed local clean-home marketplace simulations, while its public-GitHub path remains unverified until publication and retest. Use `claude plugin validate .` and `claude --plugin-dir .` only for development from a checkout. Cursor support is unverified. Credentials must never appear in chat or tracked files.
+No credential environment variable is required for plugin installation. The v0.4 release candidate passed local clean-home marketplace simulations. Manual public-GitHub marketplace installation was recorded for v0.3 on Codex and Claude Code; the v0.4 public-install path remains unverified. When the host or account requires it, using the MCP capability requests hosted authorization; an existing authorized session may need no prompt. Live Roboflow account authorization and service behavior remain upstream checks. Use `claude plugin validate .` and `claude --plugin-dir .` only for development from a checkout. Cursor support is unverified. Credentials must never appear in chat or tracked files.
 
 ## Workflow
 

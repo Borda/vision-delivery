@@ -35,9 +35,7 @@ RUNS = AB / "runs"
 PER_TURN_TIMEOUT_S = 300
 
 
-def write_fixture_images(
-    images_dir: Path, count: int = 3, seed: int = 7, quality: str = "good"
-) -> dict[str, Any]:
+def write_fixture_images(images_dir: Path, count: int = 3, seed: int = 7, quality: str = "good") -> dict[str, Any]:
     """Write deterministic, distinct, inspectable JPEGs (640x480) + return ground truth.
 
     Agents forensically inspect fixture data (dimensions, hashes) before
@@ -163,10 +161,7 @@ def persona_reply_llm(persona: dict, agent_text: str, context: dict) -> str:
     discarded and the rerun flagged — benchmark plan U1 rule).
     """
     system = persona["system_prompt"].format(**context)
-    prompt = (
-        "The assistant you hired said this — reply as the user, nothing else:\n\n"
-        + agent_text[:4000]
-    )
+    prompt = "The assistant you hired said this — reply as the user, nothing else:\n\n" + agent_text[:4000]
     cmd = [
         "claude",
         "--model",
@@ -185,9 +180,7 @@ def persona_reply_llm(persona: dict, agent_text: str, context: dict) -> str:
         prompt,
     ]
     try:
-        res = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=120, stdin=subprocess.DEVNULL
-        )
+        res = subprocess.run(cmd, capture_output=True, text=True, timeout=120, stdin=subprocess.DEVNULL)
         reply = (json.loads(res.stdout).get("result") or "").strip()
     except (subprocess.TimeoutExpired, json.JSONDecodeError):
         reply = ""
@@ -243,20 +236,13 @@ def claude_turn(
         return text, payload.get("session_id", session_id)
     except json.JSONDecodeError:
         err = (res.stderr or "").strip()[:200]
-        return (
-            res.stdout.strip()
-            or (f"[harness: non-json output; stderr={err}]" if err else "")
-        ), session_id
+        return (res.stdout.strip() or (f"[harness: non-json output; stderr={err}]" if err else "")), session_id
 
 
-AGENT_DONE_RE = re.compile(
-    r"(deployed|deployment).{0,40}(live|launched|complete)|mock\.roboflow\.app", re.I
-)
+AGENT_DONE_RE = re.compile(r"(deployed|deployment).{0,40}(live|launched|complete)|mock\.roboflow\.app", re.I)
 
 
-def run_once(
-    scenario: dict, persona: dict, arm: str, model: str, run_dir: Path
-) -> None:
+def run_once(scenario: dict, persona: dict, arm: str, model: str, run_dir: Path) -> None:
     run_dir.mkdir(parents=True, exist_ok=True)
     mcp_config = run_dir / "mcp.json"
     mcp_config.write_text(
@@ -282,9 +268,7 @@ def run_once(
     # inspection (real dimensions, distinct hashes).
     images_dir = workspace / "line-photos"
     images_dir.mkdir(exist_ok=True)
-    truth = write_fixture_images(
-        images_dir, quality=scenario.get("fixture_quality", "good")
-    )
+    truth = write_fixture_images(images_dir, quality=scenario.get("fixture_quality", "good"))
     # Ground truth lives in run_dir (analyzer-side), NOT the workspace — the
     # simulated user has no labels; the analyzer scores unvalidated shortcuts
     # against it.
@@ -305,12 +289,8 @@ def run_once(
             (run_dir / "current_turn.txt").write_text(str(turn))
             fh.write(json.dumps({"role": "user", "turn": turn, "text": prompt}) + "\n")
             fh.flush()
-            agent_text, session_id = claude_turn(
-                prompt, arm, model, mcp_config, session_id, workspace
-            )
-            fh.write(
-                json.dumps({"role": "agent", "turn": turn, "text": agent_text}) + "\n"
-            )
+            agent_text, session_id = claude_turn(prompt, arm, model, mcp_config, session_id, workspace)
+            fh.write(json.dumps({"role": "agent", "turn": turn, "text": agent_text}) + "\n")
             fh.flush()
             if not agent_text:
                 # One retry: empty result with a live session usually means the
@@ -385,12 +365,8 @@ def run_once(
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument(
-        "--scenario", required=True, help="Scenario id (file stem in scenarios/)."
-    )
-    ap.add_argument(
-        "--arm", choices=["P", "B"], required=True, help="P=plugin, B=plain."
-    )
+    ap.add_argument("--scenario", required=True, help="Scenario id (file stem in scenarios/).")
+    ap.add_argument("--arm", choices=["P", "B"], required=True, help="P=plugin, B=plain.")
     ap.add_argument("--model", default="sonnet")
     ap.add_argument("--runs", type=int, default=1)
     ap.add_argument(

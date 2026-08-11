@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Build Sentinel's deterministic dual-host plugin candidate.
 
-The builder admits only tracked files from the plugin's runtime surface, records
-their SHA-256 digests and executable modes, and writes a stable manifest. It
-never packages `.plans`, reports, caches, or other source-checkout state.
+The builder admits tracked files plus an explicit bootstrap allowlist for new
+runtime helpers under review, records their SHA-256 digests and executable
+modes, and writes a stable manifest. It never packages arbitrary untracked
+files, reports, caches, or other source-checkout state.
 """
 
 from __future__ import annotations
@@ -11,7 +12,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -35,6 +35,13 @@ INCLUDE_DIRS = (
     "shared",
 )
 REQUIRED_FILES = (".mcp.json", "CHANGELOG.md", "LICENSE", "NOTICE", "README.md")
+BOOTSTRAP_RUNTIME_FILES = (
+    "resources/scripts/freeze_acceptance.py",
+    "resources/scripts/freeze_delivery_check.py",
+    "resources/scripts/proof_chain.py",
+    "resources/scripts/record_delivery_check.py",
+    "resources/scripts/validate_proof_chain.py",
+)
 EXCLUDED_PARTS = frozenset(
     {
         ".cache",
@@ -62,7 +69,7 @@ def stable_json(value: dict[str, Any]) -> bytes:
 
 
 def tracked_modes(source_root: Path) -> dict[str, bool]:
-    """Return tracked relative paths mapped to their Git executable bit."""
+    """Return reviewed runtime paths mapped to their executable bit."""
     try:
         completed = subprocess.run(
             ["git", "-C", str(source_root), "ls-files", "--stage"],
@@ -80,6 +87,10 @@ def tracked_modes(source_root: Path) -> dict[str, bool]:
         if not separator:
             continue
         modes[relative] = metadata.split(maxsplit=1)[0] == "100755"
+    for relative in BOOTSTRAP_RUNTIME_FILES:
+        path = source_root / relative
+        if path.is_file() and not path.is_symlink():
+            modes.setdefault(relative, bool(path.stat().st_mode & 0o111))
     return modes
 
 
@@ -100,9 +111,7 @@ def skill_roster(source_root: Path, root_name: str) -> list[str]:
     skills_root = source_root / root_name
     if not skills_root.is_dir():
         return []
-    return sorted(
-        child.name for child in skills_root.iterdir() if (child / "SKILL.md").is_file()
-    )
+    return sorted(child.name for child in skills_root.iterdir() if (child / "SKILL.md").is_file())
 
 
 def write_file(path: Path, data: bytes, executable: bool) -> None:
@@ -112,14 +121,29 @@ def write_file(path: Path, data: bytes, executable: bool) -> None:
     path.chmod(0o755 if executable else 0o644)
 
 
+def reject_symlinked_output_path(output: Path) -> Path:
+    """Return an absolute output path after rejecting untrusted symlink segments."""
+    output = output.absolute()
+    temp_root = Path(tempfile.gettempdir()).absolute()
+    trusted_temp_ancestors = {temp_root, *temp_root.parents}
+    for candidate in (output, *output.parents):
+        try:
+            if candidate.is_symlink() and candidate not in trusted_temp_ancestors:
+                raise ValueError(f"output path may not contain a symlink: {candidate}")
+        except OSError as exc:
+            raise ValueError(f"cannot inspect output path {candidate}: {exc}") from exc
+    return output
+
+
 def ensure_safe_output(source_root: Path, output: Path) -> None:
-    """Reject output targets that could delete the source checkout or a disk root."""
+    """Reject destinations whose replacement could escape the intended tree."""
+    output = reject_symlinked_output_path(output)
     if output == Path(output.anchor):
         raise ValueError("output may not be a filesystem root")
     if output == source_root or source_root.is_relative_to(output):
         raise ValueError("output may not contain the source root")
-    if output.is_symlink():
-        raise ValueError("output may not be a symlink")
+    if output.exists():
+        raise ValueError("output must not already exist")
 
 
 def build_package(source_root: Path, output: Path) -> dict[str, Any]:
@@ -127,7 +151,7 @@ def build_package(source_root: Path, output: Path) -> dict[str, Any]:
 
     Args:
         source_root: Repository root providing the tracked plugin files.
-        output: Empty or replaceable destination directory for the candidate.
+        output: Missing destination directory for the candidate.
 
     Returns:
         Deterministic package manifest with identity, host rosters, and files.
@@ -136,17 +160,15 @@ def build_package(source_root: Path, output: Path) -> dict[str, Any]:
         ValueError: If a required runtime file is absent or a selected path is a
             symlink rather than a regular tracked file.
     """
+    source_root = source_root.resolve()
+    output = output.absolute()
     ensure_safe_output(source_root, output)
     modes = tracked_modes(source_root)
     missing = [name for name in REQUIRED_FILES if name not in modes]
     if missing:
-        raise ValueError(
-            f"required package files are not tracked: {', '.join(missing)}"
-        )
+        raise ValueError(f"required package files are not tracked: {', '.join(missing)}")
 
     payload = sorted(relative for relative in modes if is_payload_path(relative))
-    if output.exists():
-        shutil.rmtree(output)
     output.mkdir(parents=True)
 
     records: list[dict[str, Any]] = []
@@ -158,13 +180,9 @@ def build_package(source_root: Path, output: Path) -> dict[str, Any]:
             raise ValueError(f"tracked package file is missing: {relative}")
         data = source.read_bytes()
         write_file(output / relative, data, modes[relative])
-        records.append(
-            {"path": relative, "sha256": sha256(data), "executable": modes[relative]}
-        )
+        records.append({"path": relative, "sha256": sha256(data), "executable": modes[relative]})
 
-    claude_manifest = json.loads(
-        (source_root / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8")
-    )
+    claude_manifest = json.loads((source_root / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
     package_manifest = {
         "schema_version": SCHEMA_VERSION,
         "name": claude_manifest["name"],
@@ -181,15 +199,12 @@ def build_package(source_root: Path, output: Path) -> dict[str, Any]:
 
 def tree_bytes(root: Path) -> dict[str, bytes]:
     """Return candidate file bytes keyed by normalized relative paths."""
-    return {
-        path.relative_to(root).as_posix(): path.read_bytes()
-        for path in sorted(root.rglob("*"))
-        if path.is_file()
-    }
+    return {path.relative_to(root).as_posix(): path.read_bytes() for path in sorted(root.rglob("*")) if path.is_file()}
 
 
 def check_determinism(source_root: Path, output: Path) -> list[str]:
     """Build a temporary candidate and report byte differences from `output`."""
+    output = reject_symlinked_output_path(output)
     if not output.is_dir():
         return [f"missing candidate: {output}"]
     with tempfile.TemporaryDirectory(prefix="sentinel-package-check-") as temporary:
@@ -198,11 +213,7 @@ def check_determinism(source_root: Path, output: Path) -> list[str]:
         expected = tree_bytes(output)
         actual = tree_bytes(rebuilt)
     differences = sorted(set(expected) ^ set(actual))
-    differences.extend(
-        path
-        for path in sorted(set(expected) & set(actual))
-        if expected[path] != actual[path]
-    )
+    differences.extend(path for path in sorted(set(expected) & set(actual)) if expected[path] != actual[path])
     return differences
 
 
@@ -224,7 +235,7 @@ def main(argv: list[str] | None = None) -> int:
     """Build or deterministically re-check a Sentinel package candidate."""
     args = parse_args(argv)
     source_root = args.source_root.resolve()
-    output = args.out.resolve()
+    output = args.out.absolute()
     try:
         if args.check:
             differences = check_determinism(source_root, output)
@@ -240,10 +251,7 @@ def main(argv: list[str] | None = None) -> int:
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         print(f"build-package-error: {exc}", file=sys.stderr)
         return 2
-    print(
-        f"built {manifest['name']} {manifest['version']}: "
-        f"{len(manifest['files'])} files -> {output}"
-    )
+    print(f"built {manifest['name']} {manifest['version']}: {len(manifest['files'])} files -> {output}")
     return 0
 
 

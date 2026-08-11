@@ -13,7 +13,7 @@ Translate a broad operational outcome into the smallest pipeline whose end-to-en
 
 <methodology>
 
-**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific lookup or action. Delegate exact models, datasets, training, inference, workflows, and deployment execution to an installed official Roboflow skill or current MCP resource. Sentinel owns decomposition, contracts, evidence, and the go/revise/stop decision.
+**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific lookup or action. Use installed official Roboflow skills or current MCP resources only for read-only discovery and sourced action-brief inputs; never invoke provider execution. Sentinel owns decomposition, contracts, evidence, and the go/revise/stop decision.
 
 Follow `../../resources/fde-methodology.md` for feasibility, frozen acceptance, consent, artifacts, and provenance.
 
@@ -55,7 +55,7 @@ Return a pipeline diagram, stage contracts, replay command, measured result, fai
 
 - A general vision model is not a physical oracle; separate unverified visibility from independently proven acquisition failure.
 - Never let pseudo-label agreement become independent acceptance.
-- Obtain explicit consent for data movement and paid actions.
+- Emit a sourced action brief and stop before data movement or paid provider actions; Sentinel never invokes them.
 - Do not guess current provider APIs, tools, model IDs, or deployment paths.
 
 </safety>

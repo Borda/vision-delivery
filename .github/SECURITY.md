@@ -24,9 +24,9 @@ The repository hook does not intentionally read authentication material or write
 
 ## Paid and state-changing actions
 
-Skills instruct the agent to explain the action and expected cost, then wait for explicit confirmation before credit-spending training or deployment-class operations. This is a prose instruction, not a hard runtime authorization block. A model error, prompt injection, host defect, or changed upstream tool surface can bypass it.
+Sentinel does not invoke uploads, dataset mutation, credit-spending training, deployment, deletion, or other state-changing provider operations. It produces a sourced action brief and stops. The user must execute the action through a host/provider control that can enforce approval. Conversational confirmation is not an authorization token.
 
-Use host-level tool approvals, least-privilege credentials, account budgets, and a non-production workspace as the real control boundary. Review the target workspace/project and expected action in every approval prompt.
+Use host-level tool approvals, least-privilege credentials, account budgets, and a non-production workspace as the real control boundary. Review the target workspace/project and expected action in every approval prompt. The repository's hook is post-action observability only and must never be described as a pre-action guard.
 
 ## Hook and ledger
 
@@ -57,7 +57,7 @@ Treat generated scripts, dependency instructions, model identifiers, URLs, and c
 
 ## Known limitations
 
-- Paid-action consent is not machine-enforced.
+- State-changing provider execution is intentionally unsupported inside Sentinel until both supported hosts expose and verify a machine-enforced pre-action guard.
 - The ledger is local, partial, and dependent on host payload semantics.
 - MCP operations send data to an upstream service.
 - Skills can request broad project filesystem and shell access.

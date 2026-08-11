@@ -10,6 +10,8 @@ const LEDGER_DIR = path.join(process.cwd(), ".vision-delivery");
 const LEDGER_FILE = path.join(LEDGER_DIR, "ledger.jsonl");
 const DIAGNOSTIC_FILE = "sentinel-hook-diagnostics.jsonl";
 const MAX_DIAGNOSTIC_BYTES = 4096;
+const LOCK_TIMEOUT_MILLISECONDS = 5000;
+const LOCK_RETRY_MILLISECONDS = 10;
 
 function writeDiagnostic(code) {
   const pluginData = process.env.PLUGIN_DATA || process.env.CLAUDE_PLUGIN_DATA;
@@ -81,36 +83,114 @@ function resultSignalsFailure(result) {
   return typeof result.error === "string" && result.error.length > 0;
 }
 
+function resultSignalsSuccess(result) {
+  if (!result || typeof result !== "object" || Array.isArray(result)) return false;
+  if (result.success === true || result.ok === true) return true;
+  if (result.is_error === false || result.isError === false) return true;
+  return result.status === "success" || result.status === "completed";
+}
+
 function outcome(payload) {
   if (payload.hook_event_name === "PostToolUseFailure") {
     return payload.is_interrupt === true ? "cancelled" : "failed";
   }
   if (payload.hook_event_name === "PostToolUse") {
-    return resultSignalsFailure(payload.tool_response) ? "failed" : "success";
+    if (resultSignalsFailure(payload.tool_response)) return "failed";
+    return resultSignalsSuccess(payload.tool_response) ? "success" : "unknown";
   }
 
   const legacyResult = payload.tool_response || payload.tool_result;
   if (!legacyResult) return "unknown";
-  return resultSignalsFailure(legacyResult) ? "failed" : "success";
+  if (resultSignalsFailure(legacyResult)) return "failed";
+  return resultSignalsSuccess(legacyResult) ? "success" : "unknown";
 }
 
-function hasEvent(ledgerFile, id) {
-  if (!id || !fs.existsSync(ledgerFile)) return false;
+function rejectSymlinkPath(target) {
+  for (let current = path.resolve(target); ; current = path.dirname(current)) {
+    try {
+      if (fs.lstatSync(current).isSymbolicLink()) {
+        throw new Error(`ledger path may not contain a symlink: ${current}`);
+      }
+    } catch (error) {
+      if (error.code !== "ENOENT") throw error;
+    }
+    if (current === path.dirname(current)) return;
+  }
+}
+
+function prepareLedgerPath(ledgerFile) {
+  rejectSymlinkPath(ledgerFile);
+  fs.mkdirSync(path.dirname(ledgerFile), { recursive: true });
+  rejectSymlinkPath(ledgerFile);
+  if (!fs.existsSync(ledgerFile)) return;
+  const entry = fs.lstatSync(ledgerFile);
+  if (entry.isSymbolicLink() || !entry.isFile()) {
+    throw new Error(`ledger path must be a regular file: ${ledgerFile}`);
+  }
+}
+
+function waitForLock() {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, LOCK_RETRY_MILLISECONDS);
+}
+
+function acquireLedgerLock(ledgerFile) {
+  const lockPath = `${ledgerFile}.lock`;
+  const deadline = Date.now() + LOCK_TIMEOUT_MILLISECONDS;
+  for (;;) {
+    rejectSymlinkPath(lockPath);
+    try {
+      fs.mkdirSync(lockPath);
+      return lockPath;
+    } catch (error) {
+      if (error.code !== "EEXIST") throw error;
+      rejectSymlinkPath(lockPath);
+      if (Date.now() >= deadline) {
+        throw new Error(`timed out waiting for ledger lock: ${lockPath}`);
+      }
+      waitForLock();
+    }
+  }
+}
+
+function comparableRecord(record) {
+  return Object.fromEntries(Object.entries(record).filter(([key]) => key !== "ts"));
+}
+
+function recordsMatch(first, second) {
+  return JSON.stringify(comparableRecord(first)) === JSON.stringify(comparableRecord(second));
+}
+
+function appendLedgerRecord(record) {
+  prepareLedgerPath(LEDGER_FILE);
+  const lockPath = acquireLedgerLock(LEDGER_FILE);
   try {
-    return fs
-      .readFileSync(ledgerFile, "utf8")
-      .split("\n")
-      .some((line) => {
-        if (!line.trim()) return false;
-        try {
-          return JSON.parse(line).event_id === id;
-        } catch {
-          return false;
-        }
-      });
-  } catch {
-    writeDiagnostic("ledger-read-failed");
-    return false;
+    prepareLedgerPath(LEDGER_FILE);
+    const rows = fs.existsSync(LEDGER_FILE) ? fs.readFileSync(LEDGER_FILE, "utf8").split("\n") : [];
+    for (const row of rows) {
+      if (!row.trim()) continue;
+      try {
+        const existing = JSON.parse(row);
+        if (existing.event_id !== record.event_id) continue;
+        if (!recordsMatch(existing, record)) writeDiagnostic("ledger-integrity-conflict");
+        return;
+      } catch {
+        // Malformed historical rows do not prevent a separately identified event.
+      }
+    }
+    const flags = fs.constants.O_WRONLY | fs.constants.O_APPEND | fs.constants.O_CREAT;
+    const noFollow = fs.constants.O_NOFOLLOW || 0;
+    const descriptor = fs.openSync(LEDGER_FILE, flags | noFollow, 0o600);
+    try {
+      fs.writeFileSync(descriptor, JSON.stringify(record) + "\n", "utf8");
+    } finally {
+      fs.closeSync(descriptor);
+    }
+  } finally {
+    try {
+      if (fs.lstatSync(lockPath).isDirectory()) fs.rmdirSync(lockPath);
+    } catch {
+      // A replaced lock path is left untouched rather than risking a victim delete.
+    }
   }
 }
 
@@ -161,7 +241,7 @@ try {
         operation: observedOperation,
         category: operationCategory(observedOperation),
         entity_id: extractEntityId(payload.tool_input),
-        version: "0.3.0",
+        version: "0.4.0",
         status,
         source: "hook",
         event_id: id,
@@ -169,10 +249,7 @@ try {
         notes: `auto via ${payload.hook_event_name || "legacy hook payload"}`,
       };
 
-      fs.mkdirSync(LEDGER_DIR, { recursive: true });
-      if (!hasEvent(LEDGER_FILE, id)) {
-        fs.appendFileSync(LEDGER_FILE, JSON.stringify(record) + "\n", "utf8");
-      }
+      appendLedgerRecord(record);
 
       // The hook intentionally emits no success CTA. Tool names and result
       // schemas are upstream-owned, so the active workflow interprets them.

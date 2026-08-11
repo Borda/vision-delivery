@@ -45,5 +45,5 @@
   "name": "sentinel",
   "repository": "https://github.com/Borda/vision-delivery",
   "skills": "./codex-skills/",
-  "version": "0.3.0"
+  "version": "0.4.0"
 }

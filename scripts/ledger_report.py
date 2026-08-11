@@ -17,15 +17,15 @@ _PRE_DEPLOY_ACTIONS = {
     "baseline_measured",
     "models_train",
 }  # models_train: legacy pre-2026-07-09 rows
+_DEPLOYMENT_OPERATIONS = {"deploy", "deployment_create", "deployment_launch"}
 
 
 def _is_deployment(record: dict) -> bool:
     """Return whether a record is a verified deployment outcome."""
-    if record.get("action") == "project_deployment_launch":
-        return True
     return (
         record.get("action") == "roboflow_mcp_call"
         and record.get("category") == "deployment"
+        and record.get("operation") in _DEPLOYMENT_OPERATIONS
     )
 
 
@@ -60,7 +60,12 @@ def load_records(ledger: Path) -> list[dict]:
     return records
 
 
-def deduplicate_records(records: list[dict]) -> tuple[list[dict], int]:
+def _comparable_record(record: dict) -> dict:
+    """Return a record identity without its generated timestamp."""
+    return {key: value for key, value in record.items() if key != "ts"}
+
+
+def deduplicate_records(records: list[dict]) -> tuple[list[dict], int, int]:
     """Deduplicate records that carry a stable host tool-use identifier.
 
     Records without an ``event_id`` are retained because there is no reliable
@@ -70,60 +75,58 @@ def deduplicate_records(records: list[dict]) -> tuple[list[dict], int]:
         records: Ledger records in append order.
 
     Returns:
-        Deduplicated records and the number of duplicate rows ignored.
+        Deduplicated records, duplicate rows ignored, and integrity conflicts.
     """
     positions: dict[str, int] = {}
     deduplicated: list[dict] = []
     duplicates = 0
+    integrity_conflicts = 0
     for record in records:
         event_id = record.get("event_id")
         if not isinstance(event_id, str) or not event_id:
             deduplicated.append(record)
             continue
         if event_id in positions:
-            deduplicated[positions[event_id]] = record
             duplicates += 1
+            position = positions[event_id]
+            if _comparable_record(deduplicated[position]) != _comparable_record(record):
+                integrity_conflicts += 1
+                conflicted = dict(deduplicated[position])
+                conflicted["status"] = "unknown"
+                conflicted["integrity_conflict"] = True
+                deduplicated[position] = conflicted
             continue
         positions[event_id] = len(deduplicated)
         deduplicated.append(record)
-    return deduplicated, duplicates
+    return deduplicated, duplicates, integrity_conflicts
 
 
 def compute_metrics(records: list[dict]) -> dict:
     """Derive all report metrics from a list of ledger records."""
     raw_records = len(records)
-    records, duplicates_ignored = deduplicate_records(records)
+    records, duplicates_ignored, integrity_conflicts = deduplicate_records(records)
     total_events = len(records)
     successful_records = [r for r in records if r.get("status") == "success"]
     sessions = len({r.get("session", "unknown") for r in records})
 
-    deployed = {
-        r.get("session", "unknown") for r in successful_records if _is_deployment(r)
-    }
-    progressed = {
-        r.get("session", "unknown") for r in successful_records if _is_pre_deployment(r)
-    }
+    deployed = {r.get("session", "unknown") for r in successful_records if _is_deployment(r)}
+    progressed = {r.get("session", "unknown") for r in successful_records if _is_pre_deployment(r)}
     deploy_sessions = len(deployed)
     deploy_pct = round(deploy_sessions / sessions * 100, 1) if sessions else 0.0
 
     solved_no_deploy = len(progressed - deployed)
 
-    workload_mix = dict(
-        Counter(r.get("skill", "unknown") for r in successful_records).most_common()
-    )
+    workload_mix = dict(Counter(r.get("skill", "unknown") for r in successful_records).most_common())
     action_breakdown = dict(
-        Counter(
-            r.get("operation") or r.get("action", "unknown") for r in successful_records
-        ).most_common()
+        Counter(r.get("operation") or r.get("action", "unknown") for r in successful_records).most_common()
     )
-    outcome_breakdown = dict(
-        Counter(r.get("status", "legacy-unknown") for r in records).most_common()
-    )
+    outcome_breakdown = dict(Counter(r.get("status", "legacy-unknown") for r in records).most_common())
 
     return {
         "raw_records": raw_records,
         "total_events": total_events,
         "duplicates_ignored": duplicates_ignored,
+        "integrity_conflicts": integrity_conflicts,
         "verified_success_events": len(successful_records),
         "sessions": sessions,
         "sessions_reaching_deploy": deploy_sessions,
@@ -132,7 +135,10 @@ def compute_metrics(records: list[dict]) -> dict:
         "workload_mix": workload_mix,
         "action_breakdown": action_breakdown,
         "outcome_breakdown": outcome_breakdown,
-        "coverage_note": "verified-success metrics only; legacy rows without status are retained as unknown, and host hook coverage still depends on hook trust",
+        "coverage_note": (
+            "verified-success metrics only; legacy rows without status are retained as unknown, "
+            "conflicting event IDs retain their first record, and host hook coverage still depends on hook trust"
+        ),
     }
 
 
@@ -146,6 +152,7 @@ def print_text(m: dict) -> None:
     print(f"Unique events:            {m['total_events']}")
     print(f"Verified successes:       {m['verified_success_events']}")
     print(f"Duplicates ignored:       {m['duplicates_ignored']}")
+    print(f"Integrity conflicts:      {m['integrity_conflicts']}")
     print(f"Sessions:                 {m['sessions']}")
     print(f"Sessions reaching deploy: {m['sessions_reaching_deploy']} ({deploy_pct}%)")
     print(f"Solved-no-deploy:         {m['solved_no_deploy']}")
@@ -176,9 +183,7 @@ def main() -> None:
     """Entry point — parse args, load ledger, emit report."""
     parser = argparse.ArgumentParser(description="vision-delivery ledger report")
     parser.add_argument("--json", action="store_true", help="emit JSON output")
-    parser.add_argument(
-        "--ledger", type=Path, default=None, help="path to ledger.jsonl"
-    )
+    parser.add_argument("--ledger", type=Path, default=None, help="path to ledger.jsonl")
     args = parser.parse_args()
 
     ledger = args.ledger if args.ledger else _default_ledger()

@@ -31,7 +31,8 @@ def assert_contains(text: str, needle: str, path: Path) -> None:
 
 STALE_COMMAND_PATTERNS = [
     "/vision-delivery:",  # pre-rename namespace
-    "/sentinel:estimate\u0060",  # bare /sentinel:estimate` — verified Unknown command 2026-07-10; use /sentinel:estimate-economics
+    # bare /sentinel:estimate` — verified Unknown command 2026-07-10; use /sentinel:estimate-economics
+    "/sentinel:estimate\u0060",
 ]
 
 
@@ -53,9 +54,7 @@ def assert_no_stale_commands() -> None:
             for pat in STALE_COMMAND_PATTERNS:
                 needle = pat.encode().decode("unicode_escape")
                 if needle in text:
-                    raise AssertionError(
-                        f"{f} contains stale command reference {needle!r}"
-                    )
+                    raise AssertionError(f"{f} contains stale command reference {needle!r}")
 
 
 def main() -> None:
@@ -88,13 +87,10 @@ def main() -> None:
     )
     assert_no_stale_commands()
 
-    model_ids = re.findall(
-        r"`(?:rf|yolo|sam|vit|resnet|deeplab)[^`]+`", model_selection
-    )
+    model_ids = re.findall(r"`(?:rf|yolo|sam|vit|resnet|deeplab)[^`]+`", model_selection)
     if model_ids:
         raise AssertionError(
-            "model-selection fallback copies exact platform IDs; "
-            "delegate the current catalog upstream"
+            "model-selection fallback copies exact platform IDs; delegate the current catalog upstream"
         )
 
     active_paths = [*sorted((ROOT / "codex-skills").glob("*/SKILL.md"))]
@@ -115,8 +111,7 @@ def main() -> None:
         for pattern in forbidden:
             if re.search(pattern, text):
                 raise AssertionError(
-                    f"{path.relative_to(ROOT)} duplicates volatile upstream recipe "
-                    f"pattern {pattern!r}"
+                    f"{path.relative_to(ROOT)} duplicates volatile upstream recipe pattern {pattern!r}"
                 )
 
     print("Roboflow platform routing stays thin and source-backed.")

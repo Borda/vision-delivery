@@ -98,9 +98,7 @@ def fire_prompt(prompt: str, model: str | None, host: str) -> str | None:
     return m.group(1) if m else None
 
 
-def load_cases(
-    only_skill: str | None, negatives: bool = False
-) -> list[tuple[str, str, bool]]:
+def load_cases(only_skill: str | None, negatives: bool = False) -> list[tuple[str, str, bool]]:
     """Return (skill, prompt, should_fire) triples from the trigger case files.
 
     Negative cases (``should_not_fire``) pass when the named skill does NOT
@@ -129,9 +127,7 @@ def load_cases(
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument(
-        "--all", action="store_true", help="Run every case (default: 1 per skill)."
-    )
+    ap.add_argument("--all", action="store_true", help="Run every case (default: 1 per skill).")
     ap.add_argument(
         "--model",
         default=None,
@@ -203,30 +199,15 @@ def main() -> int:
             fh.write(json.dumps(row) + "\n")
 
     if total_pos:
-        print(
-            f"\nRouting accuracy (positives): exact {exact}/{total_pos}, "
-            f"router-tolerant {tolerant}/{total_pos}"
-        )
+        print(f"\nRouting accuracy (positives): exact {exact}/{total_pos}, router-tolerant {tolerant}/{total_pos}")
     # Per-skill precision/recall: TP = positive fired exactly; FN = positive
     # fired other/none; FP = negative where the named skill fired anyway.
     skills = sorted({r["expected"] for r in rows})
     print("\nPer-skill precision/recall (exact, router not credited):")
     for s in skills:
-        tp = sum(
-            1
-            for r in rows
-            if r["should_fire"] and r["expected"] == s and r["fired"] == s
-        )
-        fn = sum(
-            1
-            for r in rows
-            if r["should_fire"] and r["expected"] == s and r["fired"] != s
-        )
-        fp = sum(
-            1
-            for r in rows
-            if not r["should_fire"] and r["expected"] == s and r["fired"] == s
-        )
+        tp = sum(1 for r in rows if r["should_fire"] and r["expected"] == s and r["fired"] == s)
+        fn = sum(1 for r in rows if r["should_fire"] and r["expected"] == s and r["fired"] != s)
+        fp = sum(1 for r in rows if not r["should_fire"] and r["expected"] == s and r["fired"] == s)
         prec = tp / (tp + fp) if (tp + fp) else None
         rec = tp / (tp + fn) if (tp + fn) else None
         fmt = lambda v: "—" if v is None else f"{v:.2f}"  # noqa: E731
@@ -238,9 +219,7 @@ def main() -> int:
     if misroutes:
         print("Misroutes (neither expected skill nor router fired):")
         for r in misroutes:
-            print(
-                f"  expected={r['expected']} fired={r['fired']} :: {r['prompt'][:70]}"
-            )
+            print(f"  expected={r['expected']} fired={r['fired']} :: {r['prompt'][:70]}")
     if false_fires:
         print("False fires (skill fired on its should_not_fire prompt):")
         for r in false_fires:

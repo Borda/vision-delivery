@@ -70,7 +70,7 @@ The full route-by-route claim register is in [Support & Evidence](support-and-sc
     claude plugin install sentinel@sentinel
     ```
 
-Each host uses two commands. The v0.3 release candidate has passed local clean-home marketplace simulations and manual public-GitHub marketplace installation. No credential environment variable is required for plugin installation. When the host or account requires it, using the MCP capability requests hosted authorization; an existing authorized session may need no prompt. For Claude plugin development from a checkout, use `claude plugin validate .` and `claude --plugin-dir .`. Never paste credentials into chat.
+Each host uses two commands. The v0.4 release candidate has passed local clean-home marketplace simulations. Manual public-GitHub marketplace installation was recorded for v0.3; the v0.4 public-install path remains unverified. No credential environment variable is required for plugin installation. When the host or account requires it, using the MCP capability requests hosted authorization; an existing authorized session may need no prompt. For Claude plugin development from a checkout, use `claude plugin validate .` and `claude --plugin-dir .`. Never paste credentials into chat.
 
 ## Delivery loop
 

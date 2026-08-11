@@ -48,9 +48,7 @@ def main() -> int:
         payload = json.loads(healthy.stdout)
         if payload.get("status") != "passed" or payload.get("skill_count", 0) < 2:
             raise AssertionError(f"unexpected healthy result: {payload}")
-        if "authenticated Roboflow read succeeded" not in payload.get(
-            "external_checks", []
-        ):
+        if "authenticated Roboflow read succeeded" not in payload.get("external_checks", []):
             raise AssertionError("doctor blurred package health with external auth")
 
         cachebusted_root = Path(cwd) / "cachebusted-plugin"
@@ -65,9 +63,7 @@ def main() -> int:
             raise AssertionError(f"cache-busted doctor failed: {cachebusted.stdout}")
         cachebusted_payload = json.loads(cachebusted.stdout)
         if cachebusted_payload.get("version") != release_version:
-            raise AssertionError(
-                f"doctor exposed a host-only cache-buster: {cachebusted_payload}"
-            )
+            raise AssertionError(f"doctor exposed a host-only cache-buster: {cachebusted_payload}")
 
         codex_payload["mcpServers"] = "./.mcp.json"
         codex_manifest.write_text(json.dumps(codex_payload), encoding="utf-8")
@@ -75,27 +71,19 @@ def main() -> int:
         invalid_codex_mcp_payload = json.loads(invalid_codex_mcp.stdout)
         if invalid_codex_mcp.returncode == 0 or (
             "codex manifest MCP configuration is not the expected "
-            "URL-only Roboflow configuration"
-            not in invalid_codex_mcp_payload.get("errors", [])
+            "URL-only Roboflow configuration" not in invalid_codex_mcp_payload.get("errors", [])
         ):
-            raise AssertionError(
-                "doctor accepted Claude-style MCP wiring for the Codex manifest"
-            )
+            raise AssertionError("doctor accepted Claude-style MCP wiring for the Codex manifest")
 
-        codex_payload["mcpServers"] = {
-            "roboflow": {"type": "http", "url": "https://mcp.roboflow.com/mcp"}
-        }
+        codex_payload["mcpServers"] = {"roboflow": {"type": "http", "url": "https://mcp.roboflow.com/mcp"}}
         codex_manifest.write_text(json.dumps(codex_payload), encoding="utf-8")
 
         codex_payload["skills"] = "./skills/"
         codex_manifest.write_text(json.dumps(codex_payload), encoding="utf-8")
-        invalid_codex_skills = run_doctor(
-            "--plugin-root", str(cachebusted_root), cwd=cwd
-        )
+        invalid_codex_skills = run_doctor("--plugin-root", str(cachebusted_root), cwd=cwd)
         invalid_codex_skills_payload = json.loads(invalid_codex_skills.stdout)
         if invalid_codex_skills.returncode == 0 or (
-            "codex manifest skills path is not ./codex-skills/"
-            not in invalid_codex_skills_payload.get("errors", [])
+            "codex manifest skills path is not ./codex-skills/" not in invalid_codex_skills_payload.get("errors", [])
         ):
             raise AssertionError("doctor accepted the retired shared skill root")
 

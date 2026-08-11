@@ -25,6 +25,14 @@ def main() -> int:
             "<plugin-root>/scripts/cost_model.py",
             '"status": "success"',
             '"source": "skill"',
+            "--acceptance <frozen-acceptance.json>",
+            "acceptance_sha256",
+            "validate_proof_chain.py",
+            "Proof chain: <chain_id>",
+            "--report <report-path>",
+            "--report <project-root>/decision-report-<YYYY-MM-DD>.md",
+            '"report_sha256"',
+            "cannot end in `go`",
         )
         missing = [needle for needle in required if needle not in text]
         if missing:

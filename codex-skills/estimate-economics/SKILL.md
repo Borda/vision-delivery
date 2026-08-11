@@ -16,7 +16,7 @@ Give a sourced, editable economic view of the CV decision: one-time effort, mont
 
 ## 1. Establish decision readiness
 
-Read acceptance evidence, workload, existing hardware/staff, data volume, and deployment constraints. A measured proof is the preferred basis. If it is absent and the user still wants a rough estimate, label every model/runtime figure as an assumption and do not imply technical feasibility.
+Read the frozen acceptance artifact, its SHA-256 digest, measured evidence, workload, existing hardware/staff, data volume, and deployment constraints. A measured proof is the preferred basis. If it is absent and the user still wants a rough estimate, label every model/runtime figure as an assumption, retain `proof.status: unbound`, and do not imply technical feasibility or emit `go`.
 
 Collect only missing inputs:
 
@@ -50,10 +50,11 @@ python /absolute/plugin/root/scripts/cost_model.py \
     --uptime <24x7|business> --region us-east-1 \
     [--existing-gpu] [--on-demand] \
     [--managed-usd-mo <quote> --managed-quote-as-of <YYYY-MM-DD>] \
-    [--override-gpu-spot <usd-hour>] [--override-engineer <usd-hour>]
+    [--override-gpu-spot <usd-hour>] [--override-engineer <usd-hour>] \
+    [--acceptance /absolute/project/.vision-delivery/acceptance-<revision>.json]
 ```
 
-The committed capacity table is a screening assumption calibrated at 10 FPS and scaled linearly by requested FPS. It is not a hardware benchmark. Re-run with measured throughput before a purchase or binding recommendation.
+The committed capacity table is a screening assumption calibrated at 10 FPS and scaled linearly by requested FPS. It is not a hardware benchmark. Re-run with measured throughput before a purchase or binding recommendation. A decision-grade run requires `proof.status: bound` and the same `acceptance_sha256` used by the baseline, handoff, and ledger.
 
 Without a dated, scope-comparable managed quote, the tool must return `insufficient-data`; provide the DIY estimate and quote request instead of inventing a winner.
 
@@ -65,7 +66,7 @@ Vary workload/FPS, compute rate, engineering rate, monitoring effort, failure-re
 
 Write `.vision-delivery/economics-<session>.md` with assumptions, sources/dates, one-time and recurring tables, sensitivity, excluded costs, recommended path, and re-evaluation trigger. Use `go`, `revise`, or `insufficient-data`; do not force a binary answer.
 
-If the selected path requires integration or deployment, route to `deliver-cv-project`. Any paid/deployment action still needs current upstream impact plus explicit current-turn confirmation.
+If the selected path requires integration or deployment, route to `deliver-cv-project`. Sentinel emits a sourced action brief and stops before any paid/state-changing provider action.
 
 </methodology>
 
@@ -75,7 +76,7 @@ If the selected path requires integration or deployment, route to `deliver-cv-pr
 - Preserve user-supplied quote provenance and scope.
 - Reject non-finite/negative numeric inputs and future/invalid quote dates.
 - Keep technical feasibility and economic desirability as separate gates.
-- Delegate exact provider execution and product truth upstream.
+- Use upstream guidance only for current product truth and the action brief; never invoke provider actions.
 
 </safety>
 
@@ -90,6 +91,6 @@ Follow `../../resources/ledger-protocol.md`. Record the sourced economics result
 - Comparable managed scope/quote is absent → return `insufficient-data`, not a winner.
 - Capacity is unbenchmarked and the decision is binding → require measurement or state the unresolved risk.
 - Price source/date is missing → exclude that figure from the verdict.
-- Paid action lacks current-turn consent → stop before execution.
+- Provider action is required → emit a sourced action brief and stop; conversational consent does not authorize Sentinel execution.
 
 \</stop_rules>

@@ -17,9 +17,7 @@ PLUGIN = "sentinel"
 EXPECTED_SKILLS = 13
 
 
-def run_command(
-    command: list[str], config_dir: Path
-) -> subprocess.CompletedProcess[str]:
+def run_command(command: list[str], config_dir: Path) -> subprocess.CompletedProcess[str]:
     """Run one Claude CLI command isolated from the user's configured data."""
     environment = {**os.environ, "CLAUDE_CONFIG_DIR": str(config_dir)}
     return subprocess.run(
@@ -50,11 +48,7 @@ def claude_marketplace() -> dict[str, Any]:
 def installed_path(config_dir: Path) -> Path | None:
     """Return the one installed Sentinel version under the disposable cache."""
     base = config_dir / "plugins" / "cache" / MARKETPLACE / PLUGIN
-    versions = (
-        sorted(path for path in base.iterdir() if path.is_dir())
-        if base.is_dir()
-        else []
-    )
+    versions = sorted(path for path in base.iterdir() if path.is_dir()) if base.is_dir() else []
     return versions[0] if len(versions) == 1 else None
 
 
@@ -68,11 +62,7 @@ def verify_install(path: Path | None) -> dict[str, Any]:
     except (OSError, json.JSONDecodeError) as exc:
         return {"ok": False, "issues": [f"installed manifest is unreadable: {exc}"]}
     roster = (
-        sorted(
-            child.name
-            for child in (path / "claude-skills").iterdir()
-            if (child / "SKILL.md").is_file()
-        )
+        sorted(child.name for child in (path / "claude-skills").iterdir() if (child / "SKILL.md").is_file())
         if (path / "claude-skills").is_dir()
         else []
     )
@@ -118,12 +108,8 @@ def probe(candidate: Path) -> dict[str, Any]:
                 "status": "marketplace-add-failed",
                 "detail": add_marketplace.stderr.strip(),
             }
-        available = run_command(
-            ["claude", "plugin", "list", "--available", "--json"], config_dir
-        )
-        if available.returncode or f'"name":"{PLUGIN}"' not in available.stdout.replace(
-            " ", ""
-        ):
+        available = run_command(["claude", "plugin", "list", "--available", "--json"], config_dir)
+        if available.returncode or f'"name":"{PLUGIN}"' not in available.stdout.replace(" ", ""):
             return {
                 "probe": "claude",
                 "status": "marketplace-list-failed",
@@ -161,9 +147,7 @@ def probe(candidate: Path) -> dict[str, Any]:
         )
         return {
             "probe": "claude",
-            "status": "ok"
-            if verification["ok"] and not remove.returncode
-            else "verification-failed",
+            "status": "ok" if verification["ok"] and not remove.returncode else "verification-failed",
             "verification": verification,
             "remove_returncode": remove.returncode,
             "remove_detail": remove.stderr.strip(),

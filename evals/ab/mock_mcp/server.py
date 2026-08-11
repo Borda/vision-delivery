@@ -26,9 +26,7 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
-FIXTURES = json.loads(
-    (Path(__file__).parent / "fixtures" / "live_traces.json").read_text()
-)
+FIXTURES = json.loads((Path(__file__).parent / "fixtures" / "live_traces.json").read_text())
 LOG_DIR = Path(os.environ.get("MOCK_AB_LOG", "/tmp/mock-ab"))
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 TOOLS_LOG = LOG_DIR / "tools.jsonl"
@@ -105,9 +103,7 @@ def projects_list(limit: int = 50, offset: int = 0) -> dict:
 
 
 @mcp.tool()
-def projects_create(
-    name: str, project_type: str = "object-detection", annotation: str = "objects"
-) -> dict:
+def projects_create(name: str, project_type: str = "object-detection", annotation: str = "objects") -> dict:
     """Create a project in the workspace."""
     _log("projects_create", {"name": name, "type": project_type})
     return {
@@ -118,18 +114,14 @@ def projects_create(
 
 
 @mcp.tool()
-def image_upload(
-    project_id: str, path: str = "", url: str = "", split: str = "train"
-) -> dict:
+def image_upload(project_id: str, path: str = "", url: str = "", split: str = "train") -> dict:
     """Upload an image to a project (mock: accepts and acks)."""
     _log("image_upload", {"project_id": project_id, "split": split})
     return {"success": True, "id": f"img-{STATE['call_index']}"}
 
 
 @mcp.tool()
-def versions_generate(
-    project_id: str, preprocessing: dict | None = None, augmentation: dict | None = None
-) -> dict:
+def versions_generate(project_id: str, preprocessing: dict | None = None, augmentation: dict | None = None) -> dict:
     """Generate a new dataset version (mock: instant; augmentation unlocks the improved model)."""
     STATE["versions"] += 1
     if augmentation:
@@ -160,11 +152,7 @@ def trainings_create(
     """Start a training run (PAID: 5 simulated credits)."""
     STATE["training_count"] += 1
     job = f"mock-job/{version_number}/training/{STATE['training_count']}"
-    map50 = (
-        IMPROVED_MAP50
-        if (STATE["training_count"] > 1 and STATE["augmented"])
-        else FIRST_MAP50
-    )
+    map50 = IMPROVED_MAP50 if (STATE["training_count"] > 1 and STATE["augmented"]) else FIRST_MAP50
     STATE["trainings"][job] = {
         "polls": 0,
         "map50": map50,
@@ -178,9 +166,7 @@ def trainings_create(
 
 
 @mcp.tool()
-def trainings_get(
-    project_id: str, version_number: int, training_id: str | None = None
-) -> dict:
+def trainings_get(project_id: str, version_number: int, training_id: str | None = None) -> dict:
     """Get a training's status and metrics (mock: pending → running → finished over 3 polls)."""
     _log("trainings_get", {"project_id": project_id, "training_id": training_id})
     jobs = STATE["trainings"]
@@ -320,9 +306,7 @@ def devices_list() -> dict:
 
 
 @mcp.tool()
-def annotation_jobs_create(
-    project_id: str, batch_name: str = "", images: list | None = None
-) -> dict:
+def annotation_jobs_create(project_id: str, batch_name: str = "", images: list | None = None) -> dict:
     """Create an annotation job (mock: instant ack; counts toward improve-loop)."""
     STATE["augmented"] = True  # hard-negative batch also unlocks the improved model
     _log("annotation_jobs_create", {"project_id": project_id, "batch_name": batch_name})

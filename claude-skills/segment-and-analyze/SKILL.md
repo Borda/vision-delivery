@@ -13,7 +13,7 @@ Produce masks and derived measurements that clear an independently labeled accep
 
 <methodology>
 
-**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific search, dataset, training, inference, workflow, or deployment action. Delegate exact execution to the installed official Roboflow skill or current MCP resource. Sentinel retains the measurement contract and evidence.
+**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific search, dataset, training, inference, workflow, or deployment action. Use installed official Roboflow skills or current MCP resources only for read-only discovery and sourced action-brief inputs; never invoke provider execution. Sentinel retains the measurement contract and evidence.
 
 Follow `../../resources/fde-methodology.md`; apply these segmentation-specific requirements.
 
@@ -58,7 +58,7 @@ Evaluate on the same blinded gold set. Report overlap and boundary metrics with 
 
 ## 4. Diagnose a failed gate
 
-Separate missing objects, merged instances, split instances, boundary bias, holes, small-component noise, calibration error, and label disagreement. Check whether the image contains enough resolution for the requested physical tolerance. Test the cheapest credible lever first: capture/calibration improvement, prompt/input policy, post-processing, label correction, relevant transfer, or targeted data. Delegate current platform actions upstream and remeasure without changing the frozen gate.
+Separate missing objects, merged instances, split instances, boundary bias, holes, small-component noise, calibration error, and label disagreement. Check whether the image contains enough resolution for the requested physical tolerance. Test the cheapest credible lever first: capture/calibration improvement, prompt/input policy, post-processing, label correction, relevant transfer, or targeted data. Use read-only upstream facts to prepare any required provider action brief, stop before execution, and remeasure externally supplied results without changing the frozen gate.
 
 ## 5. Decide and deliver
 
@@ -71,8 +71,8 @@ Return `go`, `revise`, or `stop`, including units, uncertainty, sample counts, f
 - Never present pixel output as millimeters or area without verified calibration.
 - Candidate/pseudo-label masks cannot serve as the gold masks.
 - Medical or safety-critical outputs require qualified human ownership beyond this technical gate.
-- Obtain explicit consent for data movement and paid actions.
-- Delegate exact provider execution; do not guess current tool/model details.
+- Emit a sourced action brief and stop before data movement or paid provider actions; Sentinel never invokes them.
+- Use upstream guidance only to source the action brief; never invoke provider actions.
 
 </safety>
 
@@ -87,7 +87,7 @@ Follow `../../resources/ledger-protocol.md`. Record acceptance, evaluation, cali
 - No independent masks/reference measurements → do not claim overlap or physical accuracy.
 - Requested tolerance exceeds capture resolution/calibration capability → state the acquisition blocker.
 - Only boxes/counts are needed → route to `detect-and-analyze`.
-- Paid/data-moving action lacks explicit current-turn consent → stop.
+- Provider action is required → emit a sourced action brief and stop; conversational consent does not authorize Sentinel execution.
 - No applicable live/offline smoke → artifact remains a `scaffold`.
 
 \</stop_rules>

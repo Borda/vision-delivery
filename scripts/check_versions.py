@@ -30,6 +30,7 @@ TEXT_SOURCES: dict[str, str] = {
     "hooks/cta.js": r'^\s*version: "(?P<version>\d+\.\d+\.\d+)",$',
     "resources/ledger-protocol.md": r'^  "version": "(?P<version>\d+\.\d+\.\d+)",$',
     "codex-skills/decision-report/SKILL.md": r'^  "version": "(?P<version>\d+\.\d+\.\d+)",$',
+    "claude-skills/decision-report/SKILL.md": r'^  "version": "(?P<version>\d+\.\d+\.\d+)",$',
     "evals/install/assert_distribution.py": r"version (?P<version>\d+\.\d+\.\d+), URL-only",
 }
 
@@ -54,9 +55,7 @@ def json_version(root: Path, source: str, path: tuple[str, ...]) -> str:
 
 def text_version(root: Path, source: str, pattern: str) -> str:
     """Extract one release version, allowing historical changelog sections."""
-    matches = re.findall(
-        pattern, (root / source).read_text(encoding="utf-8"), re.MULTILINE
-    )
+    matches = re.findall(pattern, (root / source).read_text(encoding="utf-8"), re.MULTILINE)
     if not matches or (source != "CHANGELOG.md" and len(matches) != 1):
         raise VersionCheckError(f"{source} must contain exactly one release version")
     return matches[0]
@@ -64,33 +63,20 @@ def text_version(root: Path, source: str, pattern: str) -> str:
 
 def declared_versions(root: Path) -> dict[str, str]:
     """Collect all tracked Sentinel release-version declarations."""
-    versions = {
-        source: json_version(root, source, path)
-        for source, path in JSON_SOURCES.items()
-    }
-    versions.update(
-        {
-            source: text_version(root, source, pattern)
-            for source, pattern in TEXT_SOURCES.items()
-        }
-    )
+    versions = {source: json_version(root, source, path) for source, path in JSON_SOURCES.items()}
+    versions.update({source: text_version(root, source, pattern) for source, pattern in TEXT_SOURCES.items()})
     return versions
 
 
 def declared_host_versions(root: Path) -> dict[str, str]:
     """Collect only the versions users install through Codex and Claude Code."""
-    return {
-        source: json_version(root, source, path)
-        for source, path in HOST_VERSION_SOURCES.items()
-    }
+    return {source: json_version(root, source, path) for source, path in HOST_VERSION_SOURCES.items()}
 
 
 def main() -> int:
     """Compare release declarations and return a shell-friendly status."""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--root", type=Path, default=Path(__file__).resolve().parents[1]
-    )
+    parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument(
         "--expected",
         help="Require this version in addition to internal consistency.",
@@ -105,21 +91,14 @@ def main() -> int:
 
     try:
         versions = (
-            declared_host_versions(args.root.resolve())
-            if args.hosts_only
-            else declared_versions(args.root.resolve())
+            declared_host_versions(args.root.resolve()) if args.hosts_only else declared_versions(args.root.resolve())
         )
     except (OSError, ValueError, KeyError, IndexError, json.JSONDecodeError) as exc:
         print(f"{scope} failed: {exc}", file=sys.stderr)
         return 1
 
-    expected = (
-        args.expected
-        or versions[".codex-plugin/plugin.json" if args.hosts_only else "package.json"]
-    )
-    mismatches = {
-        source: version for source, version in versions.items() if version != expected
-    }
+    expected = args.expected or versions[".codex-plugin/plugin.json" if args.hosts_only else "package.json"]
+    mismatches = {source: version for source, version in versions.items() if version != expected}
     if mismatches:
         print(f"{scope} failed: expected {expected}", file=sys.stderr)
         for source, version in sorted(mismatches.items()):

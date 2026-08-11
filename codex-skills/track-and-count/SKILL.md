@@ -12,7 +12,7 @@ Produce identity-linked video events—paths, dwell, crossings, or counts—that
 
 <methodology>
 
-**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific search, dataset, training, inference, workflow, device, or deployment action. Delegate exact execution to the installed official Roboflow skill or current MCP resource. Sentinel owns event semantics and measured delivery evidence.
+**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific search, dataset, training, inference, workflow, device, or deployment action. Use installed official Roboflow skills or current MCP resources only for read-only discovery and sourced action-brief inputs; never invoke provider execution. Sentinel owns event semantics and measured delivery evidence.
 
 Follow `../../resources/fde-methodology.md`; apply these video-specific rules.
 
@@ -59,7 +59,7 @@ Frame-level detections or visual review alone cannot establish event accuracy.
 
 ## 4. Diagnose a failed gate
 
-Separate detector misses/duplicates from association breaks, timestamp/drop issues, and event-rule mistakes. Slice by density, occlusion, speed, direction, lighting, source, and camera motion. Test the cheapest falsifiable lever at the responsible stage; do not retrain the detector when the failure is purely temporal logic. Delegate current platform changes upstream, then replay the same clips.
+Separate detector misses/duplicates from association breaks, timestamp/drop issues, and event-rule mistakes. Slice by density, occlusion, speed, direction, lighting, source, and camera motion. Test the cheapest falsifiable lever at the responsible stage; do not retrain the detector when the failure is purely temporal logic. Use read-only upstream facts to prepare any required provider action brief, stop before execution, then replay externally supplied results on the same clips.
 
 ## 5. Decide and deliver
 
@@ -71,9 +71,9 @@ Return `go`, `revise`, or `stop` with event counts, failed clips/slices, replay 
 
 - Do not infer personal identity or intent from a track ID.
 - State retention/privacy boundaries for video and derived trajectories.
-- Obtain explicit consent before data movement or paid work.
+- Emit a sourced action brief and stop before data movement or paid provider work; Sentinel never invokes either.
 - Keep detector, association, and event-rule evidence separate.
-- Delegate exact provider execution; never guess current workflow/device details.
+- Use upstream guidance only to source the action brief; never invoke provider actions.
 
 </safety>
 
@@ -88,7 +88,7 @@ Follow `../../resources/ledger-protocol.md`. Record acceptance, replay evaluatio
 - Event semantics or line/zone geometry are undefined → freeze them first.
 - No independently annotated representative clips → do not claim event accuracy.
 - Required events occur between captured frames or outside view → state the acquisition blocker.
-- Paid/data-moving action lacks current-turn consent → stop.
+- Provider action is required → emit a sourced action brief and stop; conversational consent does not authorize Sentinel execution.
 - No replay plus applicable live/offline smoke → artifact remains a `scaffold`.
 
 \</stop_rules>

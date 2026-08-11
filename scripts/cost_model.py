@@ -32,6 +32,7 @@ Examples:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import sys
@@ -39,6 +40,7 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
+requests: Any | None
 try:
     import requests
 except ImportError:  # pragma: no cover - requests optional
@@ -344,9 +346,7 @@ def compute(args: argparse.Namespace, snapshot: dict[str, Any]) -> dict[str, Any
     n_instances = instances_needed(args.streams, args.model_size, args.fps)
     gpu_rate = _resolve_gpu_rate(args, gpu_src)
     engineer_hourly = (
-        float(args.override_engineer)
-        if args.override_engineer is not None
-        else float(eng_src["hourly_usd"])
+        float(args.override_engineer) if args.override_engineer is not None else float(eng_src["hourly_usd"])
     )
 
     # 1. GPU cloud cost.
@@ -371,9 +371,7 @@ def compute(args: argparse.Namespace, snapshot: dict[str, Any]) -> dict[str, Any
     total_run_rate_mo = round(gpu_cost_mo + ops_mo + drift_mo, 2)
 
     # 5. Scaling cliff note (reported, not summed).
-    cliff, cliff_incremental = _scaling_cliff(
-        args.streams, args.model_size, gpu_rate, hours, args.fps
-    )
+    cliff, cliff_incremental = _scaling_cliff(args.streams, args.model_size, gpu_rate, hours, args.fps)
 
     # Managed side. A comparable figure exists ONLY when the user supplies one.
     if args.managed_usd_mo is not None:
@@ -406,22 +404,14 @@ def compute(args: argparse.Namespace, snapshot: dict[str, Any]) -> dict[str, Any
     elif managed_mo > total_run_rate_mo:
         recommendation = "diy"
         monthly_saving = round(managed_mo - total_run_rate_mo, 2)
-        crossover_months = (
-            round(setup_one_time / monthly_saving, 1) if monthly_saving > 0 else None
-        )
+        crossover_months = round(setup_one_time / monthly_saving, 1) if monthly_saving > 0 else None
         crossover_month_int = math.ceil(crossover_months) if crossover_months else 1
-        reason = (
-            f"DIY saves ~${monthly_saving:,.0f}/mo from month "
-            f"{max(crossover_month_int, 1)} onward"
-        )
+        reason = f"DIY saves ~${monthly_saving:,.0f}/mo from month {max(crossover_month_int, 1)} onward"
     else:
         recommendation = "managed"
         crossover_months = None
         monthly_delta = round(total_run_rate_mo - managed_mo, 2)
-        reason = (
-            f"Managed is ~${monthly_delta:,.0f}/mo cheaper and avoids "
-            f"${setup_one_time:,.0f} one-time setup"
-        )
+        reason = f"Managed is ~${monthly_delta:,.0f}/mo cheaper and avoids ${setup_one_time:,.0f} one-time setup"
 
     return {
         "as_of": as_of,
@@ -445,9 +435,7 @@ def compute(args: argparse.Namespace, snapshot: dict[str, Any]) -> dict[str, Any
         },
         "managed": {
             "total_mo": managed_mo,
-            "reference_floor_usd_mo": (
-                MANAGED_FLOOR_USD_MO if managed_mo is None else None
-            ),
+            "reference_floor_usd_mo": (MANAGED_FLOOR_USD_MO if managed_mo is None else None),
             "source": managed_source,
             "caveat": managed_caveat,
         },
@@ -473,7 +461,12 @@ def compute(args: argparse.Namespace, snapshot: dict[str, Any]) -> dict[str, Any
 def render_json(result: dict[str, Any]) -> str:
     """Render the machine-readable JSON payload."""
     diy = result["diy"]
+    proof = result.get(
+        "proof",
+        {"status": "unbound", "acceptance_id": "", "acceptance_sha256": ""},
+    )
     payload = {
+        "proof": proof,
         "recommendation": result["recommendation"],
         "reason": result["reason"],
         "diy": {
@@ -489,9 +482,7 @@ def render_json(result: dict[str, Any]) -> str:
             "reference_floor_usd_mo": result["managed"]["reference_floor_usd_mo"],
             "source": result["managed"]["source"],
             "caveat": (
-                None
-                if result["managed"]["source"] == "user-supplied managed quote"
-                else result["managed"]["caveat"]
+                None if result["managed"]["source"] == "user-supplied managed quote" else result["managed"]["caveat"]
             ),
         },
         "crossover_months": result["crossover_months"],
@@ -502,19 +493,25 @@ def render_json(result: dict[str, Any]) -> str:
     return json.dumps(payload, indent=2, allow_nan=False)
 
 
-def render_text(
-    result: dict[str, Any], args: argparse.Namespace, stale_days: int | None
-) -> str:
+def render_text(result: dict[str, Any], args: argparse.Namespace, stale_days: int | None) -> str:
     """Render the human-readable report with per-line source provenance."""
-    lines = _render_diy_section(result, args, stale_days)
+    proof = result.get(
+        "proof",
+        {"status": "unbound", "acceptance_id": "", "acceptance_sha256": ""},
+    )
+    proof_line = (
+        f"Proof binding: acceptance_id={proof['acceptance_id']}; acceptance_sha256={proof['acceptance_sha256']}"
+        if proof["status"] == "bound"
+        else "Proof binding: unbound assumptions only; not decision-grade evidence"
+    )
+    lines = [proof_line, ""]
+    lines.extend(_render_diy_section(result, args, stale_days))
     lines.extend(_render_managed_section(result, args))
     lines.extend(_render_decision_section(result, args))
     return "\n".join(lines)
 
 
-def _render_diy_section(
-    result: dict[str, Any], args: argparse.Namespace, stale_days: int | None
-) -> list[str]:
+def _render_diy_section(result: dict[str, Any], args: argparse.Namespace, stale_days: int | None) -> list[str]:
     """Render the header and self-host cost lines.
 
     Args:
@@ -533,18 +530,12 @@ def _render_diy_section(
     staleness = ""
     if stale_days is not None and stale_days > SNAPSHOT_STALE_DAYS:
         staleness = f" — WARNING: snapshot is {stale_days} days old, re-confirm prices"
-    lines.append(
-        f"Back-of-envelope (as of {as_of} — re-confirm if >30 days old){staleness}:"
-    )
+    lines.append(f"Back-of-envelope (as of {as_of} — re-confirm if >30 days old){staleness}:")
     lines.append("")
-    lines.append(
-        f"Self-host ({args.streams} streams, {args.fps} FPS each, {args.uptime}):"
-    )
+    lines.append(f"Self-host ({args.streams} streams, {args.fps} FPS each, {args.uptime}):")
 
     gpu_label = (
-        "existing hardware, $0"
-        if diy["gpu_note"]
-        else f"{diy['n_instances']}x g4dn.xlarge, {diy['pricing_mode']}"
+        "existing hardware, $0" if diy["gpu_note"] else f"{diy['n_instances']}x g4dn.xlarge, {diy['pricing_mode']}"
     )
     lines.append(
         f"  Cloud GPU ({gpu_label}):".ljust(42)
@@ -567,16 +558,13 @@ def _render_diy_section(
         + f"[source: estimate, as_of: {as_of}]"
     )
     lines.append(
-        "  Total run-rate:".ljust(42)
-        + f"~${diy['total_run_rate_mo']:,.0f}/mo + ${diy['setup_one_time']:,.0f} one-time"
+        "  Total run-rate:".ljust(42) + f"~${diy['total_run_rate_mo']:,.0f}/mo + ${diy['setup_one_time']:,.0f} one-time"
     )
     lines.append("")
     return lines
 
 
-def _render_managed_section(
-    result: dict[str, Any], args: argparse.Namespace
-) -> list[str]:
+def _render_managed_section(result: dict[str, Any], args: argparse.Namespace) -> list[str]:
     """Render the managed-offer comparison lines.
 
     Args:
@@ -604,20 +592,15 @@ def _render_managed_section(
             + f"~${managed['total_mo']:,.0f}/mo  "
             + f"[source: {managed_src_label}, as_of: {src['managed_as_of']}]"
         )
-        lines.append(
-            "  Note: No public per-stream price. Figure above is a user-provided enterprise quote."
-        )
+        lines.append("  Note: No public per-stream price. Figure above is a user-provided enterprise quote.")
     lines.append(
-        "  Public info: https://roboflow.com/pricing — Core plan $79/mo (credits), "
-        "dedicated GPU = Enterprise."
+        "  Public info: https://roboflow.com/pricing — Core plan $79/mo (credits), dedicated GPU = Enterprise."
     )
     lines.append("")
     return lines
 
 
-def _render_decision_section(
-    result: dict[str, Any], args: argparse.Namespace
-) -> list[str]:
+def _render_decision_section(result: dict[str, Any], args: argparse.Namespace) -> list[str]:
     """Render crossover, recommendation, scaling cliff, and source lines.
 
     Args:
@@ -656,9 +639,7 @@ def _render_decision_section(
     else:
         rec_label = "DIY" if result["recommendation"] == "diy" else "Managed"
         alt = "Managed" if rec_label == "DIY" else "DIY"
-        lines.append(
-            f'Recommendation: {rec_label}  <- (or "{alt}" if the other is cheaper)'
-        )
+        lines.append(f'Recommendation: {rec_label}  <- (or "{alt}" if the other is cheaper)')
     lines.append("")
     lines.append(f"Scaling cliff: {result['scaling_cliff']}")
     lines.append(
@@ -670,9 +651,7 @@ def _render_decision_section(
     lines.append("Sources:")
     lines.append(f"  GPU rate:  {src['gpu_source_url']} (as_of: {src['gpu_as_of']})")
     lines.append(f"  Managed:   {managed_src_label}")
-    lines.append(
-        f"  Engineer:  {src['engineer_source_url']} (as_of: {src['engineer_as_of']})"
-    )
+    lines.append(f"  Engineer:  {src['engineer_source_url']} (as_of: {src['engineer_as_of']})")
     lines.append("")
     lines.append(
         "All inputs editable — pass a dated managed quote, --override-gpu-spot, "
@@ -689,9 +668,7 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         description="DIY self-hosting vs Roboflow managed cost crossover estimator.",
     )
-    p.add_argument(
-        "--streams", type=int, required=True, help="Number of camera streams."
-    )
+    p.add_argument("--streams", type=int, required=True, help="Number of camera streams.")
     p.add_argument("--fps", type=int, default=10, help="Frames per second per stream.")
     p.add_argument(
         "--model-size",
@@ -751,6 +728,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Override engineer hourly rate.",
     )
+    p.add_argument(
+        "--acceptance",
+        type=Path,
+        help="Frozen acceptance JSON to bind into machine and text output.",
+    )
     p.add_argument("--json", action="store_true", help="Emit machine-readable JSON.")
     return p
 
@@ -775,6 +757,67 @@ def _validate(args: argparse.Namespace) -> None:
     _validate_managed_quote(args)
 
 
+def _load_acceptance_binding(path: Path | None) -> dict[str, str]:
+    """Return a minimal immutable acceptance binding for economic output."""
+    if path is None:
+        return {
+            "status": "unbound",
+            "acceptance_id": "",
+            "acceptance_sha256": "",
+        }
+    if path.is_symlink() or not path.is_file():
+        raise CostModelError("--acceptance must be a regular non-symlink JSON file")
+    try:
+        raw = path.read_bytes()
+        data = json.loads(raw)
+    except (OSError, json.JSONDecodeError) as exc:
+        raise CostModelError(f"cannot read --acceptance: {exc}") from exc
+    if not isinstance(data, dict) or data.get("schema_version") != "1":
+        raise CostModelError("--acceptance must use Sentinel acceptance schema 1")
+    required = {
+        "acceptance_id",
+        "frozen_at",
+        "metric",
+        "comparator",
+        "threshold",
+        "unit",
+        "dataset_sha256",
+        "model_or_pipeline",
+        "confirmed_by",
+    }
+    if required - data.keys():
+        raise CostModelError("--acceptance is missing frozen acceptance fields")
+    acceptance_id = data.get("acceptance_id")
+    if not isinstance(acceptance_id, str) or not acceptance_id.strip():
+        raise CostModelError("--acceptance must contain acceptance_id")
+    try:
+        frozen_at = datetime.fromisoformat(str(data["frozen_at"]).replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise CostModelError("--acceptance frozen_at must be ISO-8601") from exc
+    if frozen_at.tzinfo is None:
+        raise CostModelError("--acceptance frozen_at must include a timezone")
+    threshold = data["threshold"]
+    if isinstance(threshold, bool) or not isinstance(threshold, int | float) or not math.isfinite(threshold):
+        raise CostModelError("--acceptance threshold must be finite numeric")
+    if data["comparator"] not in {"gte", "lte"}:
+        raise CostModelError("--acceptance comparator must be gte or lte")
+    dataset_digest = data["dataset_sha256"]
+    if (
+        not isinstance(dataset_digest, str)
+        or len(dataset_digest) != 64
+        or any(character not in "0123456789abcdef" for character in dataset_digest)
+    ):
+        raise CostModelError("--acceptance dataset_sha256 must be lowercase SHA-256")
+    for field in ("metric", "unit", "model_or_pipeline", "confirmed_by"):
+        if not isinstance(data[field], str) or not data[field].strip():
+            raise CostModelError(f"--acceptance {field} must be non-empty text")
+    return {
+        "status": "bound",
+        "acceptance_id": acceptance_id,
+        "acceptance_sha256": hashlib.sha256(raw).hexdigest(),
+    }
+
+
 def _validate_managed_quote(args: argparse.Namespace) -> None:
     """Require a dated, non-future managed quote when one is supplied.
 
@@ -787,16 +830,12 @@ def _validate_managed_quote(args: argparse.Namespace) -> None:
     if args.managed_usd_mo is None and args.managed_quote_as_of is not None:
         raise CostModelError("--managed-quote-as-of requires --managed-usd-mo")
     if args.managed_usd_mo is not None and args.managed_quote_as_of is None:
-        raise CostModelError(
-            "--managed-usd-mo requires --managed-quote-as-of YYYY-MM-DD"
-        )
+        raise CostModelError("--managed-usd-mo requires --managed-quote-as-of YYYY-MM-DD")
     if args.managed_quote_as_of is not None:
         try:
             quote_date = datetime.strptime(args.managed_quote_as_of, "%Y-%m-%d").date()
         except ValueError as exc:
-            raise CostModelError(
-                "--managed-quote-as-of must be an ISO date (YYYY-MM-DD)"
-            ) from exc
+            raise CostModelError("--managed-quote-as-of must be an ISO date (YYYY-MM-DD)") from exc
         if quote_date > date.today():
             raise CostModelError("--managed-quote-as-of cannot be in the future")
 
@@ -855,6 +894,7 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         result = compute(args, snapshot)
+        result["proof"] = _load_acceptance_binding(args.acceptance)
         _validate_finite_result(result)
     except (CostModelError, OverflowError) as exc:
         print(f"error: {exc}", file=sys.stderr)

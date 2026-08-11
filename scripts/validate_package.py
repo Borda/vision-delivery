@@ -26,6 +26,13 @@ REQUIRED_PATHS = (
     "assets/icon.png",
     "assets/logo.png",
     "resources/scripts/sentinel_doctor.py",
+    "resources/scripts/artifact_smoke.py",
+    "resources/scripts/freeze_acceptance.py",
+    "resources/scripts/freeze_delivery_check.py",
+    "resources/scripts/proof_chain.py",
+    "resources/scripts/record_delivery_check.py",
+    "resources/scripts/validate_delivery_handoff.py",
+    "resources/scripts/validate_proof_chain.py",
     "scripts/cost_model.py",
     "scripts/ledger_append.py",
     "shared/capability-contract.md",
@@ -62,9 +69,7 @@ def skill_roster(package: Path, root_name: str) -> list[str]:
     root = package / root_name
     if not root.is_dir():
         return []
-    return sorted(
-        child.name for child in root.iterdir() if (child / "SKILL.md").is_file()
-    )
+    return sorted(child.name for child in root.iterdir() if (child / "SKILL.md").is_file())
 
 
 def inventory_findings(package: Path, manifest: dict[str, Any]) -> list[str]:
@@ -94,9 +99,7 @@ def inventory_findings(package: Path, manifest: dict[str, Any]) -> list[str]:
         actual_hash = hashlib.sha256(path.read_bytes()).hexdigest()
         if expected_hash != actual_hash:
             findings.append(f"payload hash mismatch: {relative}")
-        if os.name == "posix" and bool(record.get("executable")) != bool(
-            path.stat().st_mode & 0o111
-        ):
+        if os.name == "posix" and bool(record.get("executable")) != bool(path.stat().st_mode & 0o111):
             findings.append(f"payload executable mode mismatch: {relative}")
 
     actual = {
@@ -168,9 +171,7 @@ def component_findings(package: Path, manifest: dict[str, Any]) -> list[str]:
         findings.append("Codex manifest does not point to ./codex-skills/")
     if claude.get("skills") != "./claude-skills/":
         findings.append("Claude manifest does not point to ./claude-skills/")
-    if codex.get("name") != claude.get("name") or codex.get("version") != claude.get(
-        "version"
-    ):
+    if codex.get("name") != claude.get("name") or codex.get("version") != claude.get("version"):
         findings.append("host manifests have different identity or version")
 
     codex_roster = skill_roster(package, "codex-skills")
@@ -178,17 +179,12 @@ def component_findings(package: Path, manifest: dict[str, Any]) -> list[str]:
     declared_skills = manifest.get("skills", {})
     if not isinstance(declared_skills, dict):
         findings.append("package manifest skills must be an object")
-    elif (
-        declared_skills.get("codex") != codex_roster
-        or declared_skills.get("claude") != claude_roster
-    ):
+    elif declared_skills.get("codex") != codex_roster or declared_skills.get("claude") != claude_roster:
         findings.append("package manifest skill roster does not match package contents")
     if codex_roster != claude_roster:
         findings.append("Codex and Claude skill rosters differ")
     if len(codex_roster) != EXPECTED_SKILL_COUNT:
-        findings.append(
-            f"expected {EXPECTED_SKILL_COUNT} skills, found {len(codex_roster)}"
-        )
+        findings.append(f"expected {EXPECTED_SKILL_COUNT} skills, found {len(codex_roster)}")
 
     auth_metadata = package / "codex-skills/auth-setup/agents/openai.yaml"
     setup_metadata = package / "codex-skills/check-sentinel-setup/agents/openai.yaml"
@@ -221,9 +217,7 @@ def validate_package(package: Path) -> list[str]:
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     """Parse package validator command-line options."""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--package", required=True, type=Path, help="candidate directory"
-    )
+    parser.add_argument("--package", required=True, type=Path, help="candidate directory")
     return parser.parse_args(argv)
 
 

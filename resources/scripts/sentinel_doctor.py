@@ -66,53 +66,34 @@ def inspect_package(root: Path) -> dict[str, Any]:
             errors.append(f"{host} manifest skills path is not {expected_skills}")
         # Hosts serialize the same URL-only server according to their native contract.
         if manifest.get("mcpServers") != EXPECTED_MCP_BY_HOST[host]:
-            errors.append(
-                f"{host} manifest MCP configuration is not the expected "
-                "URL-only Roboflow configuration"
-            )
+            errors.append(f"{host} manifest MCP configuration is not the expected URL-only Roboflow configuration")
 
     codex_version = str(manifests.get("codex", {}).get("version", ""))
     claude_version = str(manifests.get("claude", {}).get("version", ""))
     version = claude_version or codex_release_version(codex_version) or None
-    if (
-        not codex_version
-        or not claude_version
-        or codex_release_version(codex_version) != claude_version
-    ):
+    if not codex_version or not claude_version or codex_release_version(codex_version) != claude_version:
         errors.append("Codex and Claude release versions are missing or different")
 
     try:
         mcp = read_object(root / ".mcp.json")
         servers = mcp.get("mcpServers")
         if not isinstance(servers, dict) or servers.get("roboflow") != EXPECTED_MCP:
-            errors.append(
-                ".mcp.json is not the expected URL-only Roboflow configuration"
-            )
+            errors.append(".mcp.json is not the expected URL-only Roboflow configuration")
     except (OSError, json.JSONDecodeError, ValueError) as exc:
         errors.append(f".mcp.json: {exc}")
 
     skills_by_host = {
-        host: sorted(
-            path.parent.name
-            for path in (root / relative.removeprefix("./").rstrip("/")).glob(
-                "*/SKILL.md"
-            )
-        )
+        host: sorted(path.parent.name for path in (root / relative.removeprefix("./").rstrip("/")).glob("*/SKILL.md"))
         for host, relative in EXPECTED_SKILLS_BY_HOST.items()
     }
     codex_skills = skills_by_host["codex"]
     claude_skills = skills_by_host["claude"]
     if codex_skills != claude_skills:
         errors.append("Codex and Claude skill rosters differ")
-    if (
-        "solve-cv-task" not in codex_skills
-        or "check-sentinel-setup" not in codex_skills
-    ):
+    if "solve-cv-task" not in codex_skills or "check-sentinel-setup" not in codex_skills:
         errors.append("required front-door or setup-check skill is missing")
 
-    missing_resources = [
-        name for name in REQUIRED_RESOURCES if not (root / "resources" / name).is_file()
-    ]
+    missing_resources = [name for name in REQUIRED_RESOURCES if not (root / "resources" / name).is_file()]
     if missing_resources:
         errors.append(f"missing resources: {', '.join(missing_resources)}")
 

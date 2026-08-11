@@ -13,26 +13,32 @@ Every JSON Lines record contains:
   "skill": "detect-and-analyze",
   "action": "baseline_measured",
   "entity_id": "workspace/project/version",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "event_id": "manual:factory-counter:baseline_measured:1",
   "status": "success",
   "source": "skill",
+  "acceptance_id": "counter-v1",
+  "acceptance_sha256": "<lowercase sha256>",
   "notes": "recall=0.84; acceptance_id=counter-v1"
 }
 ```
 
-| Field       | Contract                                                                   |
-| ----------- | -------------------------------------------------------------------------- |
-| `ts`        | ISO 8601 UTC                                                               |
-| `session`   | Stable session slug                                                        |
-| `skill`     | Owning skill or `hook`                                                     |
-| `action`    | Canonical lowercase action                                                 |
-| `entity_id` | Provider entity path when known; empty for local-only actions              |
-| `version`   | Installed plugin version                                                   |
-| `event_id`  | Idempotency key; identical real actions must reuse the same value          |
-| `status`    | `attempted`, `success`, `failed`, `timeout`, `cancelled`, or `unknown`     |
-| `source`    | `hook`, `skill`, or `import`                                               |
-| `notes`     | Non-secret evidence; include acceptance ID and measured values when useful |
+| Field               | Contract                                                                   |
+| ------------------- | -------------------------------------------------------------------------- |
+| `ts`                | ISO 8601 UTC                                                               |
+| `session`           | Stable session slug                                                        |
+| `skill`             | Owning skill or `hook`                                                     |
+| `action`            | Canonical lowercase action                                                 |
+| `entity_id`         | Provider entity path when known; empty for local-only actions              |
+| `version`           | Installed plugin version                                                   |
+| `event_id`          | Idempotency key; identical real actions must reuse the same value          |
+| `status`            | `attempted`, `success`, `failed`, `timeout`, `cancelled`, or `unknown`     |
+| `source`            | `hook`, `skill`, or `import`                                               |
+| `acceptance_id`     | Frozen acceptance revision for proof-chain local actions                   |
+| `acceptance_sha256` | Digest binding for proof-chain local actions                               |
+| `artifact_sha256`   | Artifact-tree digest for artifact/delivery actions                         |
+| `report_sha256`     | Decision-report file digest for `decision_report_emitted`                  |
+| `notes`             | Non-secret evidence; include acceptance ID and measured values when useful |
 
 Unknown is never success. `attempted` and `unknown` prove only that work was requested or could not be classified. Reports must count successful training or deployment only when the canonical event has `status: success`.
 
@@ -62,7 +68,11 @@ python3 "/absolute/plugin/root/scripts/ledger_append.py" \
     --ledger "/absolute/user/project/.vision-delivery/ledger.jsonl" \
     --session "SESSION" --skill "SKILL" --action "ACTION" \
     --entity-id "ENTITY" --event-id "manual:SESSION:ACTION:ORDINAL" \
-    --status "success" --source "skill" --notes "NON_SECRET_EVIDENCE"
+    --status "success" --source "skill" \
+    --acceptance "/absolute/project/.vision-delivery/acceptance-REVISION.json" \
+    --artifact-dir "/absolute/project/artifact-when-applicable" \
+    --report "/absolute/project/decision-report-when-applicable.md" \
+    --notes "NON_SECRET_EVIDENCE"
 ```
 
 Use a monotonically increasing local ordinal, artifact digest, or another stable non-secret discriminator in manual `event_id` values. Reuse the event ID when retrying the same logical append. Never use `echo`, shell interpolation of free-form values, or a repository-relative `python scripts/...` command.
@@ -72,5 +82,6 @@ Additional rules:
 - Append only; never overwrite or delete prior outcomes.
 - Never log API keys, bearer tokens, image contents, personal data, or raw tool responses.
 - Every new manual write must supply a non-empty event ID. The helper rejects a conflicting reuse and silently ignores an exact duplicate.
+- Successful `baseline_measured`, `artifact_verified`, `delivery_handoff_emitted`, `crossover_delivered`, and `decision_report_emitted` rows require `--acceptance`; the helper validates the frozen artifact and computes its ID/digest. Artifact and delivery rows additionally require `--artifact-dir`. A successful `decision_report_emitted` row requires `--report`; the helper computes `report_sha256`. Caller-supplied digest strings and free-form notes are never accepted as proof bindings.
 - Keep failed and later-successful retries as separate event IDs unless they are duplicate deliveries of the same host event.
 - Present records as YAML only for people; the stored source of truth remains JSON Lines.

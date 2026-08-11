@@ -51,9 +51,7 @@ def extract_clauses(description: str) -> tuple[str, str]:
     desc = description.lower()
     trigger_m = re.search(r"trigger when:\s*([\s\S]+?)(?=\s*skip when:|$)", desc)
     skip_m = re.search(r"skip when:\s*([\s\S]+?)$", desc)
-    return (trigger_m.group(1) if trigger_m else ""), (
-        skip_m.group(1) if skip_m else ""
-    )
+    return (trigger_m.group(1) if trigger_m else ""), (skip_m.group(1) if skip_m else "")
 
 
 def keywords(prompt: str) -> list[str]:
@@ -124,9 +122,7 @@ def main() -> None:
     if arg:
         skill_names = [arg]
     else:
-        skill_names = sorted(
-            p.stem.replace(".cases", "") for p in EVALS_DIR.glob("*.cases.json")
-        )
+        skill_names = sorted(p.stem.replace(".cases", "") for p in EVALS_DIR.glob("*.cases.json"))
 
     all_passed = True
     for host, skills_root in SKILL_ROOTS.items():

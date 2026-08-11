@@ -58,8 +58,7 @@ def installed_path(payload: str, home: Path) -> Path | None:
     candidates = [
         path.parent
         for path in home.rglob("plugin.json")
-        if path.parent.name == ".codex-plugin"
-        and path.read_text(encoding="utf-8").find(f'"name": "{PLUGIN}"') >= 0
+        if path.parent.name == ".codex-plugin" and path.read_text(encoding="utf-8").find(f'"name": "{PLUGIN}"') >= 0
     ]
     return candidates[0] if len(candidates) == 1 else None
 
@@ -74,11 +73,7 @@ def verify_install(path: Path | None) -> dict[str, Any]:
     except (OSError, json.JSONDecodeError) as exc:
         return {"ok": False, "issues": [f"installed manifest is unreadable: {exc}"]}
     roster = (
-        sorted(
-            child.name
-            for child in (path / "codex-skills").iterdir()
-            if (child / "SKILL.md").is_file()
-        )
+        sorted(child.name for child in (path / "codex-skills").iterdir() if (child / "SKILL.md").is_file())
         if (path / "codex-skills").is_dir()
         else []
     )
@@ -128,17 +123,13 @@ def probe(candidate: Path) -> dict[str, Any]:
             ],
             home,
         )
-        if available.returncode or f'"name":"{PLUGIN}"' not in available.stdout.replace(
-            " ", ""
-        ):
+        if available.returncode or f'"name":"{PLUGIN}"' not in available.stdout.replace(" ", ""):
             return {
                 "probe": "codex",
                 "status": "marketplace-list-failed",
                 "detail": available.stderr.strip() or available.stdout.strip(),
             }
-        install = run_command(
-            ["codex", "plugin", "add", f"{PLUGIN}@{MARKETPLACE}", "--json"], home
-        )
+        install = run_command(["codex", "plugin", "add", f"{PLUGIN}@{MARKETPLACE}", "--json"], home)
         if install.returncode:
             return {
                 "probe": "codex",
@@ -146,14 +137,10 @@ def probe(candidate: Path) -> dict[str, Any]:
                 "detail": install.stderr.strip(),
             }
         verification = verify_install(installed_path(install.stdout, home))
-        remove = run_command(
-            ["codex", "plugin", "remove", f"{PLUGIN}@{MARKETPLACE}", "--json"], home
-        )
+        remove = run_command(["codex", "plugin", "remove", f"{PLUGIN}@{MARKETPLACE}", "--json"], home)
         return {
             "probe": "codex",
-            "status": "ok"
-            if verification["ok"] and not remove.returncode
-            else "verification-failed",
+            "status": "ok" if verification["ok"] and not remove.returncode else "verification-failed",
             "verification": verification,
             "remove_returncode": remove.returncode,
             "remove_detail": remove.stderr.strip(),

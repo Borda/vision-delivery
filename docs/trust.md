@@ -21,9 +21,9 @@ Skills can request project reads, writes, edits, searches, and shell commands. T
 
 ## Paid actions
 
-The workflow instructs the agent to state the action, rationale, expected cost, and target, then wait for confirmation before training or deployment-class spend. That instruction is not a machine-enforced block.
+Sentinel stops before uploads, dataset mutation, paid training, deployment, deletion, and other state-changing provider actions. It states the action, rationale, expected cost/data movement, target, and evidence, then hands execution to a host/provider control that can enforce approval. Conversational approval does not authorize Sentinel itself to invoke the action.
 
-Use host approvals, least-privilege account authorization or sessions, account budgets, and non-production targets as the real control. A separately generated standalone client may require a provider key; follow current provider guidance and scope it to the minimum permissions. Prompt injection, reasoning errors, or upstream changes can bypass prose guidance.
+Use host approvals, least-privilege account authorization or sessions, account budgets, and non-production targets as the real control. A separately generated standalone client may require a provider key; follow current provider guidance and scope it to the minimum permissions. Read-only discovery still depends on host and upstream behavior; inspect permission prompts.
 
 ## Ledger semantics
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Smoke every generic Roboflow hook outcome without copying an upstream tool registry.
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -43,6 +43,7 @@ function runCase(name, payload, expect) {
   const pluginData = expect.pluginData ? join(cwd, "plugin-data") : "";
   const env = { ...process.env, ...(expect.env || {}) };
   if (expect.pluginData) env[expect.pluginData] = pluginData;
+  expect.setup?.(cwd);
   const results = [];
   for (let i = 0; i < (expect.repeat || 1); i++) {
     results.push(
@@ -109,6 +110,11 @@ const success = (operation, category, extra = {}) => ({
   fields: { action: "roboflow_mcp_call", operation, category, status: "success", ...extra },
 });
 
+const unknown = (operation, category, extra = {}) => ({
+  write: true,
+  fields: { action: "roboflow_mcp_call", operation, category, status: "unknown", ...extra },
+});
+
 assertHookConfiguration();
 
 runCase(
@@ -132,7 +138,7 @@ runCase(
     tool_input: {},
     tool_response: {},
   },
-  success("anything_read", "other", { session: "hook-auto" }),
+  unknown("anything_read", "other", { session: "hook-auto" }),
 );
 
 for (const [name, operation, category] of [
@@ -145,7 +151,7 @@ for (const [name, operation, category] of [
   runCase(
     `${name} category`,
     { hook_event_name: "PostToolUse", tool_name: `mcp__roboflow__${operation}`, tool_input: {}, tool_response: {} },
-    success(operation, category),
+    unknown(operation, category),
   );
 }
 
@@ -190,12 +196,24 @@ runCase(
 );
 
 runCase(
+  "modern missing result is unknown",
+  { hook_event_name: "PostToolUse", tool_name: "mcp__roboflow__training_start" },
+  unknown("training_start", "training"),
+);
+
+runCase(
+  "modern string result is unknown",
+  { hook_event_name: "PostToolUse", tool_name: "mcp__roboflow__training_start", tool_response: "unrecognized" },
+  unknown("training_start", "training"),
+);
+
+runCase(
   "entity identifiers are bounded",
   {
     hook_event_name: "PostToolUse",
     tool_name: "mcp__roboflow__training_start",
     tool_input: { project_id: "p".repeat(500) },
-    tool_response: {},
+    tool_response: { success: true },
   },
   { ...success("training_start", "training"), maxEntityLength: 200 },
 );
@@ -229,15 +247,57 @@ runCase(
     hook_event_name: "PostToolUse",
     tool_use_id: "tool-duplicate",
     tool_name: "mcp__roboflow__training_start",
-    tool_response: {},
+    tool_response: { success: true },
   },
   { ...success("training_start", "training"), repeat: 2, rows: 1 },
 );
 
 runCase(
   "fallback event ID deduplicates exact legacy redelivery",
-  { hook_event_name: "PostToolUse", tool_name: "mcp__roboflow__training_start", tool_input: {}, tool_response: {} },
+  { hook_event_name: "PostToolUse", tool_name: "mcp__roboflow__training_start", tool_input: {}, tool_response: { success: true } },
   { ...success("training_start", "training"), repeat: 2, rows: 1 },
+);
+
+runCase(
+  "symlinked ledger directory is refused without victim mutation",
+  {
+    hook_event_name: "PostToolUse",
+    tool_use_id: "tool-symlink-directory",
+    tool_name: "mcp__roboflow__training_start",
+    tool_response: { success: true },
+  },
+  {
+    write: false,
+    pluginData: "PLUGIN_DATA",
+    setup(cwd) {
+      const victim = join(cwd, "victim");
+      mkdirSync(victim);
+      writeFileSync(join(victim, "preserve-me.txt"), "unchanged\n", "utf8");
+      symlinkSync(victim, join(cwd, ".vision-delivery"));
+    },
+    diagnostic: { code: "processing-error", maxBytes: 4096, redacted: "never-present" },
+  },
+);
+
+runCase(
+  "conflicting hook redelivery is reported without replacement",
+  {
+    hook_event_name: "PostToolUse",
+    tool_use_id: "tool-conflict",
+    tool_name: "mcp__roboflow__training_start",
+    tool_response: { success: true },
+  },
+  {
+    write: true,
+    rows: 1,
+    pluginData: "PLUGIN_DATA",
+    setup(cwd) {
+      const ledgerDir = join(cwd, ".vision-delivery");
+      mkdirSync(ledgerDir);
+      writeFileSync(join(ledgerDir, "ledger.jsonl"), `${JSON.stringify({ event_id: "tool-conflict", status: "failed" })}\n`, "utf8");
+    },
+    diagnostic: { code: "ledger-integrity-conflict", maxBytes: 4096, redacted: "never-present" },
+  },
 );
 
 if (failures) {

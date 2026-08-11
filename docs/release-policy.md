@@ -4,7 +4,9 @@ Sentinel follows semantic versioning for repository-owned public behavior:
 
 - **Patch:** compatible fixes, documentation corrections, and evidence clarifications.
 - **Minor:** backward-compatible skills, routes, fields, or integrations.
-- **Major:** incompatible plugin interfaces, artifact schemas, commands, or behavior contracts.
+- **Major:** incompatible plugin interfaces, artifact schemas, commands, or behavior contracts after `1.0.0`.
+
+Before `1.0.0`, a minor release may make an incompatible security or evidence-integrity correction only when the changelog names the exact affected interface, provides a migration, and the compatibility page marks the break. Silent schema reinterpretation is never allowed.
 
 Upstream Roboflow behavior is not versioned by this project. A release must name any tested upstream assumptions rather than imply they are frozen.
 

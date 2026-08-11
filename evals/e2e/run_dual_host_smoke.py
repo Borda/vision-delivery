@@ -50,9 +50,7 @@ class Observation:
     proof_brief_exists: bool
 
 
-def run(
-    command: list[str], environment: dict[str, str], cwd: Path
-) -> subprocess.CompletedProcess[str]:
+def run(command: list[str], environment: dict[str, str], cwd: Path) -> subprocess.CompletedProcess[str]:
     """Run one bounded host command and retain output for the result artifact."""
     return subprocess.run(
         command,
@@ -87,9 +85,7 @@ def replace_mock_mcp(candidate: Path, log_dir: Path) -> None:
     codex_manifest.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
 
-def read_observation(
-    process: subprocess.CompletedProcess[str], workspace: Path
-) -> Observation:
+def read_observation(process: subprocess.CompletedProcess[str], workspace: Path) -> Observation:
     """Extract MCP and hook evidence without depending on host transcript schemas."""
     tools_log = workspace / "mock-log" / "tools.jsonl"
     tool_calls: list[str] = []
@@ -120,9 +116,7 @@ def read_observation(
     )
 
 
-def wait_for_hook_ledger(
-    process: subprocess.CompletedProcess[str], workspace: Path
-) -> Observation:
+def wait_for_hook_ledger(process: subprocess.CompletedProcess[str], workspace: Path) -> Observation:
     """Wait briefly for the asynchronously launched PostToolUse hook to write."""
     deadline = time.monotonic() + HOOK_LEDGER_WAIT_SECONDS
     observation = read_observation(process, workspace)
@@ -134,9 +128,7 @@ def wait_for_hook_ledger(
     return observation
 
 
-def smoke_result(
-    host: str, observation: Observation, process: subprocess.CompletedProcess[str]
-) -> dict[str, Any]:
+def smoke_result(host: str, observation: Observation, process: subprocess.CompletedProcess[str]) -> dict[str, Any]:
     """Return an auditable pass/fail result without exposing host environment data."""
     core_checks = {
         "host_command_succeeded": observation.returncode == 0,
@@ -202,9 +194,7 @@ def install_codex(candidate: Path, home: Path, workspace: Path) -> dict[str, Any
         shutil.copytree(candidate, marketplace / "plugins" / PACKAGE_NAME)
         manifest = marketplace / ".agents" / "plugins" / "marketplace.json"
         manifest.parent.mkdir(parents=True)
-        manifest.write_text(
-            json.dumps(codex_marketplace(), indent=2) + "\n", encoding="utf-8"
-        )
+        manifest.write_text(json.dumps(codex_marketplace(), indent=2) + "\n", encoding="utf-8")
         added_marketplace = run(
             ["codex", "plugin", "marketplace", "add", str(marketplace), "--json"],
             environment,
@@ -244,9 +234,7 @@ def install_codex(candidate: Path, home: Path, workspace: Path) -> dict[str, Any
                 environment,
                 workspace,
             )
-            return smoke_result(
-                "codex", wait_for_hook_ledger(process, workspace), process
-            )
+            return smoke_result("codex", wait_for_hook_ledger(process, workspace), process)
         finally:
             run(
                 [
@@ -273,9 +261,7 @@ def install_codex(candidate: Path, home: Path, workspace: Path) -> dict[str, Any
             )
 
 
-def install_claude(
-    candidate: Path, config_dir: Path, workspace: Path
-) -> dict[str, Any]:
+def install_claude(candidate: Path, config_dir: Path, workspace: Path) -> dict[str, Any]:
     """Install, execute, and remove one disposable Claude plugin candidate."""
     environment = {**os.environ, "CLAUDE_CONFIG_DIR": str(config_dir)}
     with tempfile.TemporaryDirectory(prefix="sentinel-e2e-claude-") as temporary:
@@ -285,9 +271,7 @@ def install_claude(
         shutil.copytree(candidate, installed_candidate)
         manifest = marketplace / ".claude-plugin" / "marketplace.json"
         manifest.parent.mkdir(parents=True)
-        manifest.write_text(
-            json.dumps(claude_marketplace(), indent=2) + "\n", encoding="utf-8"
-        )
+        manifest.write_text(json.dumps(claude_marketplace(), indent=2) + "\n", encoding="utf-8")
         added_marketplace = run(
             [
                 "claude",
@@ -346,9 +330,7 @@ def install_claude(
                 environment,
                 workspace,
             )
-            return smoke_result(
-                "claude", wait_for_hook_ledger(process, workspace), process
-            )
+            return smoke_result("claude", wait_for_hook_ledger(process, workspace), process)
         finally:
             run(
                 [
@@ -407,9 +389,7 @@ def main() -> int:
     """Build a disposable candidate and run requested authenticated host checks."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--host", choices=("codex", "claude", "both"), default="both")
-    parser.add_argument(
-        "--codex-home", type=Path, help="Pre-authenticated disposable CODEX_HOME."
-    )
+    parser.add_argument("--codex-home", type=Path, help="Pre-authenticated disposable CODEX_HOME.")
     parser.add_argument(
         "--claude-config",
         type=Path,
@@ -426,14 +406,10 @@ def main() -> int:
         return self_test()
     requested = ("codex", "claude") if args.host == "both" else (args.host,)
     missing = [
-        host
-        for host in requested
-        if getattr(args, "codex_home" if host == "codex" else "claude_config") is None
+        host for host in requested if getattr(args, "codex_home" if host == "codex" else "claude_config") is None
     ]
     if missing:
-        parser.error(
-            f"{', '.join(missing)} requires its explicitly supplied authenticated disposable home"
-        )
+        parser.error(f"{', '.join(missing)} requires its explicitly supplied authenticated disposable home")
     if not MOCK_SERVER.is_file():
         parser.error(f"missing mock MCP server: {MOCK_SERVER}")
 
@@ -458,32 +434,20 @@ def main() -> int:
             )
         else:
             for host in requested:
-                workspace = Path(
-                    tempfile.mkdtemp(prefix=f"sentinel-e2e-workspace-{host}-")
-                )
+                workspace = Path(tempfile.mkdtemp(prefix=f"sentinel-e2e-workspace-{host}-"))
                 log_dir = workspace / "mock-log"
                 candidate_copy = workspace / "candidate"
                 shutil.copytree(candidate, candidate_copy)
                 replace_mock_mcp(candidate_copy, log_dir)
                 try:
                     if host == "codex":
-                        results.append(
-                            install_codex(
-                                candidate_copy, args.codex_home.resolve(), workspace
-                            )
-                        )
+                        results.append(install_codex(candidate_copy, args.codex_home.resolve(), workspace))
                     else:
-                        results.append(
-                            install_claude(
-                                candidate_copy, args.claude_config.resolve(), workspace
-                            )
-                        )
+                        results.append(install_claude(candidate_copy, args.claude_config.resolve(), workspace))
                 finally:
                     shutil.rmtree(workspace)
     payload = {
-        "status": "ok"
-        if all(result["status"] == "ok" for result in results)
-        else "failed",
+        "status": "ok" if all(result["status"] == "ok" for result in results) else "failed",
         "results": results,
     }
     print(json.dumps(payload, indent=2))

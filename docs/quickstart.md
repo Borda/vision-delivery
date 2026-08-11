@@ -23,7 +23,7 @@ You need:
 
 ## Codex marketplace install
 
-The v0.3 release candidate has passed local clean-home marketplace simulations and manual public-GitHub marketplace installation. Roboflow account authorization and service behavior remain host-managed upstream checks.
+The v0.4 release candidate has passed local clean-home marketplace simulations. Manual public-GitHub marketplace installation was recorded for v0.3; the v0.4 public-install path remains unverified. Roboflow account authorization and service behavior remain host-managed upstream checks.
 
 ```bash
 codex plugin marketplace add https://github.com/Borda/vision-delivery

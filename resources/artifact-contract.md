@@ -2,6 +2,8 @@
 
 Every generated delivery artifact must identify what it actually is, keep secrets out of source, and prove its execution contract before it is called complete.
 
+Every executable claim is bound to a frozen acceptance artifact. Create a new acceptance revision before measurement with `resources/scripts/freeze_acceptance.py`; declare `--comparator gte` for minimum metrics such as recall/mAP or `--comparator lte` for maximum metrics such as latency/MAE. Never edit or replace an existing revision. Carry its `acceptance_id` and `acceptance_sha256` through smoke evidence, live/offline evidence, handoff, ledger, economics, and the terminal decision report.
+
 ## Artifact Kinds
 
 - **`hosted-client`** — sends data to a provider endpoint. It is user-owned client code, but it is not local inference and is not provider-independent.
@@ -12,7 +14,7 @@ Write the kind as an `ARTIFACT_KIND` constant in the artifact header, in `RUN.md
 
 ## Generation Boundary
 
-Do not preserve raw REST hosts, request shapes, SDK calls, model IDs, or deployment recipes in Sentinel templates. Read `roboflow-platform-lookup.md`, delegate exact execution to an installed official skill or current MCP skill resource, and then harden the returned starter against this contract. If no authoritative upstream source is available, emit a `scaffold` and state that the live transport is unverified.
+Do not preserve raw REST hosts, request shapes, SDK calls, model IDs, or deployment recipes in Sentinel templates. Read `roboflow-platform-lookup.md` and use installed official skills or current MCP skill resources for read-only discovery only. For provider execution, emit a sourced action brief and stop; Sentinel never invokes data-moving, paid, or state-changing provider actions. Harden any externally returned starter against this contract. If no authoritative upstream source is available, emit a `scaffold` and state that the live transport is unverified.
 
 ## Required Files
 
@@ -61,21 +63,24 @@ Before claiming completion:
 
 1. Install the documented dependencies in a clean environment.
 
-2. Run the helper from the absolute path derived from this loaded file:
+2. Run the helper from the absolute path derived from this loaded file. The first run performs static checks and exits `review-required`; it never executes generated code. Inspect the full artifact tree, then return this exact command for a human or external host control to run with the explicit `--execute-reviewed` acknowledgement and an evidence path outside the artifact directory:
 
    ```bash
    python /absolute/plugin/root/resources/scripts/artifact_smoke.py \
        /absolute/path/to/inference.py \
-       --expect-json /absolute/path/to/expected-self-test.json
+       --expect-json /absolute/path/to/expected-self-test.json \
+       --acceptance /absolute/path/to/acceptance-<revision>.json \
+       --evidence-out /absolute/path/to/.vision-delivery/self-test-evidence.json \
+       --execute-reviewed
    ```
 
-3. The helper runs `--help` and `--self-test` from an arbitrary fresh working directory, scans source for embedded secret assignments, and compares output with the exact expected JSON.
+3. After review, a human or external host control may run the supplied command. The helper runs `--help` and `--self-test` from an arbitrary fresh working directory, scans the complete artifact tree for common embedded-secret forms, compares exact expected JSON, and writes helper-produced local evidence bound to the acceptance and artifact SHA-256 digests.
 
-4. Run one live-path smoke on representative user media. For `hosted-client`, obtain explicit data-movement approval first. For `local-runtime`, disable network during the acceptance run.
+4. Before execution, exclusively create a delivery-check contract with `freeze_delivery_check.py`. It binds the frozen acceptance, current artifact tree, canonical Python/inference argv, check kind, consent reference, and `--expected-stdout-sha256` oracle. A human or external host control then runs the exact argv through `record_delivery_check.py --check-contract <path> --execute-reviewed`; Sentinel only supplies these commands and later validates the evidence. For `local-runtime`, freeze `--check offline` only inside a verified network-isolation boundary. The contract and evidence paths remain outside the artifact tree.
 
 5. Record dependency versions, command, exit status, and output location in `RUN.md` and the delivery handoff.
 
-6. Validate the final handoff before reporting delivery:
+6. Record handoff schema `2`, `acceptance_path`, `acceptance_sha256`, `artifact_sha256`, canonical command argv arrays, `check_contract_path`, `check_contract_sha256`, `expected_stdout_sha256`, and project-relative helper-evidence paths. The self-test argv uses the fixed portable marker `["<current-python>", "inference.py", "--self-test"]`; resolve `<current-python>` to the helper environment's interpreter only for replay. Validate the final handoff before reporting delivery:
 
    ```bash
    python /absolute/plugin/root/resources/scripts/validate_delivery_handoff.py \
@@ -83,6 +88,8 @@ Before claiming completion:
        --project-root /absolute/path/to/project
    ```
 
-The artifact helper injects a Python network guard for both checks and strips credential-shaped environment variables. A self-test that attempts DNS or socket access fails. This is an executable Python boundary, not an operating-system sandbox; non-Python child processes remain outside the helper's guarantee and must not be used by `--self-test`.
+The artifact helper injects a Python network guard and strips credential-shaped environment variables after explicit review. A self-test that attempts Python DNS or socket access fails. This is not an operating-system sandbox. Generated code retains host-user filesystem and subprocess privileges, so Sentinel must never add `--execute-reviewed` on the user's behalf or describe it as isolation. Use an organizational OS sandbox/container when generated code is not trusted after review.
+
+The handoff validator consumes helper-produced local evidence rather than trusting `"passed"` strings. It rejects an altered acceptance record, an artifact changed after verification, future/predating evidence, command or output-oracle mismatch, or mismatched artifact/model/kind fields. Evidence is still unsigned same-user local consistency evidence: a same-user adversary can forge it. Do not describe it as provenance, authorization, a provider receipt, or cryptographic identity proof.
 
 If the self-test passes but the live-path smoke cannot run, retain `artifact_kind: scaffold` and list the missing external check. If the live path fails, do not report the artifact as delivered.

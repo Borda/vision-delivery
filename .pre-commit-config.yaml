@@ -90,6 +90,7 @@ repos:
         args: [scripts, evals, resources/scripts]
         pass_filenames: false
         additional_dependencies:
+          - requests==2.34.2
           - types-PyYAML==6.0.12.20260518
 
   - repo: https://github.com/codespell-project/codespell

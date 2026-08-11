@@ -51,12 +51,8 @@ def assert_skill_rosters() -> None:
     """Require exactly the frozen thirteen-name roster on both hosts."""
     codex_roster = roster(CODEX_SKILLS)
     claude_roster = roster(CLAUDE_SKILLS)
-    assert codex_roster == EXPECTED_ROSTER, (
-        f"Codex roster drifted: {sorted(codex_roster)}"
-    )
-    assert claude_roster == EXPECTED_ROSTER, (
-        f"Claude roster drifted: {sorted(claude_roster)}"
-    )
+    assert codex_roster == EXPECTED_ROSTER, f"Codex roster drifted: {sorted(codex_roster)}"
+    assert claude_roster == EXPECTED_ROSTER, f"Claude roster drifted: {sorted(claude_roster)}"
 
 
 def assert_host_metadata() -> None:
@@ -77,9 +73,7 @@ def assert_host_metadata() -> None:
         assert "/sentinel:" not in str(codex_metadata.get("description", ""))
         if name == "estimate-economics":
             assert "$estimate-economics" in str(codex_metadata.get("description", ""))
-            assert "/sentinel:estimate-economics" in str(
-                claude_metadata.get("description", "")
-            )
+            assert "/sentinel:estimate-economics" in str(claude_metadata.get("description", ""))
 
 
 def assert_shared_contract() -> None:
@@ -98,9 +92,7 @@ def assert_shared_contract() -> None:
     setup_metadata = CODEX_SKILLS / "check-sentinel-setup" / "agents" / "openai.yaml"
     assert auth_metadata.is_file(), "Codex auth setup MCP metadata is missing"
     assert setup_metadata.is_file(), "Codex setup metadata is missing"
-    assert not (
-        CLAUDE_SKILLS / "check-sentinel-setup" / "agents" / "openai.yaml"
-    ).exists()
+    assert not (CLAUDE_SKILLS / "check-sentinel-setup" / "agents" / "openai.yaml").exists()
     assert "roboflow" in auth_metadata.read_text(encoding="utf-8")
     assert "dependencies" in auth_metadata.read_text(encoding="utf-8")
 

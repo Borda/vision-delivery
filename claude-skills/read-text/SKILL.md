@@ -13,7 +13,7 @@ Extract the exact fields needed by the business process and clear an independent
 
 <methodology>
 
-**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific capability, dataset, training, inference, workflow, or deployment action. Delegate exact execution to the installed official Roboflow skill or current MCP resource. Do not preserve current engine names, blocks, IDs, or invocation syntax here.
+**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific capability, dataset, training, inference, workflow, or deployment action. Use installed official Roboflow skills or current MCP resources only for read-only discovery and sourced action-brief inputs; never invoke provider execution. Do not preserve current engine names, blocks, IDs, or invocation syntax here.
 
 Follow `../../resources/fde-methodology.md`; apply these text-specific rules.
 
@@ -58,7 +58,7 @@ Manual visual review helps diagnose samples but cannot be converted into an accu
 
 ## 4. Diagnose a failed gate
 
-Separate missing/wrong regions, decoding substitutions/deletions, orientation/quality issues, normalization bugs, and validator errors. Test capture, crop/orientation, deterministic validation, or candidate changes before custom training. Target new labels at demonstrated failure slices. Delegate platform actions upstream and remeasure on the frozen set.
+Separate missing/wrong regions, decoding substitutions/deletions, orientation/quality issues, normalization bugs, and validator errors. Test capture, crop/orientation, deterministic validation, or candidate changes before custom training. Target new labels at demonstrated failure slices. Use read-only upstream facts to prepare any required provider action brief, stop before execution, and remeasure externally supplied results on the frozen set.
 
 ## 5. Decide and deliver
 
@@ -71,8 +71,8 @@ Return `go`, `revise`, or `stop`, including field-level errors, rejection policy
 - Treat extracted personal/document data as sensitive and minimize retention.
 - Never invent missing characters or suppress the raw result.
 - Pseudo-transcriptions cannot own acceptance.
-- Obtain explicit consent before data movement or paid work.
-- Delegate exact provider operations to current upstream guidance.
+- Emit a sourced action brief and stop before data movement or paid provider work; Sentinel never invokes either.
+- Use current upstream guidance only for read-only facts and action-brief inputs; never invoke provider execution.
 
 </safety>
 
@@ -87,7 +87,7 @@ Follow `../../resources/ledger-protocol.md`. Record acceptance, field-level eval
 - Field schema/normalization is undefined → freeze it first.
 - No independent transcription set → do not claim accuracy.
 - Capture quality makes characters unresolvable → state the acquisition requirement.
-- Paid/data-moving action lacks current-turn consent → stop.
+- Provider action is required → emit a sourced action brief and stop; conversational consent does not authorize Sentinel execution.
 - Applicable live/offline smoke is absent → retain `scaffold` status.
 
 \</stop_rules>

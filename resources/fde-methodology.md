@@ -12,7 +12,7 @@ Every skill references these generic steps. Skills add only their modality-speci
 
 **Never open with cost.** Cost talk belongs in the economics-decision flow. "Pricing" and "managed deployment" do not appear in build output until the seam offer fires — exactly once.
 
-**Platform execution boundary.** Before every Roboflow-specific lookup or action, read `roboflow-platform-lookup.md`. Delegate exact execution to an installed official Roboflow skill or current MCP skill resource when available. Sentinel owns the target, evidence gate, confirmation, and return-to-workflow step; it does not copy volatile platform recipes.
+**Platform execution boundary.** Before every Roboflow-specific lookup or proposed action, read `roboflow-platform-lookup.md`. Use installed official Roboflow skills or current MCP skill resources only for read-only discovery when available. For data-moving, paid, destructive, or state-changing actions, Sentinel emits a sourced action brief and stops for execution through an external host/provider approval control.
 
 ## Generic 9-Step Sequence (Step 0 + Steps 1–8)
 
@@ -49,7 +49,7 @@ Three outcomes:
 - "Which is worse here: missing a real object/event, or raising a false alarm?"
 - "Does this need to run live, or can it process batches later?"
 
-Translate the answers into metrics and record them in `.vision-delivery/eval-<session-id>.md` with `acceptance_id`, revision, business decision, metric, threshold, unit, dataset/split identity, sample-size requirement, independent label source, blinding, adjudication owner, `frozen_at` timestamp, and user confirmation.
+Translate the answers into metrics and record them in `.vision-delivery/eval-<session-id>.md` with `acceptance_id`, revision, business decision, metric, comparator (`gte` minimum or `lte` maximum), finite numeric threshold, unit, dataset/split identity, sample-size requirement, independent label source, blinding, adjudication owner, `frozen_at` timestamp, and user confirmation.
 
 The acceptance target is **frozen before any baseline**, candidate search, threshold sweep, or training result is read. A baseline is diagnostic evidence; it never raises or lowers the business threshold. If the business requirement changes, create a new revision with a new acceptance ID, rationale, and confirmation. Never overwrite the original target or report passing when the active revision is not cleared.
 
@@ -74,8 +74,10 @@ Never soften. "Looks pretty good" is banned. Numbers only.
 Then choose the fastest lever first. In order of cost:
 
 1. **Confidence-threshold sweep** — ask the upstream evaluation capability for a sweep and report the selected value. Do not change the frozen acceptance threshold.
-2. **Fine-tune a relevant checkpoint** — delegate current model/version/training execution upstream. Always show a sourced credit estimate and wait for explicit consent before a paid action.
-3. **Full custom data collection** — only if nothing else works. Guide annotation (see Annotation Unblocking below).
+2. **Preprocessing or crop change** — test a targeted crop, tile, contrast, resize, or capture adjustment on the unchanged gold set.
+3. **Model or backbone switch** — compare a relevant existing candidate before starting paid training.
+4. **Fine-tune a relevant checkpoint** — use read-only upstream model/version/cost discovery, then emit a sourced action brief. Sentinel stops before paid training; the user executes through an external host/provider approval control.
+5. **Label expansion or full custom data collection** — only if the earlier levers do not close the measured gap. Guide annotation (see Annotation Unblocking below).
 
 After upstream reports training finished, fetch a fresh evaluation through the current evaluation capability. Never reuse a pre-training/earlier-round snapshot or treat a status response as evaluation evidence; that can misdiagnose a false plateau.
 
@@ -93,15 +95,15 @@ Never jump to "label 500 images" when threshold tuning might close the gap.
  (d) Skip for now"
 ```
 
-If user picks **(a)**: route to `deliver-cv-project`. Delegate the current export procedure upstream, build a `local-runtime` package, and retain that label only after an offline smoke succeeds. Do not add an unsourced cost anchor.
+If user picks **(a)**: route to `deliver-cv-project`. Source the current export procedure through read-only upstream guidance and emit an action brief when provider execution is required. Build a `local-runtime` package only from an externally produced export, and retain that label only after an offline smoke succeeds. Do not add an unsourced cost anchor.
 
-After a passing eval, do not stop at the offer. Route the selected branch to `deliver-cv-project`; it owns the delivery handoff and delegates exact platform execution upstream.
+After a passing eval, do not stop at the offer. Route the selected branch to `deliver-cv-project`; it owns the delivery handoff, uses upstream resources only for read-only facts and action-brief inputs, and never invokes provider execution.
 
 Never launch a deployment when no verified model/version and fresh evaluation exist—even under delegation such as “you decide.” A delegated decision authorizes choosing among safe paths, not skipping the verification gate.
 
-If user picks **(b)**: hand off to `estimate-economics`, then to `deliver-cv-project` only after the economic decision and explicit deployment consent. Do not re-engage as builder from the economics skill.
+If user picks **(b)**: hand off to `estimate-economics`, then to `deliver-cv-project` after the economic decision. If provider execution is required, emit a sourced action brief and stop; conversational consent does not authorize Sentinel execution. Do not re-engage as builder from the economics skill.
 
-If user picks **(c)**: route to `deliver-cv-project`. Ask the current upstream inference/product resource to enumerate compatible devices, validate the selected model/runtime, and perform any confirmed configuration action. Do not preserve device API sequences locally.
+If user picks **(c)**: route to `deliver-cv-project`. Use the current upstream inference/product resource only to enumerate compatible devices and validate the selected model/runtime through read-only operations. Emit a sourced configuration action brief and stop; never invoke the configuration action or preserve device API sequences locally.
 
 **Drift detection check (once per session when deploy resolves or user reports live failures).** After the seam offer resolves — or when the user mentions failures on production footage — ask once: "Are you seeing failures on live footage that weren't in your test set?"
 
@@ -174,8 +176,8 @@ Offer (lowest friction first):
 
 If user picks A:
 
-- Confirm before uploading: state what leaves the machine, to where, get explicit yes.
-- Delegate upload and annotation navigation to `roboflow:data-management`, `roboflow:product-navigation`, or their MCP skill resources. Do not guess UI paths or request shapes.
+- State exactly what would leave the machine and its destination, then emit a sourced upload action brief and stop. Conversational consent does not authorize Sentinel to upload.
+- Use `roboflow:data-management`, `roboflow:product-navigation`, or their MCP skill resources only for read-only destination, schema, and navigation facts needed by the brief. Never invoke upload or annotation state changes; do not guess UI paths or request shapes.
 - First batch: 20–30 images. Label consistently (every occurrence in every frame).
 - Stop and measure early: "Label 25 → train → measure → decide if more labeling helps."
 
@@ -191,11 +193,11 @@ Do not block local work on account connection. The bundled MCP configuration is 
 
 ## Safe Actions
 
-Every credit-spending or data-movement action requires explicit confirmation with a cost preview before execution:
+Sentinel never invokes a credit-spending, data-moving, destructive, or state-changing provider action. It prepares the following action brief, then stops for execution through an external host/provider approval control:
 
-**The eval-target gate is separate from the spend-confirmation gate.** A generic approval ("yes, go ahead", "you're the expert, you decide") satisfies spend consent but never substitutes for having an eval/target defined. If the user can't or won't give a target number, propose a default and state it before any paid call: "targeting 80% recall as a floor — correct me if that's wrong." Post-training reports always restate the result against the pre-stated target — or explicitly say "no target was set before this run" if none was ever defined — rather than reporting a bare metrics readout.
+**The eval-target gate is separate from provider execution.** Generic approval never substitutes for a frozen eval target and never authorizes Sentinel to invoke a paid, data-moving, or state-changing provider action. If the user cannot provide a target number, propose a default before producing an action brief: "targeting 80% recall as a floor — correct me if that's wrong." The user or an external host/provider control executes the brief. Post-training reports restate externally supplied results against the frozen target rather than reporting a bare metrics readout.
 
-- **Paid training** — before calling, delegate current model/cost lookup to the official training and pricing resources, show a sourced quantified confirmation, and wait for explicit yes in the current turn. Never start speculatively. Required format:
+- **Paid training** — use official training/pricing resources only for read-only model/cost lookup and emit the sourced quantified brief below. Never call the training tool from Sentinel. Required format:
 
   ```
   "This training run will consume approximately X credits (~$Y at current pricing).
@@ -203,12 +205,12 @@ Every credit-spending or data-movement action requires explicit confirmation wit
    Confirm to proceed? (yes / no)"
   ```
 
-  If a current estimate is unavailable, abstain from the paid call. Do not invent a typical range.
+  If a current estimate is unavailable, do not emit an executable action brief. Do not invent a typical range.
 
-- **Dataset version generation** — may be irreversible. Delegate the exact operation upstream and state preprocessing/augmentation before confirmation.
+- **Dataset version generation** — may be irreversible. Use read-only upstream schema/cost discovery, state preprocessing/augmentation in the action brief, and stop before execution.
 
 - **Image upload** — state what leaves the machine, to where. Offer local-only path if user declines.
 
-- **Deployment** — not in build skills; the seam offer hands to economics when needed and then `deliver-cv-project`, which delegates exact execution upstream.
+- **Deployment** — not in build skills; the seam offer hands to economics when needed and then `deliver-cv-project`, which emits a sourced action brief and stops before provider execution.
 
 - **Training queue/capacity error** — preserve the exact upstream error, ask the official training resource for supported recovery choices, and present only verified options. Do not invent retry timing, model-size controls, or alternative provider instructions.

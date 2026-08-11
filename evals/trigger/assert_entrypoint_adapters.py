@@ -59,17 +59,11 @@ def main() -> None:
         for field in ("tools", "model", "color"):
             assert field in agent_meta, f"{agent_path} is missing Claude `{field}`"
         assert "allowed-tools" in skill_meta, f"{skill_path} is missing Claude tools"
-        assert str(skill_path.relative_to(ROOT)) in agent_body, (
-            f"{agent_path} must point to the canonical skill"
-        )
+        assert str(skill_path.relative_to(ROOT)) in agent_body, f"{agent_path} must point to the canonical skill"
         for banned in ("<classification>", "<methodology>", "<cost_model_rules>"):
-            assert banned not in agent_body, (
-                f"{agent_path} contains workflow logic marker `{banned}`"
-            )
+            assert banned not in agent_body, f"{agent_path} contains workflow logic marker `{banned}`"
         assert len(agent_body.splitlines()) <= 30, f"{agent_path} is no longer thin"
-        assert len(skill_body.splitlines()) > len(agent_body.splitlines()), (
-            f"{skill_path} should own the methodology"
-        )
+        assert len(skill_body.splitlines()) > len(agent_body.splitlines()), f"{skill_path} should own the methodology"
 
     print("Claude entry agents are thin adapters over canonical skills.")
 

@@ -49,9 +49,7 @@ def require(condition: bool, message: str) -> None:
         raise DistributionError(message)
 
 
-def require_hook_contract(
-    config: dict[str, Any], event_names: set[str], root_variable: str
-) -> None:
+def require_hook_contract(config: dict[str, Any], event_names: set[str], root_variable: str) -> None:
     """Validate one host-native hook manifest uses only its supported events."""
     hooks = config.get("hooks")
     if not isinstance(hooks, dict):
@@ -82,8 +80,7 @@ def require_hook_contract(
             f"{event_name} command must use {root_variable}",
         )
         require(
-            handler.get("commandWindows")
-            == f'node "$env:{root_variable}\\hooks\\cta.js"',
+            handler.get("commandWindows") == f'node "$env:{root_variable}\\hooks\\cta.js"',
             f"{event_name} Windows command must use {root_variable}",
         )
 
@@ -103,9 +100,7 @@ def validate_distribution() -> None:
         ("Codex", codex, "./codex-skills/"),
         ("Claude", claude, "./claude-skills/"),
     ):
-        require(
-            manifest.get("name") == "sentinel", f"{host} plugin name must be sentinel"
-        )
+        require(manifest.get("name") == "sentinel", f"{host} plugin name must be sentinel")
         require(manifest.get("version") == version, f"{host} version must be {version}")
         require(manifest.get("skills") == skills_path, f"{host} skills path drifted")
 
@@ -140,17 +135,13 @@ def validate_distribution() -> None:
     if not isinstance(claude_entries, list) or len(claude_entries) != 1:
         raise DistributionError("Claude marketplace must contain one plugin")
     claude_entry = claude_entries[0]
-    require(
-        isinstance(claude_entry, dict), "Claude marketplace entry must be an object"
-    )
+    require(isinstance(claude_entry, dict), "Claude marketplace entry must be an object")
     require(
         claude_entry.get("name") == "sentinel",
         "Claude selector must be sentinel@sentinel",
     )
     require(claude_entry.get("source") == "./", "Claude marketplace source must be ./")
-    require(
-        claude_entry.get("version") == version, "Claude marketplace version drifted"
-    )
+    require(claude_entry.get("version") == version, "Claude marketplace version drifted")
 
     codex_entries = codex_marketplace.get("plugins")
     if not isinstance(codex_entries, list) or len(codex_entries) != 1:
@@ -205,9 +196,7 @@ def validate_distribution() -> None:
                 not bare_references,
                 f"{skill_path.parent.name} has plugin-root-relative resources: {', '.join(bare_references)}",
             )
-            for relative_path in re.findall(
-                r"\.\./\.\./resources/[A-Za-z0-9_./-]+", skill_text
-            ):
+            for relative_path in re.findall(r"\.\./\.\./resources/[A-Za-z0-9_./-]+", skill_text):
                 resource_references += 1
                 target = (skill_path.parent / relative_path).resolve()
                 require(
@@ -229,9 +218,7 @@ def main() -> int:
     except DistributionError as exc:
         print(f"distribution assertion failed: {exc}", file=sys.stderr)
         return 1
-    print(
-        "distribution assertions passed: sentinel@sentinel, version 0.3.0, URL-only Roboflow MCP"
-    )
+    print("distribution assertions passed: sentinel@sentinel, version 0.4.0, URL-only Roboflow MCP")
     return 0
 
 

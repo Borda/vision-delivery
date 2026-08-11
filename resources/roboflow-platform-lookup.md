@@ -15,10 +15,12 @@ For every platform-specific read or write:
 1. Name the delivery intent and evidence needed on return.
 2. Select the first available upstream source above.
 3. Read that official skill/resource for the current schema, confirmation requirements, and operation sequence.
-4. Delegate exact execution to that source and the live MCP surface. Sentinel retains the frozen acceptance gate plus data-movement and spend confirmation.
+4. Delegate read-only discovery to that source and the live MCP surface. For uploads, dataset mutation, training, deployment, deletion, or any paid/state-changing action, Sentinel stops with a sourced action brief; the user must execute it through a host/provider control that enforces approval. Sentinel does not invoke the action.
 5. Return only the relevant entity/version identity, outcome status, measured evidence, and upstream source to the active Sentinel workflow.
 
 If no upstream source is available, fallback is scaffold-only. It must not authorize uploads, paid actions, training, deployment, destructive changes, or guessed configuration.
+
+This unsupported execution boundary is deliberate. Current official OpenAI documentation does not establish a Codex plugin `PreToolUse` authorization hook, so Sentinel must not claim that its post-action hook can enforce consent. A future host-enforced guard may replace this boundary only after its schema and blocking behavior are verified in both supported hosts.
 
 ## Delegation map
 
@@ -35,7 +37,7 @@ If no upstream source is available, fallback is scaffold-only. It must not autho
 ## Response pattern
 
 ```text
-This step is platform-specific. I will verify and execute it through <official skill or MCP resource>, then return the resulting evidence to the Sentinel delivery gate.
+This step is platform-specific. I will verify it through <official skill or MCP resource>. If it changes state, moves data, or spends credits, I will return a sourced action brief for execution through your host/provider approval control; Sentinel will not invoke it.
 ```
 
 If neither upstream source is available:
@@ -49,5 +51,6 @@ The delivery plan can continue, but this exact Roboflow operation is unverified.
 - Do not copy Roboflow platform recipes into Sentinel.
 - Do not guess model IDs, tool names/schemas, hosts, plan limits, UI paths, or current prices.
 - Do not perform a volatile platform action from remembered or local fallback guidance.
+- Do not invoke uploads, dataset mutations, paid training, deployment, deletion, or another state-changing provider action from Sentinel, even after conversational approval. Produce an action brief and stop at the external approval boundary.
 - Prefer typed MCP operations over raw HTTP when current upstream guidance offers both.
 - Return to the Sentinel acceptance/delivery workflow after the delegated operation.

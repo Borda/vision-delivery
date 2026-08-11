@@ -13,7 +13,7 @@ Turn an object-level business question into a detector that passes independent a
 
 <methodology>
 
-**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific search, dataset, training, inference, or deployment action. Delegate exact execution to the installed official Roboflow skill or current MCP resource. Sentinel owns the problem contract, independent evidence, failure diagnosis, artifact verification, and decision.
+**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific search, dataset, training, inference, or deployment action. Use installed official Roboflow skills or current MCP resources only for read-only discovery and sourced action-brief inputs; never invoke provider execution. Sentinel owns the problem contract, independent evidence, failure diagnosis, artifact verification, and decision.
 
 Follow `../../resources/fde-methodology.md`; the domain-specific requirements below refine its generic sequence.
 
@@ -64,7 +64,7 @@ Do not calculate accuracy from visual inspection. Unlabeled images can reveal fa
 
 ## 4. Diagnose a failed gate
 
-Break errors down by class, object size, occlusion, lighting, camera, scene, and label quality. Separate localization errors, class confusion, missed objects, duplicates, and downstream rule errors. Then test the cheapest plausible lever: confidence policy, crop/tile strategy, capture improvement, label correction, relevant transfer, or targeted new data. Delegate any current platform action upstream and re-evaluate on the frozen gold set.
+Break errors down by class, object size, occlusion, lighting, camera, scene, and label quality. Separate localization errors, class confusion, missed objects, duplicates, and downstream rule errors. Then test the cheapest plausible lever: confidence policy, crop/tile strategy, capture improvement, label correction, relevant transfer, or targeted new data. Use read-only upstream facts to prepare any required provider action brief, stop before execution, and re-evaluate externally supplied results on the frozen gold set.
 
 Never move the threshold to make a result pass. A changed business requirement creates a new acceptance revision.
 
@@ -77,9 +77,9 @@ Report the result as `go`, `revise`, or `stop`, with the exact numerator/denomin
 <safety>
 
 - Independent human/sensor labels—not candidate output or pseudo-labels—own acceptance.
-- State data movement and obtain current-turn consent before uploads.
-- Show a sourced cost/credit estimate and obtain current-turn consent before paid work.
-- Delegate exact provider operations to current upstream guidance; never guess them.
+- State data movement, emit a sourced action brief, and stop before uploads; Sentinel never invokes them.
+- Show a sourced cost/credit estimate, emit an action brief, and stop before paid work; Sentinel never invokes it.
+- Use current upstream guidance only for read-only facts and action-brief inputs; never invoke provider execution.
 - Bounding boxes do not justify calibrated millimeters, area, or contours.
 
 </safety>
@@ -95,7 +95,7 @@ Follow `../../resources/ledger-protocol.md`. Record frozen acceptance, measured 
 - No independently labeled acceptance set → help create one; do not claim a metric.
 - Target signal is not observable in representative input → document the acquisition blocker.
 - Physical measurement is requested without calibration/mask ownership → route to `segment-and-analyze`.
-- Paid/data-moving action lacks explicit consent → stop before it.
+- Paid/data-moving provider action is required → emit the action brief and stop for external execution.
 - Live/offline artifact path is untested → label it `scaffold`, not delivered.
 
 \</stop_rules>

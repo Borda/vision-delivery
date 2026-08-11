@@ -77,7 +77,7 @@ Invoke or recommend the selected skill with the proof brief and inspected artifa
 <safety>
 
 - Independent human/sensor evidence owns acceptance; candidate output and pseudo-labels do not.
-- Obtain explicit consent before upload/data movement and before paid actions.
+- Emit a sourced action brief and stop before upload/data movement or paid provider actions; Sentinel never invokes them.
 - Never request a token or key for plugin installation.
 - Never invent provider model IDs, commands, API fields, prices, or deployment paths.
 - High-stakes medical, safety, or legal decisions require qualified human ownership.

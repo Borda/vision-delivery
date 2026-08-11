@@ -27,6 +27,7 @@ import json
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
@@ -47,9 +48,7 @@ def run_json(args: list[str]) -> dict:
         text=True,
     )
     if result.returncode != 0:
-        raise AssertionError(
-            f"cost_model.py exited {result.returncode}:\n{result.stderr}"
-        )
+        raise AssertionError(f"cost_model.py exited {result.returncode}:\n{result.stderr}")
     return json.loads(result.stdout)
 
 
@@ -60,9 +59,7 @@ def run_text(args: list[str]) -> str:
         text=True,
     )
     if result.returncode != 0:
-        raise AssertionError(
-            f"cost_model.py exited {result.returncode}:\n{result.stderr}"
-        )
+        raise AssertionError(f"cost_model.py exited {result.returncode}:\n{result.stderr}")
     return result.stdout
 
 
@@ -74,17 +71,11 @@ def assert_invalid_input(args: list[str], expected_error: str) -> None:
         text=True,
     )
     if result.returncode != 2:
-        raise AssertionError(
-            f"expected exit 2 for {args!r}, got {result.returncode}: {result.stdout}"
-        )
+        raise AssertionError(f"expected exit 2 for {args!r}, got {result.returncode}: {result.stdout}")
     if expected_error not in result.stderr:
-        raise AssertionError(
-            f"expected {expected_error!r} in stderr for {args!r}: {result.stderr}"
-        )
+        raise AssertionError(f"expected {expected_error!r} in stderr for {args!r}: {result.stderr}")
     if result.stdout.strip():
-        raise AssertionError(
-            f"invalid input emitted stdout for {args!r}: {result.stdout}"
-        )
+        raise AssertionError(f"invalid input emitted stdout for {args!r}: {result.stdout}")
 
 
 def assert_numeric_boundaries(failures: list[str]) -> None:
@@ -96,15 +87,9 @@ def assert_numeric_boundaries(failures: list[str]) -> None:
             "--override-engineer",
         ):
             for value in ("nan", "inf", "-inf"):
-                option_args = (
-                    [f"{option}={value}"] if value.startswith("-") else [option, value]
-                )
-                assert_invalid_input(
-                    ["--streams", "1", *option_args], f"{option} must be finite"
-                )
-            assert_invalid_input(
-                ["--streams", "1", f"{option}=-0.01"], f"{option} must be >= 0"
-            )
+                option_args = [f"{option}={value}"] if value.startswith("-") else [option, value]
+                assert_invalid_input(["--streams", "1", *option_args], f"{option} must be finite")
+            assert_invalid_input(["--streams", "1", f"{option}=-0.01"], f"{option} must be >= 0")
 
         zero = run_json(
             [
@@ -120,16 +105,12 @@ def assert_numeric_boundaries(failures: list[str]) -> None:
             raise AssertionError("zero managed override was not preserved")
         extreme = run_json(["--streams", "1", "--override-engineer", "1e100"])
         if extreme["diy"]["setup_one_time"] <= 0:
-            raise AssertionError(
-                "extreme finite override did not produce a finite cost"
-            )
+            raise AssertionError("extreme finite override did not produce a finite cost")
         assert_invalid_input(
             ["--streams", "1", "--override-engineer", "1e308"],
             "computed result",
         )
-        print(
-            "  PASS [numeric-boundaries] non-finite/negative rejected; finite bounds accepted"
-        )
+        print("  PASS [numeric-boundaries] non-finite/negative rejected; finite bounds accepted")
     except (AssertionError, ValueError) as exc:
         failures.append(f"[numeric-boundaries] {exc}")
 
@@ -155,8 +136,7 @@ def assert_source_citations(text: str, fixture_name: str) -> None:
             failures.append(f"  line {i}: {stripped}")
     if failures:
         raise AssertionError(
-            f"[{fixture_name}] Lines with dollar amounts but no source citation:\n"
-            + "\n".join(failures)
+            f"[{fixture_name}] Lines with dollar amounts but no source citation:\n" + "\n".join(failures)
         )
 
 
@@ -203,24 +183,17 @@ def assert_monotonicity(failures: list[str]) -> None:
         diy = data["diy"]
         if diy["total_run_rate_mo"] < prev_total:
             failures.append(
-                f"[monotonic] DIY total decreased at streams={streams}: "
-                f"{diy['total_run_rate_mo']} < {prev_total}"
+                f"[monotonic] DIY total decreased at streams={streams}: {diy['total_run_rate_mo']} < {prev_total}"
             )
             ok = False
         if diy["n_instances"] < prev_instances:
-            failures.append(
-                f"[monotonic] instance count decreased at streams={streams}"
-            )
+            failures.append(f"[monotonic] instance count decreased at streams={streams}")
             ok = False
         if data["scaling_cliff_incremental_usd_mo"] < 0:
-            failures.append(
-                f"[monotonic] negative scaling-cliff increment at streams={streams}"
-            )
+            failures.append(f"[monotonic] negative scaling-cliff increment at streams={streams}")
             ok = False
         if data["crossover_months"] is not None and data["crossover_months"] < 0:
-            failures.append(
-                f"[monotonic] negative crossover_months at streams={streams}"
-            )
+            failures.append(f"[monotonic] negative crossover_months at streams={streams}")
             ok = False
         prev_total = diy["total_run_rate_mo"]
         prev_instances = diy["n_instances"]
@@ -231,15 +204,10 @@ def assert_monotonicity(failures: list[str]) -> None:
 def assert_fps_capacity(failures: list[str]) -> None:
     """Require higher requested frame rates to increase estimated capacity."""
     try:
-        estimates = [
-            run_json(["--streams", "4", "--model-size", "medium", "--fps", str(fps)])
-            for fps in (1, 10, 60)
-        ]
+        estimates = [run_json(["--streams", "4", "--model-size", "medium", "--fps", str(fps)]) for fps in (1, 10, 60)]
         counts = [estimate["diy"]["n_instances"] for estimate in estimates]
         if counts != sorted(counts) or counts[0] == counts[-1]:
-            raise AssertionError(
-                f"FPS did not materially affect instance capacity: {counts}"
-            )
+            raise AssertionError(f"FPS did not materially affect instance capacity: {counts}")
         print(f"  PASS [fps-capacity] instance estimates rise with FPS: {counts}")
     except AssertionError as exc:
         failures.append(f"[fps-capacity] {exc}")
@@ -277,19 +245,59 @@ def assert_abstention_sweep(failures: list[str]) -> None:
     """Abstention sweep: without a real quote, no point may emit a diy/managed verdict."""
     ok = True
     for streams in SWEEP_STREAMS:
-        data = run_json(
-            ["--streams", str(streams), "--model-size", "medium", "--uptime", "24x7"]
-        )
+        data = run_json(["--streams", str(streams), "--model-size", "medium", "--uptime", "24x7"])
         if data["recommendation"] != "insufficient-data":
             failures.append(
-                f"[abstention] streams={streams}: expected insufficient-data, "
-                f"got {data['recommendation']!r}"
+                f"[abstention] streams={streams}: expected insufficient-data, got {data['recommendation']!r}"
             )
             ok = False
     if ok:
-        print(
-            f"  PASS [abstention] no verdict without a quote across {len(SWEEP_STREAMS)} points"
-        )
+        print(f"  PASS [abstention] no verdict without a quote across {len(SWEEP_STREAMS)} points")
+
+
+def assert_acceptance_binding(failures: list[str]) -> None:
+    """Require decision-grade economics to preserve the frozen acceptance digest."""
+    try:
+        unbound = run_json(["--streams", "1"])
+        if unbound["proof"]["status"] != "unbound":
+            raise AssertionError("default economics did not declare unbound assumptions")
+        with tempfile.TemporaryDirectory() as directory:
+            acceptance = Path(directory) / "acceptance.json"
+            acceptance.write_text(
+                json.dumps({"schema_version": "1", "acceptance_id": "cost/v1"}),
+                encoding="utf-8",
+            )
+            assert_invalid_input(
+                ["--streams", "1", "--acceptance", str(acceptance)],
+                "missing frozen acceptance fields",
+            )
+            acceptance.write_text(
+                json.dumps(
+                    {
+                        "schema_version": "1",
+                        "acceptance_id": "cost/v1",
+                        "frozen_at": "2026-08-11T00:00:00Z",
+                        "metric": "mAP@50",
+                        "comparator": "gte",
+                        "threshold": 0.65,
+                        "unit": "fraction",
+                        "dataset_sha256": "a" * 64,
+                        "model_or_pipeline": "fixture/v1",
+                        "confirmed_by": "fixture owner",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            bound = run_json(["--streams", "1", "--acceptance", str(acceptance)])
+            if bound["proof"]["status"] != "bound":
+                raise AssertionError("acceptance input did not bind economic output")
+            if bound["proof"]["acceptance_id"] != "cost/v1":
+                raise AssertionError("economic output acceptance ID drifted")
+            if len(bound["proof"]["acceptance_sha256"]) != 64:
+                raise AssertionError("economic output omitted acceptance digest")
+        print("  PASS [acceptance-binding] bound and unbound scopes are explicit")
+    except AssertionError as exc:
+        failures.append(f"[acceptance-binding] {exc}")
 
 
 def main() -> int:
@@ -327,6 +335,7 @@ def main() -> int:
     assert_fps_capacity(failures)
     assert_quote_provenance(failures)
     assert_abstention_sweep(failures)
+    assert_acceptance_binding(failures)
     assert_numeric_boundaries(failures)
 
     if failures:

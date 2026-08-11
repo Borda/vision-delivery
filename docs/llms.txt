@@ -27,7 +27,7 @@ claude plugin marketplace add Borda/vision-delivery
 claude plugin install sentinel@sentinel
 ```
 
-No credential environment variable is required for plugin installation. When the host or account requires it, using the MCP capability requests hosted authorization; an existing authorized session may need no prompt. The v0.2 package passed local clean-home marketplace simulations, but its public-GitHub install remains unverified until publication and retest. Use `claude --plugin-dir .` only for local development from a checkout. Cursor support is unverified. Never paste credentials into chat or commit them.
+No credential environment variable is required for plugin installation. The v0.4 release candidate passed local clean-home marketplace simulations. Manual public-GitHub marketplace installation was recorded for v0.3 on Codex and Claude Code; the v0.4 public-install path remains unverified. When the host or account requires it, using the MCP capability requests hosted authorization; an existing authorized session may need no prompt. Live Roboflow account authorization and service behavior remain upstream checks. Use `claude --plugin-dir .` only for local development from a checkout. Cursor support is unverified. Never paste credentials into chat or commit them.
 
 ## Evidence limits
 

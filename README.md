@@ -22,19 +22,19 @@ Sentinel should turn that into a task definition, success gate, baseline, eviden
 | **🔗 Delegated upstream**  | Sentinel frames and evaluates the work; current product details come from the official source.      | Roboflow MCP operations, model IDs, Workflows, plans, pricing, and platform navigation.                                                                                              |
 | **🧑‍⚖️ Expert required**     | Do not rely on the plugin alone.                                                                    | Regulated or safety-critical decisions, people surveillance, medical use, physical measurement, production streaming/edge architecture, legal review, and final production sign-off. |
 
-Read [Support & Evidence](docs/support-and-scope.md) before treating a guided route as production-ready.
+Read [Support & Evidence](https://borda.github.io/vision-delivery/support-and-scope/) before treating a guided route as production-ready.
 
 ## 📊 Evidence, without the headline inflation
 
-- **Historical routing sample:** one pre-v0.2 Claude Sonnet run over 143 labeled prompts reported micro precision `0.94` and recall `0.85`: 63 true positives, 4 false positives, and 11 false negatives. Direct specialist routes raised tolerant positive coverage to 65/74 (`0.88`), but four negative prompts still fired incorrectly. The run predates `deliver-cv-project` and `check-sentinel-setup`; it is not evidence for the current route set, Codex, or user outcomes. See [`2026-07-10-full-summary.txt`](evals/trigger-live/runs/2026-07-10-full-summary.txt).
-- **Process A/B:** 16 mocked runs, one repeat per cell. One cell supported the preregistered hypothesis, six were mixed/parity, and one was a loss. The result is directional because `N=1`, the environment was developer-contaminated, and live capability confirmation is pending. See [A/B benchmark](docs/benchmarks/ab-plugin-vs-plain.md).
-- **CV fixture:** B1 contains measured post-training evidence on 11 private test images. It does not establish conveyor-domain equivalence, a controlled plain-agent advantage, or broad modality coverage. B2-B5 are specifications with live measurements pending. See [benchmark status](docs/benchmarks/index.md).
+- **Historical routing sample:** one pre-v0.2 Claude Sonnet run over 143 labeled prompts reported micro precision `0.94` and recall `0.85`: 63 true positives, 4 false positives, and 11 false negatives. Direct specialist routes raised tolerant positive coverage to 65/74 (`0.88`), but four negative prompts still fired incorrectly. The run predates `deliver-cv-project` and `check-sentinel-setup`; it is not evidence for the current route set, Codex, or user outcomes. See [`2026-07-10-full-summary.txt`](https://github.com/Borda/vision-delivery/blob/main/evals/trigger-live/runs/2026-07-10-full-summary.txt).
+- **Process A/B:** 16 mocked runs, one repeat per cell. One cell supported the preregistered hypothesis, six were mixed/parity, and one was a loss. The result is directional because `N=1`, the environment was developer-contaminated, and live capability confirmation is pending. See [A/B benchmark](https://borda.github.io/vision-delivery/benchmarks/ab-plugin-vs-plain/).
+- **CV fixture:** B1 contains measured post-training evidence on 11 private test images. It does not establish conveyor-domain equivalence, a controlled plain-agent advantage, or broad modality coverage. B2-B5 are specifications with live measurements pending. See [benchmark status](https://borda.github.io/vision-delivery/benchmarks/).
 
 No novice user study has been run. Sentinel is intended to reduce the entry barrier; the repository does not yet prove that a novice can independently reach a production result.
 
 ## 🚀 Quick start
 
-The v0.3 release candidate has passed local clean-home marketplace simulations and manual public-GitHub marketplace installation on Codex and Claude Code. Live Roboflow account authorization and service behavior remain upstream checks.
+The v0.4 release candidate has passed local clean-home marketplace simulations. Manual public-GitHub marketplace installation was recorded for v0.3 on Codex and Claude Code; the v0.4 public-install path remains unverified. Live Roboflow account authorization and service behavior remain upstream checks.
 
 ### 🤖 Codex marketplace install
 
@@ -71,7 +71,7 @@ flowchart TB
 
     subgraph IMPROVE[3. Improve if needed]
         direction LR
-        G[Investigate<br/>misses] --> H[Confirm before<br/>paid action]
+        G[Investigate<br/>misses] --> H[External approval<br/>for paid action]
     end
 
     subgraph DECIDE[4. Decide]
@@ -102,7 +102,7 @@ flowchart TB
 3. Agree on a metric, threshold, sample slice, and consequence of failure.
 4. Measure a pretrained or existing baseline before training.
 5. Investigate misses and try the cheapest justified improvement.
-6. Ask before credit-spending training or deployment actions.
+6. Stop before data-moving, credit-spending, or state-changing provider actions; return a sourced action brief for execution through a host/provider approval control.
 7. Produce local proof artifacts and an evidence-bound recommendation.
 8. Estimate economics and leave production acceptance to the user.
 
@@ -114,11 +114,11 @@ Sentinel owns the delivery question: *What should we build, what evidence would 
 
 Roboflow owns current product truth: MCP tool semantics, model families and IDs, Workflows, platform navigation, account plans, and current pricing. Use the installed official [`roboflow/computer-vision-skills`](https://github.com/roboflow/computer-vision-skills) content first, then `roboflow://skills/...` MCP resources when exposed. If neither is available, mark platform-specific guidance unverified.
 
-Installing two full plugins can duplicate a `roboflow` MCP server definition on hosts that do not deduplicate configuration. See [Roboflow Skills Integration](docs/roboflow-skills.md) before combining them.
+Installing two full plugins can duplicate a `roboflow` MCP server definition on hosts that do not deduplicate configuration. See [Roboflow Skills Integration](https://borda.github.io/vision-delivery/roboflow-skills/) before combining them.
 
 ## ⚠️ Safety boundary
 
-The paid-action confirmation is an instruction to the agent, not a machine-enforced block. The hook and local ledger improve reconstruction but are not complete telemetry or authorization controls.
+Sentinel does not invoke uploads, paid training, deployment, deletion, or other state-changing provider actions. It returns a sourced action brief for the user to execute through a host/provider approval control. The current Codex plugin hook is post-action only; the hook and local ledger improve reconstruction but are not authorization controls.
 
 Before work involving faces, license plates, people tracking, forms, medical imagery, worker monitoring, or other sensitive data, require all of the following:
 
@@ -128,22 +128,22 @@ Before work involving faces, license plates, people tracking, forms, medical ima
 - a named human reviewer and appeal/override path,
 - legal, privacy, and security review appropriate to the consequences.
 
-Do not use Sentinel as the sole basis for medical, employment, law-enforcement, access-control, or physical-safety decisions. Read [Trust and Safety](docs/trust.md) and the [security policy](.github/SECURITY.md).
+Do not use Sentinel as the sole basis for medical, employment, law-enforcement, access-control, or physical-safety decisions. Read [Trust and Safety](https://borda.github.io/vision-delivery/trust/) and the [security policy](https://github.com/Borda/vision-delivery/blob/main/.github/SECURITY.md).
 
 ## 📚 Project resources
 
 - [Documentation](https://borda.github.io/vision-delivery/)
-- [Quick start](docs/quickstart.md)
-- [Use cases](docs/use-cases.md)
-- [Support, scope, and evidence](docs/support-and-scope.md)
-- [Benchmarks](docs/benchmarks/index.md)
-- [Contributing](.github/CONTRIBUTING.md)
-- [Support policy](.github/SUPPORT.md)
-- [Compatibility](docs/compatibility.md)
-- [Release policy](docs/release-policy.md)
-- [Security](.github/SECURITY.md)
-- [Changelog](CHANGELOG.md)
+- [Quick start](https://borda.github.io/vision-delivery/quickstart/)
+- [Use cases](https://borda.github.io/vision-delivery/use-cases/)
+- [Support, scope, and evidence](https://borda.github.io/vision-delivery/support-and-scope/)
+- [Benchmarks](https://borda.github.io/vision-delivery/benchmarks/)
+- [Contributing](https://github.com/Borda/vision-delivery/blob/main/.github/CONTRIBUTING.md)
+- [Support policy](https://github.com/Borda/vision-delivery/blob/main/.github/SUPPORT.md)
+- [Compatibility](https://borda.github.io/vision-delivery/compatibility/)
+- [Release policy](https://borda.github.io/vision-delivery/release-policy/)
+- [Security](https://github.com/Borda/vision-delivery/blob/main/.github/SECURITY.md)
+- [Changelog](https://github.com/Borda/vision-delivery/blob/main/CHANGELOG.md)
 
 💡 Have a reproducible bug or actionable suggestion? [Open an issue](https://github.com/Borda/vision-delivery/issues/new/choose). External pull requests are temporarily paused while CI and contribution rules are fortified. Do not attach secrets, private customer data, faces, license plates, medical data, or media you are not authorized to share.
 
-Released under Apache-2.0. See [CITATION.cff](CITATION.cff) for citation metadata and [NOTICE](NOTICE) for redistribution notices.
+Released under Apache-2.0. See [CITATION.cff](https://github.com/Borda/vision-delivery/blob/main/CITATION.cff) for citation metadata and [NOTICE](https://github.com/Borda/vision-delivery/blob/main/NOTICE) for redistribution notices.

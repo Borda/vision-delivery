@@ -18,7 +18,7 @@ Read existing code, model metadata, `.vision-delivery/eval-*.md`, ledger rows, g
 Require:
 
 1. a model/pipeline identity and output schema;
-2. an `acceptance_id` frozen before the candidate result;
+2. a machine-readable acceptance artifact frozen before the candidate result, with its `acceptance_id`, project-relative path, and SHA-256 digest;
 3. independent acceptance evidence for the selected version;
 4. the intended consumer and runtime environment.
 
@@ -34,7 +34,7 @@ For a novice request such as “make this useful in my factory,” ask at most t
 
 <methodology>
 
-**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md`. For every platform-specific export, Workflow, endpoint, device, deployment, telemetry, or active-learning action, delegate exact execution to the installed official Roboflow skill or current MCP skill resource. Sentinel owns delivery selection, acceptance, consent, artifact hardening, and the handoff record. If no upstream source is available, stop at a `scaffold`; do not guess an API, model ID, container tag, endpoint, or UI path.
+**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md`. Use installed official Roboflow skills or current MCP skill resources only for read-only discovery. For every platform-specific export, Workflow mutation, endpoint, device, deployment, telemetry mutation, active-learning action, paid action, or data movement, emit a sourced action brief and stop for execution through an external host/provider approval control. Sentinel never invokes those actions. Sentinel owns delivery selection, acceptance, artifact hardening, and the handoff record. If no upstream source is available, stop at a `scaffold`; do not guess an API, model ID, container tag, endpoint, or UI path.
 
 ## Step 1 — Select the delivery contract
 
@@ -61,7 +61,7 @@ Record before integration:
 - consumer action and human-review boundary;
 - model/version and rollback target.
 
-For RTSP or camera work, keep capture, inference, and business action as separate interfaces. Delegate current platform/runtime setup upstream; Sentinel tests the boundary with a recorded clip before live cutover.
+For RTSP or camera work, keep capture, inference, and business action as separate interfaces. Use read-only upstream facts to prepare any platform/runtime setup action brief and stop before provider execution; Sentinel tests externally configured boundaries with a recorded clip before live cutover.
 
 ## Step 3 — Generate and verify the artifact
 
@@ -70,12 +70,12 @@ Follow `../../resources/artifact-contract.md`. Generate the modality artifact th
 Run:
 
 1. dependency installation in a clean Python 3.10+ environment;
-2. the shared artifact smoke helper from an unrelated working directory;
+2. the shared artifact smoke helper without execution, inspect the generated tree, then return the exact `--execute-reviewed` command for a human or external host control to run with an evidence output outside the artifact tree;
 3. one representative consumer integration test;
-4. a live hosted request after data consent, or an offline local-runtime inference with network disabled;
+4. an exclusively frozen `freeze_delivery_check.py` contract created before execution, then helper-produced evidence from a human/external-host execution of the exact `record_delivery_check.py --check-contract <path> --execute-reviewed` command; hosted execution remains outside Sentinel, and offline execution requires a verified network-isolation boundary;
 5. a negative test for missing credentials/input and an empty-result case.
 
-A self-test without the applicable live/offline path leaves the artifact a `scaffold`.
+A self-test without the applicable live/offline path leaves the artifact a `scaffold`. Never add `--execute-reviewed` without the user's explicit approval in the current turn; the helpers are not OS sandboxes.
 
 Run `../../resources/scripts/validate_delivery_handoff.py` against the completed handoff and project root. Do not emit `artifact_verified` or `delivery_handoff_emitted` until both the artifact smoke helper and handoff validator pass.
 
@@ -98,22 +98,40 @@ Write `.vision-delivery/delivery-handoff-<session>.json`:
 
 ```json
 {
-  "schema_version": "1",
+  "schema_version": "2",
   "acceptance_id": "<id/revision>",
+  "acceptance_path": ".vision-delivery/acceptance-<revision>.json",
+  "acceptance_sha256": "<sha256>",
   "model_or_pipeline": "<verified identity/version>",
   "artifact_kind": "hosted-client|local-runtime|scaffold",
   "artifact_path": "<project-relative path>",
+  "artifact_sha256": "<sha256>",
   "input_schema": {},
   "output_schema": {},
   "provider_dependency": "<name or none>",
   "data_boundary": "<local or approved destination>",
   "commands": {
-    "self_test": "<command>",
-    "live": "<command>"
+    "self_test": [
+      "<current-python>",
+      "inference.py",
+      "--self-test"
+    ],
+    "live": [
+      "<python>",
+      "inference.py",
+      "<args>"
+    ]
   },
+  "expected_stdout_sha256": "<predeclared lowercase sha256>",
+  "check_contract_path": ".vision-delivery/delivery-check-contract-<session>.json",
+  "check_contract_sha256": "<sha256>",
   "checks": {
     "self_test": "passed",
     "live_or_offline": "passed|not-run"
+  },
+  "evidence": {
+    "self_test": ".vision-delivery/self-test-evidence-<session>.json",
+    "live_or_offline": ".vision-delivery/live-evidence-<session>.json"
   },
   "rollback": {
     "target": "<version>",
@@ -126,7 +144,7 @@ Write `.vision-delivery/delivery-handoff-<session>.json`:
 }
 ```
 
-Use project-relative paths in the handoff for portability, but execute verification with resolved absolute paths. Never place secrets or signed URLs in the handoff.
+Use project-relative paths in the handoff for portability, but execute verification with resolved absolute paths. Commands are canonical argv arrays, never shell strings. The fixed `<current-python>` self-test token is a portable evidence marker for the interpreter used by `artifact_smoke.py`; resolve it to that environment's Python executable only when replaying the command. Never place secrets or signed URLs in the handoff. The handoff validator must load the frozen acceptance and helper-produced local evidence, recompute both digests, and reject self-declared or stale `passed` states.
 
 </methodology>
 
@@ -140,8 +158,8 @@ Follow `../../resources/ledger-protocol.md`. After the artifact checks pass, man
 
 - No independent acceptance for the selected version → return to the modality skill.
 - Missing current upstream platform truth → emit only a scaffold and the exact dependency needed.
-- Hosted data movement not approved → offer local-runtime/scaffold; do not send data.
-- Paid or destructive action lacks sourced impact and explicit current-turn consent → stop before the action.
+- Hosted data movement is required → emit a sourced action brief and stop; conversational consent does not authorize Sentinel to send data.
+- Provider action is required → emit a sourced action brief and stop; conversational consent does not authorize Sentinel execution.
 - Live/offline smoke not run → do not call delivery complete.
 
 \</stop_rules>

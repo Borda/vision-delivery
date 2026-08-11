@@ -22,12 +22,13 @@ Read these sources before writing. Do not ask for information the codebase alrea
 | Section                     | Source                                                                                                                                          |
 | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | PoC result + eval data (§4) | Packaged `scripts/baseline_map.py` output, or `.vision-delivery/ledger.jsonl` for session history; current Roboflow evidence delegated upstream |
+| Frozen proof identity       | Acceptance, baseline, handoff, ledger, and economics artifacts validated together with `../../resources/scripts/validate_proof_chain.py`        |
 | Economics + crossover (§6)  | Absolute packaged `scripts/cost_model.py --streams <N> ...` output — run with the user's inputs; never hardcode figures                         |
 | Options analysis (§5)       | User-stated constraints + cost_model.py DIY vs managed outputs                                                                                  |
 | Sensitivity (§6)            | Re-run `cost_model.py` with `--streams` / `--uptime` inputs at ±20%; report delta                                                               |
 | Eval threshold + model name | `.vision-delivery/eval-<session-id>.md` if present, else ask one targeted question                                                              |
 
-Resolve the plugin root from this loaded `skills/decision-report/SKILL.md`, then run `<plugin-root>/scripts/cost_model.py` by absolute path. Never assume the user's project contains the helper. Use its output verbatim for all economic figures — no paraphrasing, no rounding beyond what the script reports.
+Resolve the plugin root from this loaded `skills/decision-report/SKILL.md`, then run `<plugin-root>/scripts/cost_model.py` by absolute path with `--acceptance <frozen-acceptance.json>`. Never assume the user's project contains the helper. Use its output verbatim for all economic figures — no paraphrasing, no rounding beyond what the script reports. Before writing, run `<plugin-root>/resources/scripts/validate_proof_chain.py` without `--report` to obtain the terminal `chain_id`. A decision-grade report must reject `proof.status: unbound`, a failed/mismatched baseline, an invalid handoff, missing proof ledger actions, or a ledger/cost record that names a different digest. Rough unbound economics may be reported only as assumptions and cannot end in `go`.
 
 </inputs>
 
@@ -43,6 +44,8 @@ Version:  1.0
 Status:   DRAFT
 Date:     <YYYY-MM-DD>
 Decision: <one sentence stating exactly what is being decided>
+Acceptance: <acceptance_id> / <acceptance_sha256>
+Proof chain: <chain_id>
 ```
 
 **2. Executive summary (≤1 page, written last)** Problem → recommendation → headline cost → value/ROI → top-3 risks → explicit ask (what you need from the reader). Written last; placed first.
@@ -98,6 +101,7 @@ Sensitivities (±20% on each live-fetched rate — re-run cost_model.py to gener
 - Methodology (link to `scripts/cost_model.py`)
 - Full `cost_model.py` output (paste verbatim)
 - Raw eval data (mAP table or link to eval file)
+- Frozen acceptance path/digest and validated handoff/evidence paths
 - References (all source URLs)
 
 \</output_structure>
@@ -114,7 +118,7 @@ Sensitivities (±20% on each live-fetched rate — re-run cost_model.py to gener
 
 <export>
 
-After writing the Markdown file, print once:
+After writing the Markdown file, append `decision_report_emitted` through `ledger_append.py`, then rerun `validate_proof_chain.py --report <report-path>`. Do not hand off a report unless that terminal validation passes. Then print once:
 
 ```
 → decision-report-<YYYY-MM-DD>.md
@@ -152,12 +156,26 @@ Follow `../../resources/ledger-protocol.md`. Write one local record when the rep
   "skill": "decision-report",
   "action": "decision_report_emitted",
   "entity_id": "<workspace>/<project>",
-  "version": "0.2.0",
+  "version": "0.4.0",
   "event_id": "manual:<session-id>:decision_report_emitted:1",
   "status": "success",
   "source": "skill",
-  "notes": "decision-report-<YYYY-MM-DD>.md"
+  "acceptance_id": "<id/revision>",
+  "acceptance_sha256": "<sha256>",
+  "report_sha256": "<computed from the emitted report>",
+  "notes": "decision-report-<YYYY-MM-DD>.md; acceptance_sha256=<sha256>"
 }
+```
+
+Append that record through the absolute packaged helper, never by writing JSONL directly:
+
+```bash
+python <plugin-root>/scripts/ledger_append.py \
+    --ledger <project-root>/.vision-delivery/ledger.jsonl \
+    --session <session-id> --skill decision-report \
+    --action decision_report_emitted --event-id manual:<session-id>:decision_report_emitted:1 \
+    --status success --acceptance <frozen-acceptance.json> \
+    --report <project-root>/decision-report-<YYYY-MM-DD>.md
 ```
 
 </ledger>

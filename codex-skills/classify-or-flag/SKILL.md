@@ -12,7 +12,7 @@ Produce one verdict for the whole image that supports a named business action an
 
 <methodology>
 
-**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific search, dataset, training, inference, or deployment action. Delegate exact execution to the installed official Roboflow skill or current MCP resource. Keep volatile model names, IDs, request shapes, and platform sequences out of Sentinel.
+**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific search, dataset, training, inference, or deployment action. Use installed official Roboflow skills or current MCP resources only for read-only discovery and sourced action-brief inputs; never invoke provider execution. Keep volatile model names, IDs, request shapes, and platform sequences out of Sentinel.
 
 Follow `../../resources/fde-methodology.md`; apply these classification-specific rules.
 
@@ -59,7 +59,7 @@ Unlabeled visual review may identify errors but cannot generate F1, accuracy, or
 
 ## 4. Diagnose before more data
 
-Check label ambiguity, leakage, imbalance, domain shift, visually indistinguishable classes, background shortcuts, crop policy, and threshold calibration. Test one falsifiable lever at a time. New labels should target demonstrated failure slices, not an arbitrary image count. Delegate any current training/data action upstream, then remeasure on the unchanged gold set.
+Check label ambiguity, leakage, imbalance, domain shift, visually indistinguishable classes, background shortcuts, crop policy, and threshold calibration. Test one falsifiable lever at a time. New labels should target demonstrated failure slices, not an arbitrary image count. Use read-only upstream facts to prepare any required training/data action brief, stop before provider execution, then remeasure externally supplied results on the unchanged gold set.
 
 ## 5. Decide and deliver
 
@@ -71,8 +71,8 @@ Return `go`, `revise`, or `stop`. State the frozen gate, measured result, class/
 
 - Pseudo-labels may bootstrap training data but never own acceptance.
 - Do not collapse high-stakes per-person compliance into an unexplained scene label.
-- State data movement and obtain explicit consent before upload.
-- Show sourced impact and obtain explicit consent before paid work.
+- State data movement, emit a sourced action brief, and stop before upload; Sentinel never invokes it.
+- Show sourced impact, emit an action brief, and stop before paid work; Sentinel never invokes it.
 - Do not invent current provider capabilities or model identifiers.
 
 </safety>
@@ -88,7 +88,7 @@ Follow `../../resources/ledger-protocol.md`. Record acceptance, evaluation, arti
 - Labels are undefined or contradictory → adjudicate examples before training.
 - No independent labeled split → do not claim a metric.
 - Required output is per-object, localized, temporal, or textual → route to the owning skill.
-- Paid/data-moving action lacks current-turn consent → stop.
+- Provider action is required → emit a sourced action brief and stop; conversational consent does not authorize Sentinel execution.
 - Live/offline artifact check is absent → retain `scaffold` status.
 
 \</stop_rules>

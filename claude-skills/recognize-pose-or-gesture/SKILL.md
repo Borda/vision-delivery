@@ -13,7 +13,7 @@ Turn keypoints or temporal keypoint sequences into a pose/gesture decision that 
 
 <methodology>
 
-**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific search, dataset, training, inference, workflow, or deployment action. Delegate exact execution to the installed official Roboflow skill or current MCP resource. Do not freeze model families, IDs, or platform recipes in Sentinel.
+**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific search, dataset, training, inference, workflow, or deployment action. Use installed official Roboflow skills or current MCP resources only for read-only discovery and sourced action-brief inputs; never invoke provider execution. Do not freeze model families, IDs, or platform recipes in Sentinel.
 
 Follow `../../resources/fde-methodology.md`; apply these keypoint-specific rules.
 
@@ -59,7 +59,7 @@ An event label inferred from candidate keypoints is not independent gold.
 
 ## 4. Diagnose a failed gate
 
-Separate keypoint localization failures, left/right swaps, missing joints, identity switches, temporal-window errors, and rule/classifier errors. Check camera viewpoint, occlusion, motion blur, subject diversity, and annotation consistency. Test capture or deterministic rule improvements before more expensive training. Delegate current platform operations upstream and remeasure against the frozen split.
+Separate keypoint localization failures, left/right swaps, missing joints, identity switches, temporal-window errors, and rule/classifier errors. Check camera viewpoint, occlusion, motion blur, subject diversity, and annotation consistency. Test capture or deterministic rule improvements before more expensive training. Use read-only upstream facts to prepare any required provider action brief, stop before execution, and remeasure externally supplied results against the frozen split.
 
 ## 5. Decide and deliver
 
@@ -72,8 +72,8 @@ Return `go`, `revise`, or `stop`, with exact event counts, failure slices, rule 
 - Pose output alone does not prove intent, identity, medical condition, or safety compliance.
 - Safety alerts require a documented human/operational fallback.
 - Pseudo-labels cannot own acceptance.
-- Obtain explicit consent for data movement and paid work.
-- Delegate exact provider actions to current upstream guidance.
+- Emit a sourced action brief and stop before data movement or paid provider work; Sentinel never invokes either.
+- Use current upstream guidance only for read-only facts and action-brief inputs; never invoke provider execution.
 
 </safety>
 
@@ -88,7 +88,7 @@ Follow `../../resources/ledger-protocol.md`. Record acceptance, stage evaluation
 - Required joints/action are not defined → define the contract before candidate work.
 - No independent subject/site split → do not claim generalization.
 - Capture does not expose required keypoints → state the camera/acquisition blocker.
-- Paid/data-moving action lacks current-turn consent → stop.
+- Provider action is required → emit a sourced action brief and stop; conversational consent does not authorize Sentinel execution.
 - Applicable live/offline check is absent → retain `scaffold` status.
 
 \</stop_rules>

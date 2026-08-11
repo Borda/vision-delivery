@@ -9,6 +9,11 @@ import os
 import socket
 
 ARTIFACT_KIND = "hosted-client"
+FIXTURE_OUTPUT = {
+    "artifact_kind": "hosted-client",
+    "count": 1,
+    "predictions": [{"class": "fixture", "confidence": 0.9}],
+}
 
 
 def main() -> int:
@@ -24,19 +29,11 @@ def main() -> int:
                 raise
         else:
             raise RuntimeError("self-test network guard was not active")
-        print(
-            json.dumps(
-                {
-                    "artifact_kind": "hosted-client",
-                    "count": 1,
-                    "predictions": [{"class": "fixture", "confidence": 0.9}],
-                },
-                sort_keys=True,
-            )
-        )
+        print(json.dumps(FIXTURE_OUTPUT, sort_keys=True))
         return 0
     if not os.environ.get("SENTINEL_FIXTURE_TOKEN"):
         parser.error("SENTINEL_FIXTURE_TOKEN is required for this fixture's live path")
+    print(json.dumps(FIXTURE_OUTPUT, sort_keys=True))
     return 0
 
 
