@@ -2,6 +2,8 @@
 
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/Borda/vision-delivery/main.svg)](https://results.pre-commit.ci/latest/github/Borda/vision-delivery/main) [![Docs](https://img.shields.io/badge/docs-online-0F766E.svg)](https://borda.github.io/vision-delivery/) [![docs](https://github.com/Borda/vision-delivery/actions/workflows/docs.yml/badge.svg)](https://github.com/Borda/vision-delivery/actions/workflows/docs.yml) [![evals](https://github.com/Borda/vision-delivery/actions/workflows/evals.yml/badge.svg)](https://github.com/Borda/vision-delivery/actions/workflows/evals.yml) [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
+![Sentinel banner](assets/sentinel-banner.webp)
+
 `vision-delivery` ships the `sentinel` plugin for Codex and Claude Code. Tell it the operational outcome you need from images or video; it helps turn that request into a measurable computer-vision proof, checks a baseline before recommending training, and frames the cost and next decision.
 
 Sentinel is designed to lower the computer-vision methodology burden. You do not need to arrive knowing model families, metric names, or Roboflow APIs. You still own four things the plugin cannot infer safely: permission to use the data, the business outcome, representative examples, and the consequence of a wrong answer. Production acceptance remains a human decision.

@@ -40,7 +40,7 @@ repos:
         name: 🔤 check-case-conflict
       - id: check-added-large-files
         name: 📦 check-added-large-files
-        args: ["--maxkb=125", "--enforce-all"]
+        args: ["--maxkb=250", "--enforce-all"]
       - id: detect-private-key
         name: 🔐 detect-private-key
       - id: check-merge-conflict
