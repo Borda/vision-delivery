@@ -65,7 +65,7 @@ DRIFT_MONTHLY_USD = 150.0
 # Roboflow Core plan (annual) — cheapest paid tier. Displayed as a REFERENCE
 # floor only; never used as the managed side of a verdict — credits-based,
 # not a per-stream price, so treating it as one would bias the comparison.
-MANAGED_FLOOR_USD_MO = 79.0
+MANAGED_FLOOR_USD_MO = 39.0
 WEEKS_PER_MONTH = 52 / 12
 SNAPSHOT_STALE_DAYS = 30
 
@@ -387,7 +387,7 @@ def compute(args: argparse.Namespace, snapshot: dict[str, Any]) -> dict[str, Any
         managed_as_of = managed_src.get("as_of", as_of)
         managed_caveat = (
             "Credits-based pricing; no public per-stream price. The Core plan "
-            f"floor (${MANAGED_FLOOR_USD_MO:,.0f}/mo annual, ~15 credits) is a "
+            f"floor (${MANAGED_FLOOR_USD_MO:,.0f}/mo, ~20 credits) is a "
             "reference only — NOT comparable to a fully-loaded DIY run-rate."
         )
 
@@ -582,7 +582,7 @@ def _render_managed_section(result: dict[str, Any], args: argparse.Namespace) ->
         lines.append(f"Roboflow managed ({args.streams} streams): no comparable figure")
         lines.append(
             "  Credits-based pricing; no public per-stream price. Reference floor: "
-            f"~${managed['reference_floor_usd_mo']:,.0f}/mo Core plan (~15 credits) — "
+            f"~${managed['reference_floor_usd_mo']:,.0f}/mo Core plan (~20 credits) — "
             "NOT comparable to a fully-loaded DIY run-rate  "
             + f"[source: {managed_src_label}, as_of: {src['managed_as_of']}]"
         )
