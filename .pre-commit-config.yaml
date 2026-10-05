@@ -53,7 +53,7 @@ repos:
         args: ["--autofix"]
 
   - repo: https://github.com/JoC0de/pre-commit-prettier
-    rev: v3.8.1 # using tag; previously pinned SHA when tags were not persistent
+    rev: v3.9.9 # using tag; previously pinned SHA when tags were not persistent
     hooks:
       - id: prettier
         name: 🎨 prettier
@@ -64,7 +64,7 @@ repos:
   # Keep rev + additional_dependencies in sync with the eslint pin in package.json;
   # GitHub Actions (`make ci`) remains the lockfile-pinned authority via `npm ci`.
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v10.6.0
+    rev: v10.12.0
     hooks:
       - id: eslint
         name: 🛡️ eslint
@@ -73,7 +73,7 @@ repos:
         files: \.(js|mjs)$
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.21
+    rev: v0.16.10
     hooks:
       - id: ruff
         name: 🦀 ruff
@@ -83,7 +83,7 @@ repos:
 
   # Keep this version and stub package in sync with evals/requirements.txt.
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v2.2.0
+    rev: v2.4.0
     hooks:
       - id: mypy
         name: 🔎 mypy
@@ -94,7 +94,7 @@ repos:
           - types-PyYAML==6.0.12.20260518
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.2
+    rev: v2.4.3
     hooks:
       - id: codespell
         name: ✏️ codespell
@@ -128,7 +128,7 @@ repos:
           - mdformat-web
 
   - repo: https://github.com/lycheeverse/lychee.git
-    rev: lychee-v0.23.0
+    rev: lychee-v0.24.2
     hooks:
       - id: lychee
         name: 🔗 lychee
