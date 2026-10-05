@@ -34,7 +34,7 @@ For a novice request such as “make this useful in my factory,” ask at most t
 
 <methodology>
 
-**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md`. Use installed official Roboflow skills or current MCP skill resources only for read-only discovery. For every platform-specific export, Workflow mutation, endpoint, device, deployment, telemetry mutation, active-learning action, paid action, or data movement, emit a sourced action brief and stop for execution through an external host/provider approval control. Sentinel never invokes those actions. Sentinel owns delivery selection, acceptance, artifact hardening, and the handoff record. If no upstream source is available, stop at a `scaffold`; do not guess an API, model ID, container tag, endpoint, or UI path.
+**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md`. Use installed official Roboflow skills or current MCP skill resources only for read-only discovery. For every platform-specific export, Workflow mutation, endpoint, device, deployment, telemetry mutation, active-learning action, paid action, or data movement, emit a sourced action brief and stop for execution through an external host/provider approval control. Sentinel never invokes those actions outside the host-gated path. Sentinel owns delivery selection, acceptance, artifact hardening, and the handoff record. If no upstream source is available, stop at a `scaffold`; do not guess an API, model ID, container tag, endpoint, or UI path.
 
 ## Step 1 — Select the delivery contract
 

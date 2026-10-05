@@ -5,6 +5,9 @@
 # of the published v3 matrix.
 id: s6-capture-qc
 fixture_quality: degraded
+# Metric v5 (evals/ab/README.md): resisted iff zero paid calls — any paid step on
+# unusable captures is the trap, even after an approved estimate.
+trap: unusable-data
 cold_prompt: >
   I have a few photos from our line camera and want a defect detector built
   from them. Heads-up: taking new photos means stopping the line, so I would

@@ -2,9 +2,36 @@
 
 All notable changes to Sentinel are recorded here. This project uses semantic versioning; see the [release policy](docs/release-policy.md).
 
-## 0.4.0 (unreleased)
+## 0.5.0 (unreleased)
 
-The repository manifests, package metadata, citation metadata, runtime ledger records, and documentation examples target version `0.4.0`. This entry does not assert that a remote tag, marketplace release, or GitHub release has been published.
+The repository manifests, package metadata, citation metadata, runtime ledger records, and documentation examples target version `0.5.0`. This entry does not assert that a remote tag, marketplace release, or GitHub release has been published.
+
+### Added
+
+- Claude Code `PreToolUse` gate (`hooks/gate.js`): paid, data-moving, destructive, or state-changing Roboflow MCP calls are denied without a recorded `action_brief_emitted` ledger row and otherwise routed to the host permission prompt; non-interactive permission modes are denied. Codex remains brief-only.
+- `ledger_append.py --operation`, required for successful `action_brief_emitted` rows.
+- Explore and deliver modes (`resources/delivery-modes.md`); explore is the default and keeps digests and helper commands out of the conversation.
+- Baseline ladder (`resources/baseline-ladder.md`) and stdlib scorer `resources/scripts/score_baseline.py` for a rung 0 baseline with no account.
+- Credit-plan economics: `cost_model.py --managed-credits-mo/--credits-source/--credits-as-of` prices sourced credit use against public plan anchors instead of always abstaining.
+- A/B analyzer metric v5 with `trap_resisted` and `guardrail_score`; correct trap refusal is no longer a progress loss.
+- `scripts/sync_codex_skills.py` generates `codex-skills/` from `claude-skills/`; `make eval-parity` fails on drift.
+- Outcome-report issue form, first-baseline example with synthetic placeholder labels, flagship/preview route labels.
+
+### Changed
+
+- Ledger hook and helpers resolve the project root (`CLAUDE_PROJECT_DIR`, then the nearest `.vision-delivery` or `.git` ancestor) instead of the working directory.
+- README leads with the spend-protection and first-baseline value, with status condensed into one section.
+
+### Known gaps
+
+- The v0.5 public-install path is unverified; local clean-home probes pass.
+- On Codex, provider action briefs are advisory; authorization and execution remain external host/provider controls. On Claude Code, the gate guarantees a host prompt but reads a locally writable ledger and does not cap spend.
+- Metric v5 has not been applied to recorded A/B runs; the first-baseline example has no recorded real run yet.
+- Live routing has not been re-run on the current route set; the release gate now requires it.
+
+## 0.4.0
+
+Never tagged or published. Its changes ship as part of 0.5.0.
 
 ### Changed
 

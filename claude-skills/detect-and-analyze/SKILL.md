@@ -13,7 +13,7 @@ Turn an object-level business question into a detector that passes independent a
 
 <methodology>
 
-**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific search, dataset, training, inference, or deployment action. Use installed official Roboflow skills or current MCP resources only for read-only discovery and sourced action-brief inputs; never invoke provider execution. Sentinel owns the problem contract, independent evidence, failure diagnosis, artifact verification, and decision.
+**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific search, dataset, training, inference, or deployment action. Use installed official Roboflow skills or current MCP resources only for read-only discovery and sourced action-brief inputs; never invoke provider execution outside the host-gated path. Sentinel owns the problem contract, independent evidence, failure diagnosis, artifact verification, and decision.
 
 Follow `../../resources/fde-methodology.md`; the domain-specific requirements below refine its generic sequence.
 
@@ -77,9 +77,9 @@ Report the result as `go`, `revise`, or `stop`, with the exact numerator/denomin
 <safety>
 
 - Independent human/sensor labels—not candidate output or pseudo-labels—own acceptance.
-- State data movement, emit a sourced action brief, and stop before uploads; Sentinel never invokes them.
-- Show a sourced cost/credit estimate, emit an action brief, and stop before paid work; Sentinel never invokes it.
-- Use current upstream guidance only for read-only facts and action-brief inputs; never invoke provider execution.
+- State data movement, emit a sourced action brief, and stop before uploads; Sentinel never invokes them outside the host-gated path.
+- Show a sourced cost/credit estimate, emit an action brief, and stop before paid work; Sentinel never invokes it outside the host-gated path.
+- Use current upstream guidance only for read-only facts and action-brief inputs; never invoke provider execution outside the host-gated path.
 - Bounding boxes do not justify calibrated millimeters, area, or contours.
 
 </safety>

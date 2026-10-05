@@ -13,7 +13,7 @@ Every JSON Lines record contains:
   "skill": "detect-and-analyze",
   "action": "baseline_measured",
   "entity_id": "workspace/project/version",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "event_id": "manual:factory-counter:baseline_measured:1",
   "status": "success",
   "source": "skill",

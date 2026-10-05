@@ -12,7 +12,7 @@ Produce one verdict for the whole image that supports a named business action an
 
 <methodology>
 
-**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific search, dataset, training, inference, or deployment action. Use installed official Roboflow skills or current MCP resources only for read-only discovery and sourced action-brief inputs; never invoke provider execution. Keep volatile model names, IDs, request shapes, and platform sequences out of Sentinel.
+**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific search, dataset, training, inference, or deployment action. Use installed official Roboflow skills or current MCP resources only for read-only discovery and sourced action-brief inputs; never invoke provider execution outside the host-gated path. Keep volatile model names, IDs, request shapes, and platform sequences out of Sentinel.
 
 Follow `../../resources/fde-methodology.md`; apply these classification-specific rules.
 
@@ -71,8 +71,8 @@ Return `go`, `revise`, or `stop`. State the frozen gate, measured result, class/
 
 - Pseudo-labels may bootstrap training data but never own acceptance.
 - Do not collapse high-stakes per-person compliance into an unexplained scene label.
-- State data movement, emit a sourced action brief, and stop before upload; Sentinel never invokes it.
-- Show sourced impact, emit an action brief, and stop before paid work; Sentinel never invokes it.
+- State data movement, emit a sourced action brief, and stop before upload; Sentinel never invokes it outside the host-gated path.
+- Show sourced impact, emit an action brief, and stop before paid work; Sentinel never invokes it outside the host-gated path.
 - Do not invent current provider capabilities or model identifiers.
 
 </safety>

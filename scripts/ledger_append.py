@@ -28,8 +28,26 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-LEDGER = Path.cwd() / ".vision-delivery" / "ledger.jsonl"
-VERSION = "0.4.0"
+
+def _project_root() -> Path:
+    """Return the user's project root so nested working directories share one ledger.
+
+    Examples:
+        >>> isinstance(_project_root(), Path)
+        True
+    """
+    declared = os.environ.get("CLAUDE_PROJECT_DIR", "")
+    if declared and Path(declared).is_absolute():
+        return Path(declared)
+    start = Path.cwd()
+    for candidate in (start, *start.parents):
+        if (candidate / ".vision-delivery").exists() or (candidate / ".git").exists():
+            return candidate
+    return start
+
+
+LEDGER = _project_root() / ".vision-delivery" / "ledger.jsonl"
+VERSION = "0.5.0"
 LOCK_TIMEOUT_SECONDS = 5.0
 LOCK_RETRY_SECONDS = 0.01
 PROOF_ACTIONS = {
@@ -41,6 +59,7 @@ PROOF_ACTIONS = {
 }
 ARTIFACT_ACTIONS = {"artifact_verified", "delivery_handoff_emitted"}
 REPORT_ACTION = "decision_report_emitted"
+BRIEF_ACTION = "action_brief_emitted"
 
 
 def _absolute_path(path: Path) -> Path:
@@ -225,6 +244,11 @@ def main() -> int:
     )
     p.add_argument("--source", choices=("skill", "hook", "import"), default="skill")
     p.add_argument("--notes", default="")
+    p.add_argument(
+        "--operation",
+        default="",
+        help="provider operation or category an action_brief_emitted row approves (read by the PreToolUse gate)",
+    )
     p.add_argument("--acceptance", type=Path)
     p.add_argument("--artifact-dir", type=Path)
     p.add_argument("--report", type=Path)
@@ -237,6 +261,8 @@ def main() -> int:
     acceptance_sha256 = ""
     artifact_sha256 = ""
     report_sha256 = ""
+    if args.status == "success" and args.action == BRIEF_ACTION and not args.operation.strip():
+        p.error(f"--operation is required for successful {BRIEF_ACTION}")
     try:
         if args.status == "success" and args.action in PROOF_ACTIONS:
             if args.acceptance is None:
@@ -274,6 +300,8 @@ def main() -> int:
         record["artifact_sha256"] = artifact_sha256
     if report_sha256:
         record["report_sha256"] = report_sha256
+    if args.operation:
+        record["operation"] = args.operation
     if args.streams is not None:
         record["streams"] = args.streams
     if args.decision is not None:

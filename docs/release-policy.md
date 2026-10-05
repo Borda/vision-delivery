@@ -21,7 +21,9 @@ Before a human publishes a release:
 5. verify every changed headline claim against committed evidence,
 6. list mocked, private, single-run, and pending evidence,
 7. update the [changelog](https://github.com/Borda/vision-delivery/blob/main/CHANGELOG.md) and compatibility notes,
-8. inspect the built package or plugin from a clean environment.
+8. inspect the built package or plugin from a clean environment,
+9. re-run live routing (`make eval-trigger-live`) on the current route set, at least two repeats and on both hosts where available, and record the summary; a release that adds, removes, or rewrites a skill trigger cannot reuse an older run,
+10. triage open outcome reports (`outcome-report` label) and note any that change a support tier.
 
 Remote publication, tags, releases, marketplace changes, and branch protection are human-owned operations. Their existence must not be claimed until verified on the remote service.
 

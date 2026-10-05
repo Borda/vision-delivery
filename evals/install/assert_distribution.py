@@ -49,13 +49,13 @@ def require(condition: bool, message: str) -> None:
         raise DistributionError(message)
 
 
-def require_hook_contract(config: dict[str, Any], event_names: set[str], root_variable: str) -> None:
-    """Validate one host-native hook manifest uses only its supported events."""
+def require_hook_contract(config: dict[str, Any], event_scripts: dict[str, str], root_variable: str) -> None:
+    """Validate one host-native hook manifest uses only its supported events and scripts."""
     hooks = config.get("hooks")
     if not isinstance(hooks, dict):
         raise DistributionError("hook manifest must contain hooks object")
-    require(set(hooks) == event_names, "hook manifest events drifted")
-    for event_name in event_names:
+    require(set(hooks) == set(event_scripts), "hook manifest events drifted")
+    for event_name, script in event_scripts.items():
         groups = hooks[event_name]
         require(
             isinstance(groups, list) and len(groups) == 1,
@@ -76,11 +76,11 @@ def require_hook_contract(config: dict[str, Any], event_names: set[str], root_va
         require(isinstance(handler, dict), f"{event_name} handler must be an object")
         require(handler.get("type") == "command", f"{event_name} handler type drifted")
         require(
-            handler.get("command") == f'node "${{{root_variable}}}/hooks/cta.js"',
+            handler.get("command") == f'node "${{{root_variable}}}/hooks/{script}"',
             f"{event_name} command must use {root_variable}",
         )
         require(
-            handler.get("commandWindows") == f'node "$env:{root_variable}\\hooks\\cta.js"',
+            handler.get("commandWindows") == f'node "$env:{root_variable}\\hooks\\{script}"',
             f"{event_name} Windows command must use {root_variable}",
         )
 
@@ -120,10 +120,10 @@ def validate_distribution() -> None:
         claude.get("hooks") == "./hooks/claude-hooks.json",
         "Claude must point to its explicit hook manifest",
     )
-    require_hook_contract(codex_hooks, {"PostToolUse"}, "PLUGIN_ROOT")
+    require_hook_contract(codex_hooks, {"PostToolUse": "cta.js"}, "PLUGIN_ROOT")
     require_hook_contract(
         claude_hooks,
-        {"PostToolUse", "PostToolUseFailure"},
+        {"PreToolUse": "gate.js", "PostToolUse": "cta.js", "PostToolUseFailure": "cta.js"},
         "CLAUDE_PLUGIN_ROOT",
     )
 
@@ -218,7 +218,7 @@ def main() -> int:
     except DistributionError as exc:
         print(f"distribution assertion failed: {exc}", file=sys.stderr)
         return 1
-    print("distribution assertions passed: sentinel@sentinel, version 0.4.0, URL-only Roboflow MCP")
+    print("distribution assertions passed: sentinel@sentinel, version 0.5.0, URL-only Roboflow MCP")
     return 0
 
 

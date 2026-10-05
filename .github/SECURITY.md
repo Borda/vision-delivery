@@ -24,9 +24,9 @@ The repository hook does not intentionally read authentication material or write
 
 ## Paid and state-changing actions
 
-Sentinel does not invoke uploads, dataset mutation, credit-spending training, deployment, deletion, or other state-changing provider operations. It produces a sourced action brief and stops. The user must execute the action through a host/provider control that can enforce approval. Conversational confirmation is not an authorization token.
+Sentinel never auto-approves uploads, dataset mutation, credit-spending training, deployment, deletion, or other state-changing provider operations. On Claude Code, the `hooks/gate.js` `PreToolUse` hook denies such a Roboflow MCP call unless the project ledger holds a matching, unconsumed `action_brief_emitted` row under 24 hours old, and otherwise escalates the call to the host permission prompt (`ask`). It denies in `bypassPermissions`, `dontAsk`, and `auto` modes. On Codex, Sentinel produces a sourced action brief and stops; the user executes it through a host/provider control. Conversational confirmation is not an authorization token on either host.
 
-Use host-level tool approvals, least-privilege credentials, account budgets, and a non-production workspace as the real control boundary. Review the target workspace/project and expected action in every approval prompt. The repository's hook is post-action observability only and must never be described as a pre-action guard.
+Use host-level tool approvals, least-privilege credentials, account budgets, and a non-production workspace as the real control boundary. Review the target workspace/project and expected action in every approval prompt. The ledger hook (`hooks/cta.js`) is post-action observability only. The Claude Code gate depends on the ledger file, which any local process with write access can edit; it guarantees a human prompt, not a tamper-proof record.
 
 ## Hook and ledger
 

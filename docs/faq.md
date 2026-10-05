@@ -23,7 +23,7 @@ No. Accuracy depends on the domain, data, model, threshold, and operating enviro
 
 ## Does it replace Roboflow MCP or official Roboflow skills?
 
-No. Sentinel uses MCP for live operations and owns task framing, evaluation, proof artifacts, and economics. Current MCP semantics, model IDs, Workflows, plans, pricing, and platform navigation belong to Roboflow's official skills and documentation. Read [Roboflow Skills Integration](roboflow-skills.md).
+No. Sentinel uses MCP for read-only discovery and, on Claude Code, for paid or state-changing actions that pass its pre-action gate. It owns task framing, evaluation, proof artifacts, and economics. Current MCP semantics, model IDs, Workflows, plans, pricing, and platform navigation belong to Roboflow's official skills and documentation. Read [Roboflow Skills Integration](roboflow-skills.md).
 
 ## Which hosts are supported?
 
@@ -35,7 +35,7 @@ Plugin installation does not require a credential environment variable. Codex me
 
 ## Does it spend credits automatically?
 
-Skills instruct the agent to explain and confirm credit-spending actions first, but this is not a hard runtime block. Use host approvals, account budgets, least-privilege account authorization or sessions, and non-production workspaces. If a separately generated standalone client requires a provider key, follow current provider guidance and scope it to the minimum permissions.
+On Claude Code, a Sentinel `PreToolUse` hook denies paid, data-moving, destructive, or state-changing Roboflow MCP calls unless a sourced action brief is recorded in the project ledger, and then routes each call to the host permission prompt; it never auto-approves. On Codex, no verified pre-action hook exists, so Sentinel returns the brief and stops. A gated call still depends on your answer in the host prompt, and the gate does not cap spend. Use host approvals, account budgets, least-privilege account authorization or sessions, and non-production workspaces. If a separately generated standalone client requires a provider key, follow current provider guidance and scope it to the minimum permissions.
 
 ## What access does it request?
 

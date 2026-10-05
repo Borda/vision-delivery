@@ -5,9 +5,9 @@
 const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
+const { ledgerFile, operation, operationCategory } = require("./roboflow-ops");
 
-const LEDGER_DIR = path.join(process.cwd(), ".vision-delivery");
-const LEDGER_FILE = path.join(LEDGER_DIR, "ledger.jsonl");
+const LEDGER_FILE = ledgerFile();
 const DIAGNOSTIC_FILE = "sentinel-hook-diagnostics.jsonl";
 const MAX_DIAGNOSTIC_BYTES = 4096;
 const LOCK_TIMEOUT_MILLISECONDS = 5000;
@@ -40,21 +40,6 @@ function extractEntityId(toolInput) {
   return String(raw)
     .replace(/[^a-zA-Z0-9_./-]/g, "")
     .slice(0, 200);
-}
-
-function operation(toolName) {
-  const match = toolName.match(/^mcp__(?:plugin_[A-Za-z0-9_-]+_)?roboflow__(.+)$/);
-  if (!match) return "";
-  return match[1].replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 200);
-}
-
-function operationCategory(name) {
-  if (/deploy/i.test(name)) return "deployment";
-  if (/train/i.test(name)) return "training";
-  if (/upload|image.*(?:add|create)|data.*(?:add|create)/i.test(name)) return "data-movement";
-  if (/version|generate/i.test(name)) return "dataset-version";
-  if (/eval|infer|predict/i.test(name)) return "evaluation";
-  return "other";
 }
 
 function eventId(payload) {
@@ -241,7 +226,7 @@ try {
         operation: observedOperation,
         category: operationCategory(observedOperation),
         entity_id: extractEntityId(payload.tool_input),
-        version: "0.4.0",
+        version: "0.5.0",
         status,
         source: "hook",
         event_id: id,

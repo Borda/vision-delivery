@@ -14,7 +14,7 @@ Write the kind as an `ARTIFACT_KIND` constant in the artifact header, in `RUN.md
 
 ## Generation Boundary
 
-Do not preserve raw REST hosts, request shapes, SDK calls, model IDs, or deployment recipes in Sentinel templates. Read `roboflow-platform-lookup.md` and use installed official skills or current MCP skill resources for read-only discovery only. For provider execution, emit a sourced action brief and stop; Sentinel never invokes data-moving, paid, or state-changing provider actions. Harden any externally returned starter against this contract. If no authoritative upstream source is available, emit a `scaffold` and state that the live transport is unverified.
+Do not preserve raw REST hosts, request shapes, SDK calls, model IDs, or deployment recipes in Sentinel templates. Read `roboflow-platform-lookup.md` and use installed official skills or current MCP skill resources for read-only discovery only. For provider execution, emit a sourced action brief and stop; Sentinel never invokes data-moving, paid, or state-changing provider actions outside the host-gated path. Harden any externally returned starter against this contract. If no authoritative upstream source is available, emit a `scaffold` and state that the live transport is unverified.
 
 ## Required Files
 

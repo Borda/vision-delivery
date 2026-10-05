@@ -1,4 +1,4 @@
-.PHONY: ci lint format lint-js typecheck docs-setup docs-build docs-serve eval-setup pre-commit-coverage eval eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-proof-chain eval-decision-report probe-codex probe-claude eval-trigger-live eval-e2e-self-test eval-ab-smoke
+.PHONY: ci lint format lint-js typecheck docs-setup docs-build docs-serve eval-setup pre-commit-coverage eval eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-baseline eval-proof-chain eval-decision-report probe-codex probe-claude eval-trigger-live eval-e2e-self-test eval-ab-smoke eval-ab-metrics
 
 ci: eval-setup lint format lint-js typecheck eval
 
@@ -35,7 +35,7 @@ eval-setup:
 pre-commit-coverage:
 	@echo "make ci runs the Ruff, Ruff format, ESLint, and mypy pre-commit hooks plus repository evals."
 
-eval: eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-proof-chain eval-decision-report eval-e2e-self-test
+eval: eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-baseline eval-proof-chain eval-decision-report eval-e2e-self-test eval-ab-metrics
 
 eval-version:
 	python scripts/check_versions.py
@@ -71,6 +71,7 @@ eval-entrypoints:
 	python evals/trigger/assert_entrypoint_adapters.py
 
 eval-parity:
+	python scripts/sync_codex_skills.py --check
 	python evals/parity/assert_skill_parity.py
 
 eval-trigger-live:  # live routing accuracy — one model call per case; on-demand, not per-PR
@@ -84,6 +85,9 @@ eval-ab-smoke:  # one S1 cell, both arms, vs mock MCP — on-demand, not per-PR
 	python evals/ab/runner.py --scenario s1-conveyor-detect --arm B --runs 1
 	python evals/ab/analyze.py $$(ls -td evals/ab/runs/*s1* | head -2)
 
+eval-ab-metrics:  # deterministic A/B analyzer + verdict-rule checks on synthetic run fixtures — no live calls
+	python evals/ab/assert_metrics.py
+
 eval-cost-model:
 	python evals/cost-model/assert_cost_model.py
 
@@ -92,6 +96,7 @@ eval-platform-routing:
 
 eval-hooks:
 	node evals/hooks/cta_smoke.mjs
+	node evals/hooks/gate_smoke.mjs
 
 eval-ledger:
 	python evals/ledger/assert_ledger.py
@@ -101,6 +106,9 @@ eval-methodology:
 
 eval-artifacts:
 	python evals/artifacts/assert_artifact_contracts.py
+
+eval-baseline:
+	python evals/baseline/assert_score_baseline.py
 
 eval-proof-chain:
 	python evals/proof-chain/assert_proof_chain.py

@@ -26,6 +26,33 @@
       "as_of": "2026-10-05",
       "note": "Roboflow uses a credits-based model. No public per-stream or per-inference price is listed. Managed GPU clusters and priority GPU access are Enterprise (custom, sales) pricing. Core plan: $39/mo (monthly) includes 20 credits ($3.90/credit), scaling to 500 credits/mo at $1,399. Additional credits: $4+ prepaid or $6 on-demand per credit.",
       "per_stream_usd_mo": null,
+      "plan_tiers": {
+        "additional_credits": {
+          "on_demand_usd_per_credit": 6,
+          "prepaid_expires_after_months": 12,
+          "prepaid_from_usd_per_credit": 4
+        },
+        "core_ceiling": {
+          "credits_mo": 500,
+          "usd_mo": 1399
+        },
+        "core_floor": {
+          "credits_mo": 20,
+          "usd_mo": 39
+        },
+        "currency": "USD",
+        "derived_from": "raw_pricing_text (same as_of and source_url as roboflow_managed); only stated anchors are encoded",
+        "enterprise": {
+          "includes": "priority GPU access, volume pricing, uptime SLA, managed GPU cluster",
+          "pricing": "custom",
+          "usd_mo": null
+        },
+        "free": {
+          "credits_mo": 10,
+          "usd_mo": 0
+        },
+        "not_encoded": "intermediate Core tiers between the floor and ceiling; per-inference, per-stream, or per-FPS credit consumption"
+      },
       "pricing_model": "credits",
       "raw_pricing_text": "Public: Free ($0/month, 10 credits/month). Core: $39/month, 20 credits/month ($3.90 per credit), scaling up to 500 credits/month at $1,399 ($2.86 per credit). Additional credits at $4+ per credit (prepaid, expire after 1 year) or $6 per credit (on-demand). Enterprise: custom pricing (priority GPU access, volume pricing, uptime SLA). Managed GPU cluster: Enterprise only.",
       "source_url": "https://roboflow.com/pricing"

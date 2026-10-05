@@ -12,7 +12,7 @@ Produce identity-linked video events—paths, dwell, crossings, or counts—that
 
 <methodology>
 
-**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific search, dataset, training, inference, workflow, device, or deployment action. Use installed official Roboflow skills or current MCP resources only for read-only discovery and sourced action-brief inputs; never invoke provider execution. Sentinel owns event semantics and measured delivery evidence.
+**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific search, dataset, training, inference, workflow, device, or deployment action. Use installed official Roboflow skills or current MCP resources only for read-only discovery and sourced action-brief inputs; never invoke provider execution outside the host-gated path. Sentinel owns event semantics and measured delivery evidence.
 
 Follow `../../resources/fde-methodology.md`; apply these video-specific rules.
 
@@ -71,9 +71,9 @@ Return `go`, `revise`, or `stop` with event counts, failed clips/slices, replay 
 
 - Do not infer personal identity or intent from a track ID.
 - State retention/privacy boundaries for video and derived trajectories.
-- Emit a sourced action brief and stop before data movement or paid provider work; Sentinel never invokes either.
+- Emit a sourced action brief and stop before data movement or paid provider work; Sentinel never invokes either outside the host-gated path.
 - Keep detector, association, and event-rule evidence separate.
-- Use upstream guidance only to source the action brief; never invoke provider actions.
+- Use upstream guidance only to source the action brief; never invoke provider actions outside the host-gated path.
 
 </safety>
 

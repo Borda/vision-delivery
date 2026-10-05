@@ -27,7 +27,7 @@ claude plugin marketplace add Borda/vision-delivery
 claude plugin install sentinel@sentinel
 ```
 
-No credential environment variable is required for plugin installation. The v0.4 release candidate passed local clean-home marketplace simulations. Manual public-GitHub marketplace installation was recorded for v0.3 on Codex and Claude Code; the v0.4 public-install path remains unverified. When the host or account requires it, using the MCP capability requests hosted authorization; an existing authorized session may need no prompt. Live Roboflow account authorization and service behavior remain upstream checks. Use `claude --plugin-dir .` only for local development from a checkout. Cursor support is unverified. Never paste credentials into chat or commit them.
+No credential environment variable is required for plugin installation. The v0.5 release candidate passed local clean-home marketplace simulations. Manual public-GitHub marketplace installation was recorded for v0.3 on Codex and Claude Code; the v0.5 public-install path remains unverified. When the host or account requires it, using the MCP capability requests hosted authorization; an existing authorized session may need no prompt. Live Roboflow account authorization and service behavior remain upstream checks. Use `claude --plugin-dir .` only for local development from a checkout. Cursor support is unverified. Never paste credentials into chat or commit them.
 
 ## Evidence limits
 
@@ -36,7 +36,7 @@ No credential environment variable is required for plugin installation. The v0.4
 - B1: 11 private test images; no controlled plain comparator, no public independent reproduction, post-train count MAE absent, conveyor proxy equivalence unverified.
 - B2-B5: specifications only; live results pending.
 - Generated scripts, IDs, eval files, and ledger rows require inspection and execution.
-- Paid-action consent is an instruction, not a hard block. Ledger coverage is best-effort and not independent proof.
+- On Claude Code, a Sentinel PreToolUse hook denies paid or state-changing Roboflow MCP calls without a recorded action brief and routes the rest to the host permission prompt; on Codex, Sentinel returns the brief and stops. Ledger coverage is best-effort and not independent proof.
 
 ## Primary docs
 

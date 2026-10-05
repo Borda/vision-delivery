@@ -21,6 +21,8 @@ Sentinel routes a business request by required output before model search. A rou
 | Compare project economics                 | `estimate-economics`        | one-time and run-rate assumptions           | Guided; current product pricing delegated upstream.                        |
 | Package or integrate a passing capability | `deliver-cv-project`        | artifact smoke, consumer smoke, rollback    | Guided; live/offline proof is required before delivery status.             |
 
+Detection and classification are the flagship routes: they get live end-to-end proof first. Tracking, OCR, segmentation, pose, and pipelines are preview routes with the same workflow and less evidence.
+
 ## Plain-language route selection
 
 - **One box for every visible thing:** detection.

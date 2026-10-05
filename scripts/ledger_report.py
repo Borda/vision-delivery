@@ -9,6 +9,7 @@ Usage:
 
 import argparse
 import json
+import os
 import sys
 from collections import Counter
 from pathlib import Path
@@ -41,7 +42,14 @@ def _is_pre_deployment(record: dict) -> bool:
 
 def _default_ledger() -> Path:
     """Return the ledger in the user's current project, not the plugin cache."""
-    return Path.cwd() / ".vision-delivery" / "ledger.jsonl"
+    declared = os.environ.get("CLAUDE_PROJECT_DIR", "")
+    if declared and Path(declared).is_absolute():
+        return Path(declared) / ".vision-delivery" / "ledger.jsonl"
+    start = Path.cwd()
+    for candidate in (start, *start.parents):
+        if (candidate / ".vision-delivery").exists() or (candidate / ".git").exists():
+            return candidate / ".vision-delivery" / "ledger.jsonl"
+    return start / ".vision-delivery" / "ledger.jsonl"
 
 
 def load_records(ledger: Path) -> list[dict]:

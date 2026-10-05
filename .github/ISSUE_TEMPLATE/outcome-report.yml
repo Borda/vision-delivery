@@ -1,0 +1,81 @@
+name: Report a project outcome
+description: Tell us whether Sentinel helped on a real CV task. This is the main signal for what to fix next.
+title: "[Outcome] "
+labels: ["outcome-report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Short answers are fine. Do not include credentials, private media, customer data, faces, license plates, medical data, or anything you are not authorized to share.
+  - type: dropdown
+    id: host
+    attributes:
+      label: Host
+      options:
+        - Claude Code
+        - Codex
+    validations:
+      required: true
+  - type: dropdown
+    id: route
+    attributes:
+      label: Route used
+      options:
+        - detect-and-analyze
+        - classify-or-flag
+        - track-and-count
+        - read-text
+        - segment-and-analyze
+        - recognize-pose-or-gesture
+        - decompose-to-pipeline
+        - estimate-economics
+        - deliver-cv-project
+        - not sure
+    validations:
+      required: true
+  - type: dropdown
+    id: experience
+    attributes:
+      label: Your computer-vision experience before this session
+      options:
+        - none
+        - some
+        - professional
+    validations:
+      required: true
+  - type: dropdown
+    id: furthest
+    attributes:
+      label: Furthest step reached
+      options:
+        - target agreed
+        - rung 0 baseline scored
+        - higher-rung baseline scored
+        - trained or improved a model
+        - delivery handoff or artifact
+        - decision report
+    validations:
+      required: true
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: Did it help you reach a decision?
+      options:
+        - yes, go
+        - yes, revise or stop
+        - no
+    validations:
+      required: true
+  - type: input
+    id: time
+    attributes:
+      label: Rough time to the first measured number
+      placeholder: e.g. 10 minutes
+    validations:
+      required: false
+  - type: textarea
+    id: friction
+    attributes:
+      label: What got in the way, or what worked well
+    validations:
+      required: false

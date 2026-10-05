@@ -156,7 +156,7 @@ Follow `../../resources/ledger-protocol.md`. Write one local record when the rep
   "skill": "decision-report",
   "action": "decision_report_emitted",
   "entity_id": "<workspace>/<project>",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "event_id": "manual:<session-id>:decision_report_emitted:1",
   "status": "success",
   "source": "skill",

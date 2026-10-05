@@ -70,7 +70,7 @@ The full route-by-route claim register is in [Support & Evidence](support-and-sc
     claude plugin install sentinel@sentinel
     ```
 
-Each host uses two commands. The v0.4 release candidate has passed local clean-home marketplace simulations. Manual public-GitHub marketplace installation was recorded for v0.3; the v0.4 public-install path remains unverified. No credential environment variable is required for plugin installation. When the host or account requires it, using the MCP capability requests hosted authorization; an existing authorized session may need no prompt. For Claude plugin development from a checkout, use `claude plugin validate .` and `claude --plugin-dir .`. Never paste credentials into chat.
+Each host uses two commands. The v0.5 release candidate has passed local clean-home marketplace simulations. Manual public-GitHub marketplace installation was recorded for v0.3; the v0.5 public-install path remains unverified. No credential environment variable is required for plugin installation. When the host or account requires it, using the MCP capability requests hosted authorization; an existing authorized session may need no prompt. For Claude plugin development from a checkout, use `claude plugin validate .` and `claude --plugin-dir .`. Never paste credentials into chat.
 
 ## Delivery loop
 
@@ -101,7 +101,7 @@ See [Benchmarks and Evidence](benchmarks/index.md) for sources and promotion gat
 
 ## Safety before capability
 
-Paid-action confirmation is an agent instruction, not a hard authorization control. Use host approvals, least-privilege account authorization or sessions, account budgets, and non-production workspaces. If a separately generated standalone client requires a key, follow the provider's current guidance and scope that key to the minimum permissions.
+On Claude Code, a Sentinel `PreToolUse` hook denies paid, data-moving, destructive, or state-changing Roboflow MCP calls unless a sourced action brief is recorded in the project ledger, and then routes each call to the host permission prompt; it never auto-approves. On Codex, no verified pre-action hook exists, so Sentinel returns the brief and stops. Use host approvals, least-privilege account authorization or sessions, account budgets, and non-production workspaces. If a separately generated standalone client requires a key, follow the provider's current guidance and scope that key to the minimum permissions.
 
 For faces, license plates, people tracking, forms, medical imagery, worker monitoring, minors, or location-linked media, stop until authority, purpose, minimization, retention, representative evaluation, named human review, and appropriate legal/security/domain checks exist. Sentinel must not be the sole decision-maker for medical, employment, law-enforcement, access-control, or physical-safety outcomes.
 

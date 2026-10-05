@@ -64,7 +64,13 @@ The economics recipe should inspect:
 
 ```bash
 python scripts/cost_model.py --streams 5 --fps 10 --model-size medium --uptime 24x7 --region us-east-1
+
+# Roboflow credit use known (from the user or current Roboflow guidance):
+python scripts/cost_model.py --streams 5 --fps 10 --model-size medium --uptime 24x7 --region us-east-1 \
+    --managed-credits-mo 120 --credits-source "Roboflow usage page, workspace X" --credits-as-of 2026-10-01
 ```
+
+Roboflow bills managed usage in credits. With `--managed-credits-mo`, the model prices that usage against the public plan anchors in the snapshot (Free, Core floor and ceiling, on-demand extra credits) and compares it with DIY. The result is tagged `basis: public-credit-plan`. It is an upper bound that excludes Enterprise scope (SLA, priority GPU, managed GPU cluster). Above 500 credits/month the model abstains, because pricing there is Enterprise-only. A dated `--managed-usd-mo` quote always takes precedence.
 
 The script uses the committed `scripts/PRICING_SNAPSHOT.json`. It probes source URL reachability but does not scrape live pricing pages into the result.
 
@@ -83,7 +89,7 @@ The result should say which assumption changes the recommendation. If labeling i
 
 After the crossover, the recipe can emit a stakeholder decision report. The report should include:
 
-- recommendation — or an explicit abstention (`insufficient-data`) when no real managed quote was provided; the model never converts the public Core plan floor into a verdict,
+- recommendation — or an explicit abstention (`insufficient-data`) when neither a dated managed quote nor sourced monthly credit use was provided; the model never turns the public Core plan floor alone into a verdict,
 - do-nothing baseline,
 - managed option,
 - DIY option,

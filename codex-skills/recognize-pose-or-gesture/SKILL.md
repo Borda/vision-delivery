@@ -12,7 +12,7 @@ Turn keypoints or temporal keypoint sequences into a pose/gesture decision that 
 
 <methodology>
 
-**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific search, dataset, training, inference, workflow, or deployment action. Use installed official Roboflow skills or current MCP resources only for read-only discovery and sourced action-brief inputs; never invoke provider execution. Do not freeze model families, IDs, or platform recipes in Sentinel.
+**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific search, dataset, training, inference, workflow, or deployment action. Use installed official Roboflow skills or current MCP resources only for read-only discovery and sourced action-brief inputs; never invoke provider execution outside the host-gated path. Do not freeze model families, IDs, or platform recipes in Sentinel.
 
 Follow `../../resources/fde-methodology.md`; apply these keypoint-specific rules.
 
@@ -71,8 +71,8 @@ Return `go`, `revise`, or `stop`, with exact event counts, failure slices, rule 
 - Pose output alone does not prove intent, identity, medical condition, or safety compliance.
 - Safety alerts require a documented human/operational fallback.
 - Pseudo-labels cannot own acceptance.
-- Emit a sourced action brief and stop before data movement or paid provider work; Sentinel never invokes either.
-- Use current upstream guidance only for read-only facts and action-brief inputs; never invoke provider execution.
+- Emit a sourced action brief and stop before data movement or paid provider work; Sentinel never invokes either outside the host-gated path.
+- Use current upstream guidance only for read-only facts and action-brief inputs; never invoke provider execution outside the host-gated path.
 
 </safety>
 

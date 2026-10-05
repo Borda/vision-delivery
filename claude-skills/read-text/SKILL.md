@@ -13,7 +13,7 @@ Extract the exact fields needed by the business process and clear an independent
 
 <methodology>
 
-**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific capability, dataset, training, inference, workflow, or deployment action. Use installed official Roboflow skills or current MCP resources only for read-only discovery and sourced action-brief inputs; never invoke provider execution. Do not preserve current engine names, blocks, IDs, or invocation syntax here.
+**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific capability, dataset, training, inference, workflow, or deployment action. Use installed official Roboflow skills or current MCP resources only for read-only discovery and sourced action-brief inputs; never invoke provider execution outside the host-gated path. Do not preserve current engine names, blocks, IDs, or invocation syntax here.
 
 Follow `../../resources/fde-methodology.md`; apply these text-specific rules.
 
@@ -71,8 +71,8 @@ Return `go`, `revise`, or `stop`, including field-level errors, rejection policy
 - Treat extracted personal/document data as sensitive and minimize retention.
 - Never invent missing characters or suppress the raw result.
 - Pseudo-transcriptions cannot own acceptance.
-- Emit a sourced action brief and stop before data movement or paid provider work; Sentinel never invokes either.
-- Use current upstream guidance only for read-only facts and action-brief inputs; never invoke provider execution.
+- Emit a sourced action brief and stop before data movement or paid provider work; Sentinel never invokes either outside the host-gated path.
+- Use current upstream guidance only for read-only facts and action-brief inputs; never invoke provider execution outside the host-gated path.
 
 </safety>
 

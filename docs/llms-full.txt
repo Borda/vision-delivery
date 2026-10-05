@@ -52,7 +52,7 @@ claude plugin marketplace add Borda/vision-delivery
 claude plugin install sentinel@sentinel
 ```
 
-No credential environment variable is required for plugin installation. The v0.4 release candidate passed local clean-home marketplace simulations. Manual public-GitHub marketplace installation was recorded for v0.3 on Codex and Claude Code; the v0.4 public-install path remains unverified. When the host or account requires it, using the MCP capability requests hosted authorization; an existing authorized session may need no prompt. Live Roboflow account authorization and service behavior remain upstream checks. Use `claude plugin validate .` and `claude --plugin-dir .` only for development from a checkout. Cursor support is unverified. Credentials must never appear in chat or tracked files.
+No credential environment variable is required for plugin installation. The v0.5 release candidate passed local clean-home marketplace simulations. Manual public-GitHub marketplace installation was recorded for v0.3 on Codex and Claude Code; the v0.5 public-install path remains unverified. When the host or account requires it, using the MCP capability requests hosted authorization; an existing authorized session may need no prompt. Live Roboflow account authorization and service behavior remain upstream checks. Use `claude plugin validate .` and `claude --plugin-dir .` only for development from a checkout. Cursor support is unverified. Credentials must never appear in chat or tracked files.
 
 ## Workflow
 
@@ -67,7 +67,7 @@ No credential environment variable is required for plugin installation. The v0.4
 9. Compare observations with the gate and preserve failures/unknowns.
 10. Estimate economics and hand final acceptance to the human owners.
 
-Paid-action consent is a prose instruction, not a hard block. Use host approvals, least-privilege account authorization or sessions, account budgets, and non-production targets. A separately generated standalone client may require a provider key; follow current provider guidance and scope it to the minimum permissions.
+On Claude Code, a Sentinel PreToolUse hook denies paid or state-changing Roboflow MCP calls without a recorded action brief and routes the rest to the host permission prompt; on Codex, Sentinel returns the brief and stops. The gate does not cap spend. Use host approvals, least-privilege account authorization or sessions, account budgets, and non-production targets. A separately generated standalone client may require a provider key; follow current provider guidance and scope it to the minimum permissions.
 
 ## Artifacts and ledger
 

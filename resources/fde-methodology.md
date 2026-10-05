@@ -12,7 +12,7 @@ Every skill references these generic steps. Skills add only their modality-speci
 
 **Never open with cost.** Cost talk belongs in the economics-decision flow. "Pricing" and "managed deployment" do not appear in build output until the seam offer fires — exactly once.
 
-**Platform execution boundary.** Before every Roboflow-specific lookup or proposed action, read `roboflow-platform-lookup.md`. Use installed official Roboflow skills or current MCP skill resources only for read-only discovery when available. For data-moving, paid, destructive, or state-changing actions, Sentinel emits a sourced action brief and stops for execution through an external host/provider approval control.
+**Platform execution boundary.** Before every Roboflow-specific lookup or proposed action, read `roboflow-platform-lookup.md`. Use installed official Roboflow skills or current MCP skill resources only for read-only discovery when available. For data-moving, paid, destructive, or state-changing actions, Sentinel records a sourced action brief and follows the host execution gate in `roboflow-platform-lookup.md`: host-gated on Claude Code, brief-and-stop on Codex.
 
 ## Generic 9-Step Sequence (Step 0 + Steps 1–8)
 
@@ -49,11 +49,11 @@ Three outcomes:
 - "Which is worse here: missing a real object/event, or raising a false alarm?"
 - "Does this need to run live, or can it process batches later?"
 
-Translate the answers into metrics and record them in `.vision-delivery/eval-<session-id>.md` with `acceptance_id`, revision, business decision, metric, comparator (`gte` minimum or `lte` maximum), finite numeric threshold, unit, dataset/split identity, sample-size requirement, independent label source, blinding, adjudication owner, `frozen_at` timestamp, and user confirmation.
+Pick the delivery mode from `delivery-modes.md`: explore by default, deliver once the result will reach production, a third party, or a paid action. Translate the answers into metrics and record them in `.vision-delivery/eval-<session-id>.md` with `acceptance_id`, revision, business decision, metric, comparator (`gte` minimum or `lte` maximum), finite numeric threshold, unit, dataset/split identity, sample-size requirement, independent label source, blinding, adjudication owner, `frozen_at` timestamp, and user confirmation.
 
 The acceptance target is **frozen before any baseline**, candidate search, threshold sweep, or training result is read. A baseline is diagnostic evidence; it never raises or lowers the business threshold. If the business requirement changes, create a new revision with a new acceptance ID, rationale, and confirmation. Never overwrite the original target or report passing when the active revision is not cleared.
 
-**Step 3 — Existing-capability-first. (Modality-specific evidence in the skill file.)** Ask current upstream discovery/training resources for no-training and trainable candidate categories before labeling or paid work. Present 2–3 options with provenance, license, and relevance. Let the user pick before fetching. Do not preserve current model IDs, queries, or provider operations in a local recipe. Do not perform speculative platform inventory calls during discovery.
+**Step 3 — Existing-capability-first. (Modality-specific evidence in the skill file.)** Start at rung 0 of `baseline-ladder.md`: score the host model's own vision on the gold images with `scripts/score_baseline.py` before any account, upload, or spend. Climb a rung only when the lower one misses the frozen target. For rungs 1–3, ask current upstream discovery/training resources for no-training and trainable candidate categories before labeling or paid work. Present 2–3 options with provenance, license, and relevance. Let the user pick before fetching. Do not preserve current model IDs, queries, or provider operations in a local recipe. Do not perform speculative platform inventory calls during discovery.
 
 **Step 4 — Measure against the eval. (Modality-specific metrics in skill file.)** Run inference. Report exact numbers vs defined threshold:
 
@@ -97,13 +97,13 @@ Never jump to "label 500 images" when threshold tuning might close the gap.
 
 If user picks **(a)**: route to `deliver-cv-project`. Source the current export procedure through read-only upstream guidance and emit an action brief when provider execution is required. Build a `local-runtime` package only from an externally produced export, and retain that label only after an offline smoke succeeds. Do not add an unsourced cost anchor.
 
-After a passing eval, do not stop at the offer. Route the selected branch to `deliver-cv-project`; it owns the delivery handoff, uses upstream resources only for read-only facts and action-brief inputs, and never invokes provider execution.
+After a passing eval, do not stop at the offer. Route the selected branch to `deliver-cv-project`; it owns the delivery handoff, uses upstream resources only for read-only facts and action-brief inputs, and never invokes provider execution outside the host-gated path.
 
 Never launch a deployment when no verified model/version and fresh evaluation exist—even under delegation such as “you decide.” A delegated decision authorizes choosing among safe paths, not skipping the verification gate.
 
 If user picks **(b)**: hand off to `estimate-economics`, then to `deliver-cv-project` after the economic decision. If provider execution is required, emit a sourced action brief and stop; conversational consent does not authorize Sentinel execution. Do not re-engage as builder from the economics skill.
 
-If user picks **(c)**: route to `deliver-cv-project`. Use the current upstream inference/product resource only to enumerate compatible devices and validate the selected model/runtime through read-only operations. Emit a sourced configuration action brief and stop; never invoke the configuration action or preserve device API sequences locally.
+If user picks **(c)**: route to `deliver-cv-project`. Use the current upstream inference/product resource only to enumerate compatible devices and validate the selected model/runtime through read-only operations. Emit a sourced configuration action brief and stop; never invoke the configuration action outside the host-gated path or preserve device API sequences locally.
 
 **Drift detection check (once per session when deploy resolves or user reports live failures).** After the seam offer resolves — or when the user mentions failures on production footage — ask once: "Are you seeing failures on live footage that weren't in your test set?"
 
@@ -177,7 +177,7 @@ Offer (lowest friction first):
 If user picks A:
 
 - State exactly what would leave the machine and its destination, then emit a sourced upload action brief and stop. Conversational consent does not authorize Sentinel to upload.
-- Use `roboflow:data-management`, `roboflow:product-navigation`, or their MCP skill resources only for read-only destination, schema, and navigation facts needed by the brief. Never invoke upload or annotation state changes; do not guess UI paths or request shapes.
+- Use `roboflow:data-management`, `roboflow:product-navigation`, or their MCP skill resources only for read-only destination, schema, and navigation facts needed by the brief. Never invoke upload or annotation state changes outside the host-gated path; do not guess UI paths or request shapes.
 - First batch: 20–30 images. Label consistently (every occurrence in every frame).
 - Stop and measure early: "Label 25 → train → measure → decide if more labeling helps."
 
@@ -193,11 +193,11 @@ Do not block local work on account connection. The bundled MCP configuration is 
 
 ## Safe Actions
 
-Sentinel never invokes a credit-spending, data-moving, destructive, or state-changing provider action. It prepares the following action brief, then stops for execution through an external host/provider approval control:
+Sentinel never invokes a credit-spending, data-moving, destructive, or state-changing provider action outside the host-gated path defined in `roboflow-platform-lookup.md`. It prepares the following action brief, then stops for execution through a host/provider approval control (on Claude Code, the Sentinel PreToolUse gate and the host permission prompt):
 
 **The eval-target gate is separate from provider execution.** Generic approval never substitutes for a frozen eval target and never authorizes Sentinel to invoke a paid, data-moving, or state-changing provider action. If the user cannot provide a target number, propose a default before producing an action brief: "targeting 80% recall as a floor — correct me if that's wrong." The user or an external host/provider control executes the brief. Post-training reports restate externally supplied results against the frozen target rather than reporting a bare metrics readout.
 
-- **Paid training** — use official training/pricing resources only for read-only model/cost lookup and emit the sourced quantified brief below. Never call the training tool from Sentinel. Required format:
+- **Paid training** — use official training/pricing resources only for read-only model/cost lookup and emit the sourced quantified brief below. Never call the training tool from Sentinel outside the host-gated path. Required format:
 
   ```
   "This training run will consume approximately X credits (~$Y at current pricing).

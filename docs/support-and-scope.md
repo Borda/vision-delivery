@@ -26,18 +26,20 @@ The entry barrier is intentionally low, but it is not zero. A safe first session
 
 ## Route status
 
-| Route                           | Support                                             | Evidence status                                        | Material limit                                                                                       |
-| ------------------------------- | --------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| Object detection and counting   | Guided                                              | B1 records one small private historical vehicle result | Private data prevents independent reproduction; current-route and domain transfer remain unverified. |
-| Classification and flagging     | Guided                                              | B2 fixture defined                                     | No equivalent live result committed.                                                                 |
-| Tracking and counting over time | Guided                                              | B3 fixture defined                                     | RTSP, identity, latency, privacy, and production state handling are not live-proven.                 |
-| OCR and structured text         | Guided                                              | B4 fixture defined                                     | No equivalent live field-accuracy result committed.                                                  |
-| Segmentation and measurement    | Guided; expert required for physical claims         | B5 fixture defined                                     | Pixel-to-physical calibration and domain validation are not supplied by the plugin.                  |
-| Pose, gesture, and action       | Guided; expert required for consequential use       | Skill route exists                                     | No equivalent live benchmark; safety and fairness review remain external.                            |
-| Multi-step pipelines            | Guided; expert required for production architecture | Decomposition route exists                             | Cross-stage error propagation and operations are not broadly benchmarked.                            |
-| Economics                       | Guided                                              | Reproducible deployment calculator and dated snapshots | Annotation/training inputs may be assumptions; prices can become stale.                              |
-| Roboflow platform operations    | Delegated upstream                                  | MCP configuration exists                               | Exact tools, models, Workflows, plans, pricing, and account behavior are upstream.                   |
-| Delivery and integration        | Guided                                              | Artifact and handoff validators exist                  | Real hosted/offline consumer smokes and production operations remain environment-specific.           |
+| Route                           | Support                                                      | Evidence status                                        | Material limit                                                                                       |
+| ------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| Object detection and counting   | Flagship; guided                                             | B1 records one small private historical vehicle result | Private data prevents independent reproduction; current-route and domain transfer remain unverified. |
+| Classification and flagging     | Flagship; guided                                             | B2 fixture defined                                     | No equivalent live result committed.                                                                 |
+| Tracking and counting over time | Preview; guided                                              | B3 fixture defined                                     | RTSP, identity, latency, privacy, and production state handling are not live-proven.                 |
+| OCR and structured text         | Preview; guided                                              | B4 fixture defined                                     | No equivalent live field-accuracy result committed.                                                  |
+| Segmentation and measurement    | Preview; guided; expert required for physical claims         | B5 fixture defined                                     | Pixel-to-physical calibration and domain validation are not supplied by the plugin.                  |
+| Pose, gesture, and action       | Preview; guided; expert required for consequential use       | Skill route exists                                     | No equivalent live benchmark; safety and fairness review remain external.                            |
+| Multi-step pipelines            | Preview; guided; expert required for production architecture | Decomposition route exists                             | Cross-stage error propagation and operations are not broadly benchmarked.                            |
+| Economics                       | Guided                                                       | Reproducible deployment calculator and dated snapshots | Annotation/training inputs may be assumptions; prices can become stale.                              |
+| Roboflow platform operations    | Delegated upstream                                           | MCP configuration exists                               | Exact tools, models, Workflows, plans, pricing, and account behavior are upstream.                   |
+| Delivery and integration        | Guided                                                       | Artifact and handoff validators exist                  | Real hosted/offline consumer smokes and production operations remain environment-specific.           |
+
+Flagship routes are the first to be taken to live end-to-end proof on public, licensed data. Preview routes keep the full workflow but should be used with more caution until they have comparable evidence.
 
 ## Claim register
 

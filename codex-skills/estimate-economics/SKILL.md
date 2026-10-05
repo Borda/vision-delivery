@@ -50,13 +50,14 @@ python /absolute/plugin/root/scripts/cost_model.py \
     --uptime <24x7|business> --region us-east-1 \
     [--existing-gpu] [--on-demand] \
     [--managed-usd-mo <quote> --managed-quote-as-of <YYYY-MM-DD>] \
+    [--managed-credits-mo <credits> --credits-source <source> --credits-as-of <YYYY-MM-DD>] \
     [--override-gpu-spot <usd-hour>] [--override-engineer <usd-hour>] \
     [--acceptance /absolute/project/.vision-delivery/acceptance-<revision>.json]
 ```
 
 The committed capacity table is a screening assumption calibrated at 10 FPS and scaled linearly by requested FPS. It is not a hardware benchmark. Re-run with measured throughput before a purchase or binding recommendation. A decision-grade run requires `proof.status: bound` and the same `acceptance_sha256` used by the baseline, handoff, and ledger.
 
-Without a dated, scope-comparable managed quote, the tool must return `insufficient-data`; provide the DIY estimate and quote request instead of inventing a winner.
+Roboflow prices managed usage in credits, so most users have no per-month quote. When the user or current upstream guidance supplies monthly credit use (never inferred from FPS), pass `--managed-credits-mo` with its source and date. The tool prices it only against the public plan anchors in the snapshot (`basis: public-credit-plan`, an upper bound that excludes Enterprise scope) and compares that with DIY. A dated `--managed-usd-mo` quote takes precedence. With neither input, or above 500 credits/month (Enterprise volume pricing), the tool returns `insufficient-data`; provide the DIY estimate and a quote request instead of inventing a winner.
 
 ## 4. Stress-test the decision
 
@@ -76,7 +77,7 @@ If the selected path requires integration or deployment, route to `deliver-cv-pr
 - Preserve user-supplied quote provenance and scope.
 - Reject non-finite/negative numeric inputs and future/invalid quote dates.
 - Keep technical feasibility and economic desirability as separate gates.
-- Use upstream guidance only for current product truth and the action brief; never invoke provider actions.
+- Use upstream guidance only for current product truth and the action brief; never invoke provider actions outside the host-gated path.
 
 </safety>
 
@@ -88,7 +89,8 @@ Follow `../../resources/ledger-protocol.md`. Record the sourced economics result
 
 \<stop_rules>
 
-- Comparable managed scope/quote is absent → return `insufficient-data`, not a winner.
+- Neither a comparable managed quote nor sourced monthly credit use is available → return `insufficient-data`, not a winner.
+- A `public-credit-plan` verdict → state that it is an upper bound on public anchors and excludes Enterprise SLA and managed GPU scope.
 - Capacity is unbenchmarked and the decision is binding → require measurement or state the unresolved risk.
 - Price source/date is missing → exclude that figure from the verdict.
 - Provider action is required → emit a sourced action brief and stop; conversational consent does not authorize Sentinel execution.

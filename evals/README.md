@@ -18,7 +18,9 @@ make eval
 | `make eval-entrypoints`      | Entry-point adapters stay consistent across hosts                     | ~1 s  |
 | `make eval-cost-model`       | Cost model math, provenance, and numeric-boundary guards              | ~2 s  |
 | `make eval-platform-routing` | Roboflow platform lookups stay thin, source-backed, and fallback-only | ~1 s  |
-| `make eval-hooks`            | `cta.js` ledger hook outcome classification + idempotency             | ~1 s  |
+| `make eval-hooks`            | `cta.js` ledger hook + `gate.js` PreToolUse paid-action gate          | ~1 s  |
+| `make eval-baseline`         | Rung 0 baseline scorer: count/flag metrics, frozen-target verdicts    | ~1 s  |
+| `make eval-ab-metrics`       | A/B analyzer metric v5 (trap resistance) on synthetic run fixtures    | ~2 s  |
 | `make eval-ledger`           | Ledger append dedup/conflict + report metrics                         | ~1 s  |
 | `make eval-methodology`      | FDE methodology contracts (acceptance, thresholds, routing, surface)  | ~1 s  |
 | `make eval-artifacts`        | Artifact contract: smoke helper, secret rejection, handoff matrix     | ~5 s  |

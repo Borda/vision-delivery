@@ -13,7 +13,7 @@ Produce masks and derived measurements that clear an independently labeled accep
 
 <methodology>
 
-**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific search, dataset, training, inference, workflow, or deployment action. Use installed official Roboflow skills or current MCP resources only for read-only discovery and sourced action-brief inputs; never invoke provider execution. Sentinel retains the measurement contract and evidence.
+**Platform execution boundary.** Read `../../resources/roboflow-platform-lookup.md` before any provider-specific search, dataset, training, inference, workflow, or deployment action. Use installed official Roboflow skills or current MCP resources only for read-only discovery and sourced action-brief inputs; never invoke provider execution outside the host-gated path. Sentinel retains the measurement contract and evidence.
 
 Follow `../../resources/fde-methodology.md`; apply these segmentation-specific requirements.
 
@@ -71,8 +71,8 @@ Return `go`, `revise`, or `stop`, including units, uncertainty, sample counts, f
 - Never present pixel output as millimeters or area without verified calibration.
 - Candidate/pseudo-label masks cannot serve as the gold masks.
 - Medical or safety-critical outputs require qualified human ownership beyond this technical gate.
-- Emit a sourced action brief and stop before data movement or paid provider actions; Sentinel never invokes them.
-- Use upstream guidance only to source the action brief; never invoke provider actions.
+- Emit a sourced action brief and stop before data movement or paid provider actions; Sentinel never invokes them outside the host-gated path.
+- Use upstream guidance only to source the action brief; never invoke provider actions outside the host-gated path.
 
 </safety>
 

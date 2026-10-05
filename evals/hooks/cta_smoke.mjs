@@ -11,21 +11,23 @@ const HOOKS_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "../../hooks"
 let failures = 0;
 
 function assertHookConfiguration() {
-  for (const [filename, events, rootVariable] of [
-    ["hooks.json", ["PostToolUse"], "PLUGIN_ROOT"],
-    ["claude-hooks.json", ["PostToolUse", "PostToolUseFailure"], "CLAUDE_PLUGIN_ROOT"],
+  for (const [filename, scripts, rootVariable] of [
+    ["hooks.json", { PostToolUse: "cta.js" }, "PLUGIN_ROOT"],
+    ["claude-hooks.json", { PostToolUse: "cta.js", PostToolUseFailure: "cta.js", PreToolUse: "gate.js" }, "CLAUDE_PLUGIN_ROOT"],
   ]) {
     try {
       const config = JSON.parse(readFileSync(join(HOOKS_DIR, filename), "utf8"));
+      const events = Object.keys(scripts).sort();
       const actualEvents = Object.keys(config.hooks || {}).sort();
       if (JSON.stringify(actualEvents) !== JSON.stringify(events)) {
         throw new Error(`events=${actualEvents.join(",")}`);
       }
       for (const eventName of events) {
         const handler = config.hooks[eventName]?.[0]?.hooks?.[0];
+        const script = scripts[eventName];
         if (
-          handler?.command !== `node "\${${rootVariable}}/hooks/cta.js"` ||
-          handler?.commandWindows !== `node "$env:${rootVariable}\\hooks\\cta.js"`
+          handler?.command !== `node "\${${rootVariable}}/hooks/${script}"` ||
+          handler?.commandWindows !== `node "$env:${rootVariable}\\hooks\\${script}"`
         ) {
           throw new Error(`${eventName} command is not host-native`);
         }
@@ -42,6 +44,8 @@ function runCase(name, payload, expect) {
   const cwd = mkdtempSync(join(tmpdir(), "sentinel-hook-"));
   const pluginData = expect.pluginData ? join(cwd, "plugin-data") : "";
   const env = { ...process.env, ...(expect.env || {}) };
+  // A real session's project dir would redirect the ledger out of the sandbox.
+  if (!expect.env?.CLAUDE_PROJECT_DIR) delete env.CLAUDE_PROJECT_DIR;
   if (expect.pluginData) env[expect.pluginData] = pluginData;
   expect.setup?.(cwd);
   const results = [];

@@ -44,8 +44,11 @@ If two outputs are required, name a primary acceptance owner and compose the sec
 
 ## 3. Write the proof brief
 
+Start in explore mode (`../../resources/delivery-modes.md`): plain-language target, rung 0 baseline from `../../resources/baseline-ladder.md`, no digests or helper commands shown to the user. Switch to deliver mode only when its triggers apply.
+
 Before routing, state:
 
+- delivery mode (explore or deliver) and why;
 - operational decision and action owner;
 - input source and representative sample;
 - required output schema;
@@ -77,7 +80,7 @@ Invoke or recommend the selected skill with the proof brief and inspected artifa
 <safety>
 
 - Independent human/sensor evidence owns acceptance; candidate output and pseudo-labels do not.
-- Emit a sourced action brief and stop before upload/data movement or paid provider actions; Sentinel never invokes them.
+- Emit a sourced action brief and stop before upload/data movement or paid provider actions; Sentinel never invokes them outside the host-gated path.
 - Never request a token or key for plugin installation.
 - Never invent provider model IDs, commands, API fields, prices, or deployment paths.
 - High-stakes medical, safety, or legal decisions require qualified human ownership.

@@ -9,7 +9,7 @@
       "description": "Guide an operational computer vision goal toward verified proof, costs, and a decision while delegating current platform execution to Roboflow.",
       "name": "sentinel",
       "source": "./",
-      "version": "0.4.0"
+      "version": "0.5.0"
     }
   ]
 }

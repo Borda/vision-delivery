@@ -25,7 +25,7 @@ def read_text(root: Path, relative: str) -> str:
 
 
 def assert_release_surface(root: Path) -> None:
-    """Require release assets, v0.4 metadata, and consistent install wording."""
+    """Require release assets, v0.5 metadata, and consistent install wording."""
     manifest = json.loads(read_text(root, ".codex-plugin/plugin.json"))
     interface = manifest["interface"]
     expected_assets = {
@@ -39,11 +39,11 @@ def assert_release_surface(root: Path) -> None:
         require(asset.is_file(), f"missing {field} asset: {relative}")
         require(asset.read_bytes().startswith(b"\x89PNG\r\n\x1a\n"), f"{field} is not PNG")
 
-    require(manifest.get("version") == "0.4.0", "Codex manifest is not v0.4.0")
+    require(manifest.get("version") == "0.5.0", "Codex manifest is not v0.5.0")
     changelog = read_text(root, "CHANGELOG.md")
     require(
-        "## 0.4.0 (unreleased)" in changelog,
-        "changelog lacks the unreleased v0.4.0 section",
+        "## 0.5.0 (unreleased)" in changelog,
+        "changelog lacks the unreleased v0.5.0 section",
     )
     require(
         "### Breaking changes and migration" in changelog,
@@ -66,15 +66,15 @@ def assert_release_surface(root: Path) -> None:
         "docs/llms-full.txt",
     ):
         text = read_text(root, relative)
-        require("v0.4 release candidate" in text, f"{relative} lacks v0.4 wording")
+        require("v0.5 release candidate" in text, f"{relative} lacks v0.5 wording")
         require("v0.3" in text, f"{relative} lacks public-install provenance")
         require(
             public_install_claim in text.lower(),
             f"{relative} lacks manual public-install verification",
         )
         require(
-            "v0.4 public-install path remains unverified" in text,
-            f"{relative} does not disclose missing v0.4 public-install evidence",
+            "v0.5 public-install path remains unverified" in text,
+            f"{relative} does not disclose missing v0.5 public-install evidence",
         )
 
     makefile = read_text(root, "Makefile")

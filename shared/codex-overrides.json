@@ -1,0 +1,8 @@
+{
+  "auth-setup": [
+    [
+      "- Claude Code: `claude plugin list --json`",
+      "- Run `codex plugin list` to inspect the installed plugin."
+    ]
+  ]
+}

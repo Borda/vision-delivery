@@ -68,7 +68,7 @@ The default improvement order is:
 4. fine-tuning,
 5. labeling or larger data work.
 
-Skills instruct the agent to ask for explicit confirmation before training and deployment-class spend. This is prose-enforced workflow guidance, not a hard runtime block.
+On Claude Code, a Sentinel `PreToolUse` hook denies paid, data-moving, destructive, or state-changing Roboflow MCP calls unless a sourced action brief is recorded in the project ledger, and then routes each call to the host permission prompt; it never auto-approves. On Codex, no verified pre-action hook exists, so Sentinel returns the brief and stops. The gate is a guard, not a budget: keep account budgets and host approvals in place.
 
 ## 6. Write Proof Artifacts
 

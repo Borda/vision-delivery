@@ -23,7 +23,7 @@ You need:
 
 ## Codex marketplace install
 
-The v0.4 release candidate has passed local clean-home marketplace simulations. Manual public-GitHub marketplace installation was recorded for v0.3; the v0.4 public-install path remains unverified. Roboflow account authorization and service behavior remain host-managed upstream checks.
+The v0.5 release candidate has passed local clean-home marketplace simulations. Manual public-GitHub marketplace installation was recorded for v0.3; the v0.5 public-install path remains unverified. Roboflow account authorization and service behavior remain host-managed upstream checks.
 
 ```bash
 codex plugin marketplace add https://github.com/Borda/vision-delivery
@@ -65,6 +65,10 @@ Useful details are:
 - operating constraint: latency, throughput, environment, and review process.
 
 If you do not know a metric or threshold, say what the error costs in plain language. The plugin should translate that into a proposed eval and ask you to confirm it.
+
+## What the first measured number looks like
+
+In explore mode Sentinel scores a rung 0 baseline with no account: the host model looks at your labeled sample images, and `score_baseline.py` compares its answers with your labels. You get one plain line such as "Real cases caught: 85% on 40 images (target >= 80%): PASS". See the [first-baseline example](https://github.com/Borda/vision-delivery/tree/main/examples/first-baseline).
 
 ## Expected first response
 

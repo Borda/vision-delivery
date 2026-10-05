@@ -4,7 +4,11 @@
 Asserts, in order:
 1. Fixtures: diy-wins → "diy" (real quote), managed-wins → "managed" (real
    quote), abstain-default → "insufficient-data" (no quote — the model must
-   never convert the Core plan floor into a verdict).
+   never convert the Core plan floor into a verdict). credit-plan-* fixtures
+   cover sourced credits/month priced against the public plan anchors
+   (in-range → verdict, beyond the Core ceiling → abstain, quote overrides
+   credits) via optional ``expect_managed_basis``, ``expect_managed_total_mo``
+   and ``expect_credit_plan_status`` keys.
 2. Every dollar line in text output carries [source: ..., as_of: YYYY-MM-DD].
 3. Snapshot staleness canary: PRICING_SNAPSHOT.json `as_of` must be younger
    than MAX_SNAPSHOT_AGE_DAYS (override with ALLOW_STALE_SNAPSHOT=1).
@@ -15,6 +19,9 @@ Asserts, in order:
    diy/managed verdict.
 6. Boundary validation rejects negative and non-finite overrides while accepting zero
    and representative extreme finite values.
+7. Credit-plan inputs: credits require a source and a non-future ISO date
+   (and vice versa); plan-anchor boundaries price exactly as stated; the
+   pricing date stays the snapshot date while the credits date is preserved.
 
 Usage:
     python3 evals/cost-model/assert_cost_model.py
@@ -28,6 +35,7 @@ import re
 import subprocess
 import sys
 import tempfile
+from datetime import date, timedelta
 from pathlib import Path
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
@@ -35,6 +43,25 @@ SCRIPT = Path(__file__).parent.parent.parent / "scripts" / "cost_model.py"
 SNAPSHOT = Path(__file__).parent.parent.parent / "scripts" / "PRICING_SNAPSHOT.json"
 MAX_SNAPSHOT_AGE_DAYS = 90
 SWEEP_STREAMS = [1, 2, 3, 4, 5, 8, 12, 20, 40, 80, 200]
+# Optional fixture key -> path into the JSON payload's "managed" block.
+FIXTURE_MANAGED_EXPECTATIONS = {
+    "expect_managed_basis": ("basis",),
+    "expect_managed_total_mo": ("total_mo",),
+    "expect_credit_plan_status": ("credit_plan", "status"),
+}
+CREDITS_AS_OF = "2026-10-01"
+# credits/mo -> (expected plan anchor, expected $/mo) from the stated public anchors:
+# Free 10cr/$0, Core floor 20cr/$39 + on-demand $6/credit, Core ceiling 500cr/$1,399.
+CREDIT_PLAN_BOUNDARIES = {
+    "0": ("free", 0.0),
+    "10": ("free", 0.0),
+    "10.5": ("core-floor", 39.0),
+    "20": ("core-floor", 39.0),
+    "20.5": ("core-floor", 45.0),
+    "246": ("core-floor", 1395.0),
+    "247": ("core-ceiling", 1399.0),
+    "500": ("core-ceiling", 1399.0),
+}
 
 # Matches lines like ~$123/mo  [source: ..., as_of: 2026-06-25]
 SOURCE_PATTERN = re.compile(r"\[source: .+, as_of: \d{4}-\d{2}-\d{2}\]")
@@ -83,6 +110,7 @@ def assert_numeric_boundaries(failures: list[str]) -> None:
     try:
         for option in (
             "--managed-usd-mo",
+            "--managed-credits-mo",
             "--override-gpu-spot",
             "--override-engineer",
         ):
@@ -300,35 +328,103 @@ def assert_acceptance_binding(failures: list[str]) -> None:
         failures.append(f"[acceptance-binding] {exc}")
 
 
+def credit_args(credits: str, as_of: str = CREDITS_AS_OF) -> list[str]:
+    """Return a 1-stream run with a sourced, dated credits/month figure."""
+    return [
+        "--streams",
+        "1",
+        "--managed-credits-mo",
+        credits,
+        "--credits-source",
+        "eval: user-stated monthly credit usage",
+        "--credits-as-of",
+        as_of,
+    ]
+
+
+def assert_credit_plan(failures: list[str]) -> None:
+    """Credits need dated provenance; anchors price as stated; dates stay distinct."""
+    tomorrow = (date.today() + timedelta(days=1)).isoformat()
+    invalid_cases = (
+        (credit_args("100")[:-2], "--managed-credits-mo requires --credits-as-of"),
+        (
+            ["--streams", "1", "--managed-credits-mo", "100", "--credits-as-of", CREDITS_AS_OF],
+            "--managed-credits-mo requires --credits-source",
+        ),
+        (["--streams", "1", "--credits-as-of", CREDITS_AS_OF], "--credits-as-of requires --managed-credits-mo"),
+        (["--streams", "1", "--credits-source", "x"], "--credits-source requires --managed-credits-mo"),
+        (credit_args("100", tomorrow), "--credits-as-of cannot be in the future"),
+        (credit_args("100", "01/10/2026"), "--credits-as-of must be an ISO date"),
+        (credit_args("100")[:5] + ["   "] + credit_args("100")[6:], "--credits-source must be non-empty text"),
+    )
+    try:
+        for args, expected_error in invalid_cases:
+            assert_invalid_input(args, expected_error)
+        for credits, (plan, total) in CREDIT_PLAN_BOUNDARIES.items():
+            managed = run_json(credit_args(credits))["managed"]
+            got = (managed["basis"], managed["credit_plan"]["plan"], managed["total_mo"])
+            if got != ("public-credit-plan", plan, total):
+                raise AssertionError(f"{credits} credits/mo priced as {got}, expected {(plan, total)}")
+        beyond = run_json(credit_args("500.5"))
+        if beyond["recommendation"] != "insufficient-data" or beyond["managed"]["total_mo"] is not None:
+            raise AssertionError("credits above the Core ceiling were priced instead of abstaining")
+        priced = run_json(credit_args("100"))
+        snapshot_as_of = json.loads(SNAPSHOT.read_text())["sources"]["roboflow_managed"]["as_of"]
+        if priced["sources"]["managed_as_of"] != snapshot_as_of:
+            raise AssertionError("credit-plan pricing date must be the snapshot date")
+        if priced["managed"]["credit_plan"]["credits_as_of"] != CREDITS_AS_OF:
+            raise AssertionError("user-supplied credits date was not preserved")
+        if not priced["managed"]["caveat"] or "Enterprise" not in priced["managed"]["caveat"]:
+            raise AssertionError("credit-plan estimate lost its Enterprise scope caveat")
+        print(f"  PASS [credit-plan] provenance enforced; {len(CREDIT_PLAN_BOUNDARIES)} anchor boundaries priced")
+    except AssertionError as exc:
+        failures.append(f"[credit-plan] {exc}")
+
+
+def _managed_value(data: dict, path: tuple[str, ...]) -> object:
+    """Walk ``path`` under the payload's managed block; None when absent."""
+    node: object = data["managed"]
+    for key in path:
+        if not isinstance(node, dict):
+            return None
+        node = node.get(key)
+    return node
+
+
+def check_fixture(fixture_path: Path, failures: list[str]) -> None:
+    """Run one fixture: recommendation, optional managed expectations, citations."""
+    fixture = json.loads(fixture_path.read_text())
+    name = fixture_path.stem
+    args = fixture["args"]
+    expected = fixture["expect_recommendation"]
+    try:
+        data = run_json(args)
+    except AssertionError as exc:
+        failures.append(f"[{name}] JSON run failed: {exc}")
+        return
+    actual = data["recommendation"]
+    if actual != expected:
+        failures.append(
+            f"[{name}] recommendation: expected '{expected}', got '{actual}'\n  reason: {data.get('reason', '?')}"
+        )
+    else:
+        print(f"  PASS [{name}] recommendation={actual}")
+    for key, path in FIXTURE_MANAGED_EXPECTATIONS.items():
+        if key in fixture and _managed_value(data, path) != fixture[key]:
+            failures.append(f"[{name}] {key}: expected {fixture[key]!r}, got {_managed_value(data, path)!r}")
+    try:
+        text = run_text(args)
+        assert_source_citations(text, name)
+        print(f"  PASS [{name}] source citations present")
+    except AssertionError as exc:
+        failures.append(str(exc))
+
+
 def main() -> int:
     failures: list[str] = []
 
     for fixture_path in sorted(FIXTURES_DIR.glob("*.json")):
-        fixture = json.loads(fixture_path.read_text())
-        name = fixture_path.stem
-        args = fixture["args"]
-        expected = fixture["expect_recommendation"]
-
-        try:
-            data = run_json(args)
-            actual = data["recommendation"]
-            if actual != expected:
-                failures.append(
-                    f"[{name}] recommendation: expected '{expected}', got '{actual}'\n"
-                    f"  reason: {data.get('reason', '?')}"
-                )
-            else:
-                print(f"  PASS [{name}] recommendation={actual}")
-        except AssertionError as exc:
-            failures.append(f"[{name}] JSON run failed: {exc}")
-            continue
-
-        try:
-            text = run_text(args)
-            assert_source_citations(text, name)
-            print(f"  PASS [{name}] source citations present")
-        except AssertionError as exc:
-            failures.append(str(exc))
+        check_fixture(fixture_path, failures)
 
     assert_snapshot_fresh(failures)
     assert_monotonicity(failures)
@@ -337,6 +433,7 @@ def main() -> int:
     assert_abstention_sweep(failures)
     assert_acceptance_binding(failures)
     assert_numeric_boundaries(failures)
+    assert_credit_plan(failures)
 
     if failures:
         print("\nFAIL:")

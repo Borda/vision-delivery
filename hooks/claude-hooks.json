@@ -1,5 +1,5 @@
 {
-  "description": "Sentinel Claude Code hooks: verified Roboflow MCP outcomes and local ledger write",
+  "description": "Sentinel Claude Code hooks: pre-action gate for paid/state-changing Roboflow MCP calls, verified outcomes, and local ledger write",
   "hooks": {
     "PostToolUse": [
       {
@@ -19,6 +19,18 @@
           {
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/cta.js\"",
             "commandWindows": "node \"$env:CLAUDE_PLUGIN_ROOT\\hooks\\cta.js\"",
+            "type": "command"
+          }
+        ],
+        "matcher": "^mcp__(plugin_[A-Za-z0-9_-]+_)?roboflow__.*$"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/gate.js\"",
+            "commandWindows": "node \"$env:CLAUDE_PLUGIN_ROOT\\hooks\\gate.js\"",
             "type": "command"
           }
         ],

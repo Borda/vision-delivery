@@ -1,0 +1,25 @@
+{
+  "args": [
+    "--streams",
+    "1",
+    "--model-size",
+    "nano",
+    "--uptime",
+    "business",
+    "--managed-credits-mo",
+    "100",
+    "--credits-source",
+    "fixture: user-stated monthly credit usage",
+    "--credits-as-of",
+    "2026-10-01",
+    "--managed-usd-mo",
+    "300",
+    "--managed-quote-as-of",
+    "2026-07-01"
+  ],
+  "description": "dated $300/mo quote plus 100 credits/mo (alone a $519 DIY verdict) -> the quote takes precedence and flips the verdict to managed",
+  "expect_credit_plan_status": "superseded-by-quote",
+  "expect_managed_basis": "user-quote",
+  "expect_managed_total_mo": 300.0,
+  "expect_recommendation": "managed"
+}
