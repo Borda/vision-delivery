@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 506" width="900" height="506" role="img" aria-labelledby="t d" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="14">
+<title id="t">The delivery loop</title><desc id="d">Scope the outcome, data authority and success gate; prove with a cheapest baseline; if the gate fails investigate misses and get host approval before improving and re-measuring; if it passes, produce inspectable proof, then economics and a human decision.</desc>
+<style>
+.g{fill:none;stroke:#7C8798;stroke-width:1.5;stroke-dasharray:4 4}
+.gt{fill:#7C8798;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.e{fill:none;stroke:#7C8798;stroke-width:2;stroke-linejoin:round}
+.f{fill:none;stroke:#7C3AED;stroke-width:2.5;stroke-linecap:round;stroke-dasharray:3 15;animation:flow 1.1s linear infinite}
+.elb{fill:#F1F5F9;stroke:#94A3B8;stroke-width:1}
+.el{fill:#334155;font-size:12px;font-weight:700}
+.ar{fill:#7C8798}
+.n{stroke-width:2;animation:pulse var(--T) ease-in-out infinite;animation-delay:var(--d)}
+.nt{font-weight:600}
+@keyframes flow{to{stroke-dashoffset:-18}}
+@keyframes pulse{0%,12%,100%{stroke-width:2}4%,8%{stroke-width:4.5}}
+@media (prefers-reduced-motion:reduce){.f,.n{animation:none}.f{display:none}}
+</style>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" class="ar"/></marker></defs>
+<rect class="g" x="20" y="16" width="860" height="116" rx="12"/>
+<text class="gt" x="34" y="36">1. Scope</text>
+<rect class="g" x="20" y="176" width="400" height="130" rx="12"/>
+<text class="gt" x="34" y="196">2. Prove</text>
+<rect class="g" x="460" y="176" width="420" height="130" rx="12"/>
+<text class="gt" x="474" y="196">3. Improve if needed</text>
+<rect class="g" x="20" y="356" width="440" height="130" rx="12"/>
+<text class="gt" x="34" y="376">4. Decide</text>
+<path class="e" d="M250.0 80.0 L350.0 80.0" marker-end="url(#ah)"/>
+<path class="f" d="M250.0 80.0 L350.0 80.0"/>
+<path class="e" d="M550.0 80.0 L650.0 80.0" marker-end="url(#ah)"/>
+<path class="f" d="M550.0 80.0 L650.0 80.0"/>
+<path class="e" d="M215.0 252.0 L250.0 252.0" marker-end="url(#ah)"/>
+<path class="f" d="M215.0 252.0 L250.0 252.0"/>
+<path class="e" d="M390.0 252.0 L485.0 252.0" marker-end="url(#ah)"/>
+<path class="f" d="M390.0 252.0 L485.0 252.0"/>
+<rect class="elb" x="422.5" y="227.0" width="29.0" height="18" rx="9"/>
+<text class="el" x="437.0" y="240.0" text-anchor="middle">no</text>
+<path class="e" d="M635.0 252.0 L700.0 252.0" marker-end="url(#ah)"/>
+<path class="f" d="M635.0 252.0 L700.0 252.0"/>
+<path class="e" d="M205.0 432.0 L275.0 432.0" marker-end="url(#ah)"/>
+<path class="f" d="M205.0 432.0 L275.0 432.0"/>
+<path class="e" d="M750.0 109.0 L750.0 144.0 L120.0 144.0 L120.0 223.0" marker-end="url(#ah)"/>
+<path class="f" d="M750.0 109.0 L750.0 144.0 L120.0 144.0 L120.0 223.0"/>
+<path class="e" d="M320.0 287.0 L320.0 330.0 L125.0 330.0 L125.0 412.0" marker-end="url(#ah)"/>
+<path class="f" d="M320.0 287.0 L320.0 330.0 L125.0 330.0 L125.0 412.0"/>
+<rect class="elb" x="203.8" y="321.0" width="36.5" height="18" rx="9"/>
+<text class="el" x="222.0" y="334.0" text-anchor="middle">yes</text>
+<path class="e" d="M785.0 223.0 L785.0 164.0 L170.0 164.0 L170.0 223.0" marker-end="url(#ah)"/>
+<path class="f" d="M785.0 223.0 L785.0 164.0 L170.0 164.0 L170.0 223.0"/>
+<rect class="n" style="--T:7.0s;--d:0.00s" fill="#D1FAE5" stroke="#0F766E" x="50.0" y="60.0" width="200.0" height="40.0" rx="10"/>
+<text class="nt" x="150" y="85.0" text-anchor="middle" fill="#134E4A">Business outcome</text>
+<rect class="n" style="--T:7.0s;--d:0.55s" fill="#D1FAE5" stroke="#0F766E" x="350.0" y="51.0" width="200.0" height="58.0" rx="10"/>
+<text class="nt" x="450" y="76.0" text-anchor="middle" fill="#134E4A">Data authority</text>
+<text class="nt" x="450" y="94.0" text-anchor="middle" fill="#134E4A">and samples</text>
+<rect class="n" style="--T:7.0s;--d:1.10s" fill="#EDE9FE" stroke="#7C3AED" x="650.0" y="51.0" width="200.0" height="58.0" rx="10"/>
+<text class="nt" x="750" y="76.0" text-anchor="middle" fill="#3B0764">Task and</text>
+<text class="nt" x="750" y="94.0" text-anchor="middle" fill="#3B0764">success gate</text>
+<rect class="n" style="--T:7.0s;--d:1.65s" fill="#EDE9FE" stroke="#7C3AED" x="45.0" y="223.0" width="170.0" height="58.0" rx="10"/>
+<text class="nt" x="130" y="248.0" text-anchor="middle" fill="#3B0764">Cheapest baseline</text>
+<text class="nt" x="130" y="266.0" text-anchor="middle" fill="#3B0764">rung 0 first</text>
+<polygon class="n" style="--T:7.0s;--d:2.20s" fill="#EDE9FE" stroke="#7C3AED" points="320,217.0 390.0,252 320,287.0 250.0,252"/>
+<text class="nt" x="320" y="248.0" text-anchor="middle" fill="#3B0764">Gate</text>
+<text class="nt" x="320" y="266.0" text-anchor="middle" fill="#3B0764">passed?</text>
+<rect class="n" style="--T:7.0s;--d:2.75s" fill="#FEF3C7" stroke="#D97706" x="485.0" y="223.0" width="150.0" height="58.0" rx="10"/>
+<text class="nt" x="560" y="248.0" text-anchor="middle" fill="#78350F">Investigate</text>
+<text class="nt" x="560" y="266.0" text-anchor="middle" fill="#78350F">misses</text>
+<rect class="n" style="--T:7.0s;--d:3.30s" fill="#FEF3C7" stroke="#D97706" x="700.0" y="223.0" width="170.0" height="58.0" rx="10"/>
+<text class="nt" x="785" y="248.0" text-anchor="middle" fill="#78350F">Action brief +</text>
+<text class="nt" x="785" y="266.0" text-anchor="middle" fill="#78350F">host approval</text>
+<rect class="n" style="--T:7.0s;--d:3.85s" fill="#DBEAFE" stroke="#2563EB" x="45.0" y="412.0" width="160.0" height="40.0" rx="10"/>
+<text class="nt" x="125" y="437.0" text-anchor="middle" fill="#172554">Inspectable proof</text>
+<rect class="n" style="--T:7.0s;--d:4.40s" fill="#FFE4E6" stroke="#E11D48" x="275.0" y="403.0" width="160.0" height="58.0" rx="10"/>
+<text class="nt" x="355" y="428.0" text-anchor="middle" fill="#881337">Economics and</text>
+<text class="nt" x="355" y="446.0" text-anchor="middle" fill="#881337">human decision</text>
+</svg>

@@ -7,21 +7,7 @@ title: Eval-First Workflow
 
 The workflow is conservative on purpose. The expensive mistake is not a weak model; it is solving the wrong visual task with no authority, representative evidence, or agreed success threshold.
 
-```mermaid
-flowchart LR
-    A[Business outcome] --> Z[Confirm authority and owner]
-    Z --> B[Read project and samples]
-    B --> C[Classify the task]
-    C --> D[Define the eval gate]
-    D --> E[Measure a pretrained baseline]
-    E --> F{Passes?}
-    F -->|yes| G[Write proof artifacts]
-    F -->|no| H[Try cheapest improvement]
-    H --> I[Ask before spend]
-    I --> E
-    G --> J[Estimate economics]
-    J --> K[Record provenance]
-```
+![Business outcome, confirm authority and owner, read project and samples, classify the task, define the eval gate, measure a pretrained baseline, pass check. On pass write proof artifacts, estimate economics, record provenance. On fail try the cheapest improvement, ask before spend, and re-measure.](assets/diagrams/eval-first-workflow.svg)
 
 ## 0. Confirm Authority And Ownership
 

@@ -74,18 +74,7 @@ Each host uses two commands. The v0.5 release candidate has passed local clean-h
 
 ## Delivery loop
 
-```mermaid
-flowchart LR
-    A[Outcome and authority] --> B[Representative samples]
-    B --> C[Task and success gate]
-    C --> D[Cheapest baseline]
-    D --> E{Pass?}
-    E -->|no| F[Investigate and improve]
-    F --> G[Confirm before paid action]
-    G --> D
-    E -->|yes| H[Verify artifacts]
-    H --> I[Economics and human decision]
-```
+![Outcome and authority, representative samples, task and success gate, cheapest baseline, pass check. On fail: investigate and improve, confirm before paid action, re-run baseline. On pass: verify artifacts, then economics and human decision.](assets/diagrams/delivery-loop-compact.svg)
 
 Generated scripts, IDs, eval files, and ledger rows are not self-validating. Inspect and execute them on a representative fixture, compare observed outputs with the committed gate, and record failures before calling a proof complete.
 

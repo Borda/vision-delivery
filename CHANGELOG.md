@@ -21,6 +21,7 @@ The repository manifests, package metadata, citation metadata, runtime ledger re
 
 - Ledger hook and helpers resolve the project root (`CLAUDE_PROJECT_DIR`, then the nearest `.vision-delivery` or `.git` ancestor) instead of the working directory.
 - README leads with the spend-protection and first-baseline value, with status condensed into one section.
+- Mermaid diagrams replaced by hand-authored animated SVGs in `docs/assets/diagrams/` (README diagram in `assets/`) (flowing edges, sequential node pulse, `prefers-reduced-motion` aware, theme-neutral colours); the `mkdocs-mermaid2-plugin` dependency and the `check-yaml --unsafe` override are removed.
 
 ### Known gaps
 

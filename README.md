@@ -68,46 +68,7 @@ Tried it? [Tell us how it went](https://github.com/Borda/vision-delivery/issues/
 
 ## 🔁 The delivery loop
 
-```mermaid
-flowchart TB
-    subgraph SCOPE[1. Scope]
-        direction LR
-        A[Business outcome] --> B[Data authority<br/>and samples]
-        B --> C[Task and<br/>success gate]
-    end
-
-    subgraph PROVE[2. Prove]
-        direction LR
-        D[Cheapest baseline<br/>rung 0 first] --> E{Gate<br/>passed?}
-    end
-
-    subgraph IMPROVE[3. Improve if needed]
-        direction LR
-        G[Investigate<br/>misses] --> H[Action brief +<br/>host approval]
-    end
-
-    subgraph DECIDE[4. Decide]
-        direction LR
-        F[Inspectable proof] --> I[Economics and<br/>human decision]
-    end
-
-    C --> D
-    E -->|yes| F
-    E -->|no| G
-    H --> D
-
-    classDef user fill:#D1FAE5,stroke:#0F766E,color:#134E4A,stroke-width:2px;
-    classDef sentinel fill:#EDE9FE,stroke:#7C3AED,color:#3B0764,stroke-width:2px;
-    classDef improve fill:#FEF3C7,stroke:#D97706,color:#78350F,stroke-width:2px;
-    classDef evidence fill:#DBEAFE,stroke:#2563EB,color:#172554,stroke-width:2px;
-    classDef decision fill:#FFE4E6,stroke:#E11D48,color:#881337,stroke-width:2px;
-
-    class A,B user;
-    class C,D,E sentinel;
-    class G,H improve;
-    class F evidence;
-    class I decision;
-```
+![Scope the outcome, data authority and success gate; prove with a cheapest baseline; if the gate fails investigate misses and get host approval before improving and re-measuring; if it passes, produce inspectable proof, then economics and a human decision.](assets/delivery-loop.svg)
 
 Generated scripts, eval files, and ledger rows are workflow outputs, not proof that they are correct or that they ran. Inspect and run them in your own environment before relying on them.
 
