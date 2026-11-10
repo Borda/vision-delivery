@@ -5,7 +5,7 @@ Sentinel owns problem framing, independent acceptance, proof artifacts, delivery
 Use this order whenever exact Roboflow behavior matters:
 
 1. an installed official `roboflow/computer-vision-skills` skill;
-2. the matching `roboflow://skills/...` MCP resource, when the host exposes it;
+2. the matching `skill://roboflow/<name>/SKILL.md` MCP resource, when the host exposes it;
 3. a local provider-neutral scaffold that stops before any volatile platform action.
 
 ## Platform action handshake
@@ -24,11 +24,11 @@ If no upstream source is available, fallback is scaffold-only. It must not autho
 
 The approval boundary is enforced by the host, never by conversation. Behavior differs per host because only one host exposes a verified pre-action hook.
 
-**Claude Code: host-gated path.** Sentinel ships a `PreToolUse` hook (`hooks/gate.js`) on every Roboflow MCP tool. For a paid, data-moving, destructive, or state-changing operation it:
+**Claude Code: host-gated path.** Sentinel ships a `PreToolUse` hook (`hooks/gate.js`) on every Roboflow MCP tool. The hook classifies each call from a policy generated from Roboflow's published tool catalog (`hooks/gate-policy.json`). A tool the catalog marks read-only passes. Every other tool, and any tool the policy does not list, is gated. For a gated call the hook:
 
-- denies the call unless the project ledger holds a successful `action_brief_emitted` row for that operation (or its category) that is under 24 hours old and not yet consumed by a successful call;
-- otherwise returns `ask`, so the host shows its own permission prompt with the brief summary; the user approves or rejects there;
-- denies in `bypassPermissions`, `dontAsk`, and `auto` permission modes, where no human prompt is guaranteed;
+- denies the call unless the project ledger holds a successful, structured `action_brief_emitted` row that names that exact operation, is under 24 hours old, and has not been used by a later call of that operation;
+- otherwise returns `ask`, so the host shows its own permission prompt with the brief's scope, cost, data movement, and rollback; the user approves or rejects there;
+- denies in `bypassPermissions` and `dontAsk` permission modes, where the host shows no prompt;
 - never returns `allow`.
 
 Record the brief with the ledger helper, then make the MCP call:
@@ -37,12 +37,27 @@ Record the brief with the ledger helper, then make the MCP call:
 python3 "/absolute/plugin/root/scripts/ledger_append.py" \
     --ledger "/absolute/user/project/.vision-delivery/ledger.jsonl" \
     --session "SESSION" --skill "SKILL" --action action_brief_emitted \
-    --operation "<observed MCP operation or category>" \
+    --operation "<exact MCP operation name, without the mcp__ server prefix>" \
     --event-id "manual:SESSION:brief:ORDINAL" --status success \
-    --notes "<what moves where; sourced credit/cost estimate with date; rollback>"
+    --scope "<what is acted on, and where>" \
+    --cost-amount "<upper estimate as a number>" --cost-unit "<credits or currency>" \
+    --cost-source "<where the estimate comes from>" --cost-as-of "<YYYY-MM-DD>" \
+    --data-movement "<what leaves the machine and its destination, or none>" \
+    --rollback "<how to undo it, or irreversible>"
 ```
 
-Each brief approves one successful execution. Conversational consent never replaces the host prompt.
+Rules for the brief:
+
+- Name the exact operation. A category name or a different operation does not open the gate.
+- One brief covers one execution. A call whose outcome the ledger could not classify still uses the brief up; only a recorded failure or cancellation leaves it open, and the next prompt then warns the user that the provider may already have started the work. Record a new brief for a retry.
+- The cost amount is an upper estimate from a current source, with a `--cost-as-of` date no more than 90 days old. If no sourced estimate exists, do not record the brief.
+- The helper rejects a brief for a read-only operation and a brief with a missing or malformed field. It warns when the operation is not in the gate policy: check the spelling before the call.
+- Two single-image tools (`models_infer`, `autolabel_preview`) run under a call budget. Add `--call-budget <N>` (1 to 1000) and state the cost for the whole budget. The user sees the host prompt until one call has run; later calls inside the budget follow the user's normal host permission rules, except in `auto` mode, where each call is asked. Every attempt that reaches the gate takes one unit, and calls past the budget are denied.
+- Everything else needs a brief for every execution, including billed media analysis (`media_analyze`, which also takes video), batch jobs, and Workflow or endpoint runs (`project_deployment_run`). Never split a batch or a video into single calls to fit a budget.
+
+Conversational consent never replaces the host prompt.
+
+The gate sees MCP tool calls only, from a server whose name contains `roboflow`. Do not use a Roboflow SDK, CLI, or REST call from a shell command or a generated script to perform an action the gate would hold; that path bypasses the gate and is forbidden for paid, data-moving, destructive, or state-changing actions.
 
 **Codex: brief-only.** Current official OpenAI documentation does not establish a Codex plugin `PreToolUse` authorization hook, and the Codex hook is post-action only. On Codex, Sentinel does not invoke the action. It returns the sourced action brief for the user to execute through a host/provider approval control.
 
@@ -50,15 +65,23 @@ Any other host or a Claude Code session with the gate missing or untrusted follo
 
 ## Delegation map
 
-| Platform need                                        | First official skill               | MCP resource fallback                           | Sentinel retains                                                          |
-| ---------------------------------------------------- | ---------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------- |
-| Training candidates, checkpoints, evaluation         | `roboflow:training-and-evaluation` | `roboflow://skills/training-and-evaluation/...` | Whether training is justified by the independent eval gap.                |
-| Inference, Workflows, deployment options, live video | `roboflow:inference`               | `roboflow://skills/inference/...`               | Evidence, latency/data constraints, artifact kind, and delivery decision. |
-| Projects, uploads, annotation, versions, exports     | `roboflow:data-management`         | `roboflow://skills/data-management/...`         | Dataset purpose, consent, eval linkage, and provenance.                   |
-| Current API/auth/SDK shapes                          | `roboflow:api-reference`           | `roboflow://skills/api-reference/...`           | Secret handling, provider boundary, and executable artifact checks.       |
-| Universe datasets and public models                  | `roboflow:universe`                | `roboflow://skills/universe/...`                | Relevance, license review, and measurement on user samples.               |
-| Plans, credits, and pricing                          | `roboflow:plans-and-pricing`       | `roboflow://skills/plans-and-pricing/...`       | Sourced economics, assumptions, and spend confirmation.                   |
-| Product navigation                                   | `roboflow:product-navigation`      | `roboflow://skills/product-navigation/...`      | Only the next delivery step and return to the eval gate.                  |
+Skill names are the upstream `SKILL.md` names in the `roboflow` plugin. Claude Code namespaces plugin skills, so it runs `roboflow-inference` as `roboflow:roboflow-inference`. Supporting pages sit beside each entrypoint at `skill://roboflow/<name>/<page>.md`.
+
+| Platform need                                                                                    | First official skill               | MCP resource fallback                                        | Sentinel retains                                                                                   |
+| ------------------------------------------------------------------------------------------------ | ---------------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| Training candidates, checkpoints, evaluation                                                     | `roboflow-training-and-evaluation` | `skill://roboflow/roboflow-training-and-evaluation/SKILL.md` | Whether training is justified by the independent eval gap.                                         |
+| Choosing and trying a model without training first, then putting it on a project's live endpoint | `roboflow-model-journey`           | `skill://roboflow/roboflow-model-journey/SKILL.md`           | The baseline measurement on the agreed eval before any training or deployment.                     |
+| Inference, Workflows, deployment options, live video                                             | `roboflow-inference`               | `skill://roboflow/roboflow-inference/SKILL.md`               | Evidence, latency/data constraints, artifact kind, and delivery decision.                          |
+| Building or improving a Workflow by eval-driven search over candidate Workflows                  | `workflow-from-eval`               | `skill://roboflow/workflow-from-eval/SKILL.md`               | The committed acceptance gate; an upstream scorecard does not replace Sentinel's independent eval. |
+| Running a Workflow over many images or videos as a batch job, monitoring it, downloading results | `roboflow-batch-processing`        | `skill://roboflow/roboflow-batch-processing/SKILL.md`        | Which data runs, spend confirmation, and how results feed the eval or delivery decision.           |
+| Projects, uploads, annotation, versions, exports                                                 | `roboflow-data-management`         | `skill://roboflow/roboflow-data-management/SKILL.md`         | Dataset purpose, consent, eval linkage, and provenance.                                            |
+| Connecting S3 or GCS buckets to mirror images into a workspace                                   | `roboflow-cloud-storage`           | `skill://roboflow/roboflow-cloud-storage/SKILL.md`           | Data authority, minimum necessary data, and what leaves the user's storage.                        |
+| Uploading locally trained model weights to Roboflow                                              | `roboflow-custom-weights-upload`   | `skill://roboflow/roboflow-custom-weights-upload/SKILL.md`   | Whether the local model passed the gate, weight provenance, and secret handling.                   |
+| Current API/auth/SDK shapes                                                                      | `roboflow-api-reference`           | `skill://roboflow/roboflow-api-reference/SKILL.md`           | Secret handling, provider boundary, and executable artifact checks.                                |
+| Universe datasets and public models                                                              | `roboflow-universe`                | `skill://roboflow/roboflow-universe/SKILL.md`                | Relevance, license review, and measurement on user samples.                                        |
+| Plans, credits, and pricing                                                                      | `roboflow-plans-and-pricing`       | `skill://roboflow/roboflow-plans-and-pricing/SKILL.md`       | Sourced economics, assumptions, and spend confirmation.                                            |
+| Product navigation                                                                               | `roboflow-product-navigation`      | `skill://roboflow/roboflow-product-navigation/SKILL.md`      | Only the next delivery step and return to the eval gate.                                           |
+| Drawing annotations, labels, and predictions over images and videos                              | `draw-vision`                      | `skill://roboflow/draw-vision/SKILL.md`                      | Which overlays the decision report needs; visuals illustrate, measured results decide.             |
 
 ## Response pattern
 

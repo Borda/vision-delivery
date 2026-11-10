@@ -131,7 +131,7 @@ runCase(
     tool_input: { project_id: "ws/proj" },
     tool_response: { success: true },
   },
-  success("future_capability_execute", "other", { session: "future", entity_id: "ws/proj" }),
+  success("future_capability_execute", "unlisted", { session: "future", entity_id: "ws/proj" }),
 );
 
 runCase(
@@ -142,15 +142,17 @@ runCase(
     tool_input: {},
     tool_response: {},
   },
-  unknown("anything_read", "other", { session: "hook-auto" }),
+  unknown("anything_read", "unlisted", { session: "hook-auto" }),
 );
 
+// Operation names and categories come from the gate policy generated from the provider catalog.
 for (const [name, operation, category] of [
-  ["training", "training_job_start", "training"],
-  ["dataset generation", "dataset_version_generate", "dataset-version"],
+  ["training", "trainings_create", "training"],
+  ["dataset generation", "versions_generate", "dataset-version"],
   ["upload", "image_upload", "data-movement"],
-  ["deployment", "deployment_create", "deployment"],
-  ["evaluation", "prediction_evaluate", "evaluation"],
+  ["deployment", "project_deployment_launch", "deployment"],
+  ["evaluation", "model_evals_get", "evaluation"],
+  ["inference", "models_infer", "inference"],
 ]) {
   runCase(
     `${name} category`,
@@ -161,7 +163,7 @@ for (const [name, operation, category] of [
 
 runCase(
   "non-Roboflow tool is ignored",
-  { hook_event_name: "PostToolUse", tool_name: "mcp__other__deployment_create", tool_response: {} },
+  { hook_event_name: "PostToolUse", tool_name: "mcp__other__project_deployment_launch", tool_response: {} },
   { write: false },
 );
 
@@ -170,7 +172,7 @@ runCase(
   {
     hook_event_name: "PostToolUseFailure",
     tool_use_id: "tool-failed",
-    tool_name: "mcp__roboflow__deployment_create",
+    tool_name: "mcp__roboflow__project_deployment_launch",
     error: "quota exceeded",
   },
   { write: true, fields: { action: "roboflow_mcp_call", category: "deployment", status: "failed" } },
@@ -181,7 +183,7 @@ runCase(
   {
     hook_event_name: "PostToolUseFailure",
     tool_use_id: "tool-cancelled",
-    tool_name: "mcp__roboflow__deployment_create",
+    tool_name: "mcp__roboflow__project_deployment_launch",
     is_interrupt: true,
   },
   { write: true, fields: { action: "roboflow_mcp_call", category: "deployment", status: "cancelled" } },
@@ -189,37 +191,37 @@ runCase(
 
 runCase(
   "result-free legacy event is unknown",
-  { tool_name: "mcp__roboflow__deployment_create", tool_input: {} },
+  { tool_name: "mcp__roboflow__project_deployment_launch", tool_input: {} },
   { write: true, fields: { action: "roboflow_mcp_call", status: "unknown" } },
 );
 
 runCase(
   "error-shaped success event is failed",
-  { hook_event_name: "PostToolUse", tool_name: "mcp__roboflow__training_start", tool_response: { isError: true } },
+  { hook_event_name: "PostToolUse", tool_name: "mcp__roboflow__trainings_create", tool_response: { isError: true } },
   { write: true, fields: { action: "roboflow_mcp_call", status: "failed" } },
 );
 
 runCase(
   "modern missing result is unknown",
-  { hook_event_name: "PostToolUse", tool_name: "mcp__roboflow__training_start" },
-  unknown("training_start", "training"),
+  { hook_event_name: "PostToolUse", tool_name: "mcp__roboflow__trainings_create" },
+  unknown("trainings_create", "training"),
 );
 
 runCase(
   "modern string result is unknown",
-  { hook_event_name: "PostToolUse", tool_name: "mcp__roboflow__training_start", tool_response: "unrecognized" },
-  unknown("training_start", "training"),
+  { hook_event_name: "PostToolUse", tool_name: "mcp__roboflow__trainings_create", tool_response: "unrecognized" },
+  unknown("trainings_create", "training"),
 );
 
 runCase(
   "entity identifiers are bounded",
   {
     hook_event_name: "PostToolUse",
-    tool_name: "mcp__roboflow__training_start",
+    tool_name: "mcp__roboflow__trainings_create",
     tool_input: { project_id: "p".repeat(500) },
     tool_response: { success: true },
   },
-  { ...success("training_start", "training"), maxEntityLength: 200 },
+  { ...success("trainings_create", "training"), maxEntityLength: 200 },
 );
 
 runCase(
@@ -227,7 +229,7 @@ runCase(
   null,
   {
     write: false,
-    rawInput: '{"tool_name":"mcp__roboflow__training_start","token":"secret-value-must-not-log"',
+    rawInput: '{"tool_name":"mcp__roboflow__trainings_create","token":"secret-value-must-not-log"',
     repeat: 80,
     pluginData: "PLUGIN_DATA",
     diagnostic: { code: "invalid-json", maxBytes: 4096, redacted: "secret-value-must-not-log" },
@@ -250,16 +252,16 @@ runCase(
   {
     hook_event_name: "PostToolUse",
     tool_use_id: "tool-duplicate",
-    tool_name: "mcp__roboflow__training_start",
+    tool_name: "mcp__roboflow__trainings_create",
     tool_response: { success: true },
   },
-  { ...success("training_start", "training"), repeat: 2, rows: 1 },
+  { ...success("trainings_create", "training"), repeat: 2, rows: 1 },
 );
 
 runCase(
   "fallback event ID deduplicates exact legacy redelivery",
-  { hook_event_name: "PostToolUse", tool_name: "mcp__roboflow__training_start", tool_input: {}, tool_response: { success: true } },
-  { ...success("training_start", "training"), repeat: 2, rows: 1 },
+  { hook_event_name: "PostToolUse", tool_name: "mcp__roboflow__trainings_create", tool_input: {}, tool_response: { success: true } },
+  { ...success("trainings_create", "training"), repeat: 2, rows: 1 },
 );
 
 runCase(
@@ -267,7 +269,7 @@ runCase(
   {
     hook_event_name: "PostToolUse",
     tool_use_id: "tool-symlink-directory",
-    tool_name: "mcp__roboflow__training_start",
+    tool_name: "mcp__roboflow__trainings_create",
     tool_response: { success: true },
   },
   {
@@ -288,7 +290,7 @@ runCase(
   {
     hook_event_name: "PostToolUse",
     tool_use_id: "tool-conflict",
-    tool_name: "mcp__roboflow__training_start",
+    tool_name: "mcp__roboflow__trainings_create",
     tool_response: { success: true },
   },
   {

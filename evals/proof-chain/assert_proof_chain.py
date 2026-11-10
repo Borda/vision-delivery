@@ -356,6 +356,20 @@ def main() -> int:
         if future.returncode == 0 or "future" not in future.stderr:
             raise AssertionError("future-dated baseline entered a passing chain")
 
+        baseline_record["measured_at"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        for scored, reason in (
+            ({"verdict": "inconclusive", "interval_lower": 0.45, "interval_upper": 0.7}, "only pass counts"),
+            ({"verdict": "no-verdict", "interval_lower": None, "interval_upper": None}, "only pass counts"),
+            ({"verdict": "pass", "interval_lower": 0.45, "interval_upper": 0.7}, "does not clear"),
+        ):
+            baseline.write_text(json.dumps({**baseline_record, **scored}), encoding="utf-8")
+            unproven = run(validator, cwd=root)
+            if unproven.returncode == 0 or reason not in unproven.stderr:
+                raise AssertionError(f"non-pass interval verdict entered a passing chain: {scored} {unproven.stderr}")
+        cleared = {"verdict": "pass", "interval_lower": 0.55, "interval_upper": 0.66}
+        baseline.write_text(json.dumps({**baseline_record, **cleared}), encoding="utf-8")
+        require_pass(run(validator, cwd=root), "interval-scored pass baseline")
+
     print("proof-chain assertions passed")
     return 0
 

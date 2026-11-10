@@ -18,7 +18,7 @@ The first session runs in **explore mode**. You get plain-language numbers and n
 1. Sentinel reads your files and asks at most three business questions, such as "out of 100 real cases, how many misses are acceptable?".
 2. It locks that target before looking at any result.
 3. It runs **rung 0** of the [baseline ladder](resources/baseline-ladder.md). The host model looks at your labeled sample images, and [`score_baseline.py`](resources/scripts/score_baseline.py) scores the answers. No sign-in, upload, or spend is needed.
-4. You get one line, for example: *"Real cases caught: 85% on 40 images (target ≥ 80%): PASS"*, plus what to try next.
+4. You get one line, for example: *"Real cases caught: 39 of 40 real cases (98%, 95% interval 87% to 100%); target >= 80%: PASS. Missing predictions: 0."*, plus what to try next. A result too close to the target to call on that sample reads INCONCLUSIVE instead of PASS, and a sample too small or missing predictions gets NO VERDICT.
 
 Only when the result heads for production, a third party, or a paid action does Sentinel switch to **deliver mode**: frozen acceptance files, digest-bound evidence, and validated handoffs. See [delivery modes](resources/delivery-modes.md).
 
@@ -26,9 +26,12 @@ Only when the result heads for production, a third party, or a paid action does 
 
 On **Claude Code**, Sentinel installs a `PreToolUse` hook ([`hooks/gate.js`](hooks/gate.js)) on every Roboflow MCP tool:
 
-- uploads, dataset versions, training, deployment, and deletion are **denied** until a sourced action brief (scope, data movement, dated cost estimate) is recorded in the project ledger;
-- with a brief, the call goes to **your host permission prompt**. The gate never auto-approves, and one brief covers one execution;
-- in `bypassPermissions`, `dontAsk`, and `auto` modes, such calls are denied, because no human prompt is guaranteed there.
+- each call is classified from a policy generated from Roboflow's published tool catalog ([`hooks/gate-policy.json`](hooks/gate-policy.json)). Tools Roboflow marks read-only pass, except two billed ones (`models_infer`, `media_analyze`); a tool the policy does not list is treated as gated;
+- every other call is **denied** until a structured action brief is recorded in the project ledger: scope, an upper cost estimate with its source and date, data movement, and rollback;
+- with a brief, the call goes to **your host permission prompt**, which shows those fields. The gate never auto-approves. One brief covers one execution. Two single-image tools (`models_infer`, `autolabel_preview`) instead run under one brief with a stated call budget: you approve the budget at the first call, and later calls inside it follow your normal host permission rules;
+- in `bypassPermissions` and `dontAsk` modes such calls are denied, because the host shows no prompt there. In `auto` mode the gate returns `ask` for every gated call, including each call inside a budget.
+
+The gate covers Roboflow MCP tool calls only, from a server whose name contains `roboflow`. A Roboflow SDK, CLI, or REST call made from a shell command or a generated script does not pass through it, and neither does the same server registered under another name; [Trust and Safety](https://borda.github.io/vision-delivery/trust/) lists what the gate does not cover.
 
 On **Codex**, no verified pre-action hook exists, so Sentinel writes the brief and stops; you execute it yourself. The gate is a guard, not a budget. Keep account budgets and a non-production workspace too.
 
@@ -74,7 +77,7 @@ Generated scripts, eval files, and ledger rows are workflow outputs, not proof t
 
 ## 🤝 Sentinel and official Roboflow skills
 
-Sentinel owns the delivery question: *what should we build, what evidence is enough, and what decision follows?* Roboflow owns current product truth: MCP tool semantics, model IDs, Workflows, plans, and pricing. Sentinel reads the installed official Roboflow skills first, then `roboflow://skills/...` MCP resources. When neither is available, it marks platform details unverified. Installing both full plugins can duplicate the `roboflow` MCP server on hosts that do not deduplicate; see [Roboflow Skills Integration](https://borda.github.io/vision-delivery/roboflow-skills/).
+Sentinel owns the delivery question: *what should we build, what evidence is enough, and what decision follows?* Roboflow owns current product truth: MCP tool semantics, model IDs, Workflows, plans, and pricing. Sentinel reads the installed official Roboflow skills first, then `skill://roboflow/<name>/SKILL.md` MCP resources. When neither is available, it marks platform details unverified. Installing both full plugins can duplicate the `roboflow` MCP server on hosts that do not deduplicate; see [Roboflow Skills Integration](https://borda.github.io/vision-delivery/roboflow-skills/).
 
 ## ⚠️ Safety boundary
 

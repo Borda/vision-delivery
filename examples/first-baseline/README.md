@@ -12,16 +12,24 @@ From the repository root:
 python3 resources/scripts/score_baseline.py \
     --gold examples/first-baseline/gold.example.jsonl \
     --pred examples/first-baseline/pred-rung0.example.jsonl \
-    --task count --metric catch_rate --comparator gte --threshold 0.8
+    --task count --metric catch_rate --comparator gte --threshold 0.85
 ```
 
 Expected first line:
 
 ```text
-Real cases caught: 62% on 5 images (target >= 80%): BELOW-TARGET. Missing predictions: 1.
+Per-image count agreement: 42 of 47 labeled objects (89%, 95% interval 81% to 96%); target >= 85%: INCONCLUSIVE. The 95% interval includes the target: label more images to settle it, or treat the result as not yet proven. Missing predictions: 0.
 ```
 
-`frame_005.jpg` has no prediction, so it counts as zero found. That is deliberate: a missing answer is a miss.
+The point estimate is above 85%, but 24 images cannot rule out a true rate below 85%, so the verdict is `INCONCLUSIVE`, not `PASS`. "Per-image count agreement" compares each image's count with its label, capped at the label. It does not check which object was found, so it is not object-level recall.
+
+Every gold image needs a prediction. Delete the last line of the prediction file and run again: the scorer refuses instead of scoring the gap as a miss.
+
+```text
+Per-image count agreement: 40 of 47 labeled objects (85.1%, 95% interval 70.3% to 95.9%); target >= 85.0%: NO VERDICT. No verdict because 1 of 24 gold images has no prediction. Missing predictions: 1.
+```
+
+The per-object count metrics (`catch_rate`, `over_count_rate`, `count_mae`) need at least 20 images, because their interval comes from resampling images. With fewer, or when every image gives the same result, score `exact_count_rate` ("images counted exactly right"), which needs 5.
 
 ## 2. Do it on your own images with Sentinel
 
@@ -36,9 +44,14 @@ Real cases caught: 62% on 5 images (target >= 80%): BELOW-TARGET. Missing predic
    A missed pallet is worse than a double count. Explore mode, please.
    ```
 
-4. Sentinel locks the target (for example "catch at least 80% of pallets") before looking at any result. It then looks at each image itself, writes `pred-rung0-<session>.jsonl`, and runs the same scorer.
+4. Sentinel locks the target (for example "per-image counts agree on at least 80% of labeled pallets") before looking at any result. It then looks at each image itself, writes `pred-rung0-<session>.jsonl`, and runs the same scorer.
 
-5. Read the verdict. `PASS` on a small sample means "worth a deliver-mode proof", not "production-ready". `BELOW-TARGET` means Sentinel climbs the [baseline ladder](../../resources/baseline-ladder.md) or tells you what capture or labels would help.
+5. Read the verdict. The scorer compares the whole 95% interval with the target, not the point estimate.
+
+   - `PASS`: the whole interval meets the target. On a small sample it means "worth a deliver-mode proof", not "production-ready".
+   - `INCONCLUSIVE`: the interval includes the target. Label more images, or treat the result as not yet proven.
+   - `BELOW-TARGET`: the whole interval misses the target. Sentinel climbs the [baseline ladder](../../resources/baseline-ladder.md) or tells you what capture or labels would help.
+   - `NO VERDICT`: the scorer refused, because an image has no prediction or too few cases stand behind the number (5 for most metrics, 20 images for the per-object count metrics).
 
 ## Contributing a real run
 

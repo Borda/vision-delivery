@@ -41,7 +41,7 @@ The expected answer is not a list of models. Sentinel should clarify the output,
   </article>
 </div>
 
-Sentinel does not own current Roboflow product truth. Exact MCP behavior, model IDs, Workflows, platform navigation, plans, and prices should come from installed official [Roboflow skills](https://github.com/roboflow/computer-vision-skills), then exposed `roboflow://skills/...` resources. Read [Roboflow Skills Integration](roboflow-skills.md).
+Sentinel does not own current Roboflow product truth. Exact MCP behavior, model IDs, Workflows, platform navigation, plans, and prices should come from installed official [Roboflow skills](https://github.com/roboflow/computer-vision-skills), then exposed `skill://roboflow/<name>/SKILL.md` resources. Read [Roboflow Skills Integration](roboflow-skills.md).
 
 ## Support tiers
 
@@ -90,7 +90,7 @@ See [Benchmarks and Evidence](benchmarks/index.md) for sources and promotion gat
 
 ## Safety before capability
 
-On Claude Code, a Sentinel `PreToolUse` hook denies paid, data-moving, destructive, or state-changing Roboflow MCP calls unless a sourced action brief is recorded in the project ledger, and then routes each call to the host permission prompt; it never auto-approves. On Codex, no verified pre-action hook exists, so Sentinel returns the brief and stops. Use host approvals, least-privilege account authorization or sessions, account budgets, and non-production workspaces. If a separately generated standalone client requires a key, follow the provider's current guidance and scope that key to the minimum permissions.
+On Claude Code, a Sentinel `PreToolUse` hook checks every Roboflow MCP call against a policy generated from Roboflow's published tool catalog. Read-only tools pass, except two billed ones (`models_infer`, `media_analyze`). Every other tool, and any tool the policy does not list, is denied until a structured action brief (scope, sourced and dated cost, data movement, rollback) is recorded in the project ledger; the call then goes to the host permission prompt. The gate never auto-approves. It covers MCP tool calls only: a Roboflow SDK, CLI, or REST call made from a shell or a generated script does not pass through it, and neither does a Roboflow server registered under a name that does not contain `roboflow`. On Codex, no verified pre-action hook exists, so Sentinel returns the brief and stops. Use host approvals, least-privilege account authorization or sessions, account budgets, and non-production workspaces. If a separately generated standalone client requires a key, follow the provider's current guidance and scope that key to the minimum permissions.
 
 For faces, license plates, people tracking, forms, medical imagery, worker monitoring, minors, or location-linked media, stop until authority, purpose, minimization, retention, representative evaluation, named human review, and appropriate legal/security/domain checks exist. Sentinel must not be the sole decision-maker for medical, employment, law-enforcement, access-control, or physical-safety outcomes.
 

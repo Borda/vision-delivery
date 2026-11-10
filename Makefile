@@ -1,4 +1,4 @@
-.PHONY: ci lint format lint-js typecheck docs-setup docs-build docs-serve eval-setup pre-commit-coverage eval eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-baseline eval-proof-chain eval-decision-report probe-codex probe-claude eval-trigger-live eval-e2e-self-test eval-ab-smoke eval-ab-metrics
+.PHONY: ci lint format lint-js typecheck docs-setup docs-build docs-serve eval-setup pre-commit-coverage eval eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-baseline eval-proof-chain eval-decision-report probe-codex probe-claude eval-trigger-live eval-e2e-self-test eval-ab-smoke eval-ab-metrics eval-ab-approver eval-upstream
 
 ci: eval-setup lint format lint-js typecheck eval
 
@@ -35,7 +35,7 @@ eval-setup:
 pre-commit-coverage:
 	@echo "make ci runs the Ruff, Ruff format, ESLint, and mypy pre-commit hooks plus repository evals."
 
-eval: eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-baseline eval-proof-chain eval-decision-report eval-e2e-self-test eval-ab-metrics
+eval: eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-baseline eval-proof-chain eval-decision-report eval-e2e-self-test eval-ab-metrics eval-ab-approver
 
 eval-version:
 	python scripts/check_versions.py
@@ -88,13 +88,21 @@ eval-ab-smoke:  # one S1 cell, both arms, vs mock MCP — on-demand, not per-PR
 eval-ab-metrics:  # deterministic A/B analyzer + verdict-rule checks on synthetic run fixtures — no live calls
 	python evals/ab/assert_metrics.py
 
+eval-ab-approver:  # deterministic simulated-approver + runner-argv checks — no live calls, no network
+	python evals/ab/assert_approver.py
+
 eval-cost-model:
 	python evals/cost-model/assert_cost_model.py
 
 eval-platform-routing:
 	python evals/platform-routing/assert_platform_routing.py
 
+eval-upstream:  # release gate: fails unless SENTINEL_TOOL_CATALOG and SENTINEL_UPSTREAM_SKILLS_DIR are set and still match
+	SENTINEL_REQUIRE_UPSTREAM=1 python evals/hooks/assert_gate_policy.py
+	SENTINEL_REQUIRE_UPSTREAM=1 python evals/platform-routing/assert_platform_routing.py
+
 eval-hooks:
+	python evals/hooks/assert_gate_policy.py
 	node evals/hooks/cta_smoke.mjs
 	node evals/hooks/gate_smoke.mjs
 

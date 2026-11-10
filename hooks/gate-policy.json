@@ -1,0 +1,1566 @@
+{
+  "default_class": "brief",
+  "deployment_operations": [
+    "project_deployment_launch",
+    "workflow_version_deploy"
+  ],
+  "overrides": [
+    {
+      "class": "budget",
+      "reason": "Single-image preview. Upstream says it spends no credits but is rate limited per workspace; one brief with a call budget keeps the preview loop usable.",
+      "tool": "autolabel_preview"
+    },
+    {
+      "class": "brief",
+      "reason": "Upstream marks it read-only, but its description says each call costs workspace credits, and it accepts video as well as images. Each call needs its own brief.",
+      "tool": "media_analyze"
+    },
+    {
+      "class": "budget",
+      "reason": "Upstream marks it read-only, but the upstream inference skill lists serverless inference as billed per-inference credit. It takes one image per call, so one brief with a stated call budget covers a measurement run.",
+      "tool": "models_infer"
+    }
+  ],
+  "provider": "roboflow",
+  "schema_version": 1,
+  "source": {
+    "as_of": "2026-11-10",
+    "catalog": "roboflow-cowork-tools.json",
+    "flags_sha256": "3b271d798a9e519cbbe049dda5d874fc1d5304f1eb77940c372ce37d23d28fa1",
+    "release": "cowork-catalog-2c8dbbd",
+    "sha256": "2d83db464b2af5e85b70e72e11a76a3b46628f4b17d22d31c276d0705a43347d",
+    "tool_count": 306
+  },
+  "tools": {
+    "agent_chat": {
+      "category": "workflow",
+      "class": "brief",
+      "read_only": false
+    },
+    "agent_chat_result": {
+      "category": "workflow",
+      "class": "open",
+      "read_only": true
+    },
+    "agent_conversation_get": {
+      "category": "workflow",
+      "class": "open",
+      "read_only": true
+    },
+    "agent_conversations_list": {
+      "category": "workflow",
+      "class": "open",
+      "read_only": true
+    },
+    "agent_workflow_publish": {
+      "category": "workflow",
+      "class": "brief",
+      "read_only": false
+    },
+    "annotation_batches_admin_get": {
+      "category": "annotation",
+      "class": "open",
+      "read_only": true
+    },
+    "annotation_batches_admin_images_list": {
+      "category": "annotation",
+      "class": "open",
+      "read_only": true
+    },
+    "annotation_batches_admin_list": {
+      "category": "annotation",
+      "class": "open",
+      "read_only": true
+    },
+    "annotation_batches_create": {
+      "category": "annotation",
+      "class": "brief",
+      "read_only": false
+    },
+    "annotation_batches_delete": {
+      "category": "destructive",
+      "class": "brief",
+      "read_only": false
+    },
+    "annotation_batches_get": {
+      "category": "annotation",
+      "class": "open",
+      "read_only": true
+    },
+    "annotation_batches_list": {
+      "category": "annotation",
+      "class": "open",
+      "read_only": true
+    },
+    "annotation_batches_merge": {
+      "category": "annotation",
+      "class": "brief",
+      "read_only": false
+    },
+    "annotation_board_status": {
+      "category": "annotation",
+      "class": "open",
+      "read_only": true
+    },
+    "annotation_jobs_accept_into_dataset": {
+      "category": "annotation",
+      "class": "brief",
+      "read_only": false
+    },
+    "annotation_jobs_create": {
+      "category": "annotation",
+      "class": "brief",
+      "read_only": false
+    },
+    "annotation_jobs_delete_annotations": {
+      "category": "destructive",
+      "class": "brief",
+      "read_only": false
+    },
+    "annotation_jobs_get": {
+      "category": "annotation",
+      "class": "open",
+      "read_only": true
+    },
+    "annotation_jobs_images_add": {
+      "category": "annotation",
+      "class": "brief",
+      "read_only": false
+    },
+    "annotation_jobs_images_list": {
+      "category": "annotation",
+      "class": "open",
+      "read_only": true
+    },
+    "annotation_jobs_images_reassign": {
+      "category": "annotation",
+      "class": "brief",
+      "read_only": false
+    },
+    "annotation_jobs_list": {
+      "category": "annotation",
+      "class": "open",
+      "read_only": true
+    },
+    "annotation_jobs_move_to_unassigned": {
+      "category": "annotation",
+      "class": "brief",
+      "read_only": false
+    },
+    "annotation_jobs_return_for_edits": {
+      "category": "annotation",
+      "class": "brief",
+      "read_only": false
+    },
+    "annotation_jobs_review_image": {
+      "category": "annotation",
+      "class": "brief",
+      "read_only": false
+    },
+    "annotation_jobs_review_images": {
+      "category": "annotation",
+      "class": "brief",
+      "read_only": false
+    },
+    "annotation_jobs_submit_for_review": {
+      "category": "annotation",
+      "class": "brief",
+      "read_only": false
+    },
+    "annotation_jobs_update": {
+      "category": "annotation",
+      "class": "brief",
+      "read_only": false
+    },
+    "annotations_get": {
+      "category": "annotation",
+      "class": "open",
+      "read_only": true
+    },
+    "annotations_save": {
+      "category": "annotation",
+      "class": "brief",
+      "read_only": false
+    },
+    "api_keys_create": {
+      "category": "credentials",
+      "class": "brief",
+      "read_only": false
+    },
+    "api_keys_disable": {
+      "category": "credentials",
+      "class": "brief",
+      "read_only": false
+    },
+    "api_keys_get": {
+      "category": "credentials",
+      "class": "open",
+      "read_only": true
+    },
+    "api_keys_get_publishable": {
+      "category": "credentials",
+      "class": "open",
+      "read_only": true
+    },
+    "api_keys_list": {
+      "category": "credentials",
+      "class": "open",
+      "read_only": true
+    },
+    "api_keys_owner_candidates": {
+      "category": "credentials",
+      "class": "open",
+      "read_only": true
+    },
+    "api_keys_protect": {
+      "category": "credentials",
+      "class": "brief",
+      "read_only": false
+    },
+    "api_keys_revoke": {
+      "category": "credentials",
+      "class": "brief",
+      "read_only": false
+    },
+    "api_keys_roll": {
+      "category": "credentials",
+      "class": "brief",
+      "read_only": false
+    },
+    "api_keys_update": {
+      "category": "credentials",
+      "class": "brief",
+      "read_only": false
+    },
+    "async_tasks_get": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "autolabel_job_get": {
+      "category": "annotation",
+      "class": "open",
+      "read_only": true
+    },
+    "autolabel_models_list": {
+      "category": "annotation",
+      "class": "open",
+      "read_only": true
+    },
+    "autolabel_preview": {
+      "category": "inference",
+      "class": "budget",
+      "read_only": false
+    },
+    "autolabel_start": {
+      "category": "inference",
+      "class": "brief",
+      "read_only": false
+    },
+    "batch_processing_asset_library_job_create": {
+      "category": "inference",
+      "class": "brief",
+      "read_only": false
+    },
+    "batch_processing_asset_library_task_get": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "batch_processing_guide": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "batch_processing_job_abort": {
+      "category": "destructive",
+      "class": "brief",
+      "read_only": false
+    },
+    "batch_processing_job_get": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "batch_processing_job_logs": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "batch_processing_job_restart": {
+      "category": "inference",
+      "class": "brief",
+      "read_only": false
+    },
+    "batch_processing_jobs_list": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "batch_processing_run": {
+      "category": "inference",
+      "class": "brief",
+      "read_only": false
+    },
+    "batch_processing_staged_job_start": {
+      "category": "inference",
+      "class": "brief",
+      "read_only": false
+    },
+    "batch_processing_staging_batch_files_list": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "batch_processing_staging_batch_get": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "batch_processing_staging_batches_list": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "connect_cloud_storage": {
+      "category": "credentials",
+      "class": "brief",
+      "read_only": false
+    },
+    "credentials_delete": {
+      "category": "credentials",
+      "class": "brief",
+      "read_only": false
+    },
+    "credentials_list": {
+      "category": "credentials",
+      "class": "open",
+      "read_only": true
+    },
+    "datasets_rebalance_splits": {
+      "category": "dataset-version",
+      "class": "brief",
+      "read_only": false
+    },
+    "datasource_create": {
+      "category": "other",
+      "class": "brief",
+      "read_only": false
+    },
+    "datasource_delete": {
+      "category": "destructive",
+      "class": "brief",
+      "read_only": false
+    },
+    "datasource_get": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "datasource_job_get": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "datasource_trigger": {
+      "category": "inference",
+      "class": "brief",
+      "read_only": false
+    },
+    "datasource_update": {
+      "category": "other",
+      "class": "brief",
+      "read_only": false
+    },
+    "datasource_validate": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "datasources_list": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "device_groups_add_devices": {
+      "category": "device",
+      "class": "brief",
+      "read_only": false
+    },
+    "device_groups_create": {
+      "category": "device",
+      "class": "brief",
+      "read_only": false
+    },
+    "device_groups_delete": {
+      "category": "destructive",
+      "class": "brief",
+      "read_only": false
+    },
+    "device_groups_get": {
+      "category": "device",
+      "class": "open",
+      "read_only": true
+    },
+    "device_groups_get_config": {
+      "category": "device",
+      "class": "open",
+      "read_only": true
+    },
+    "device_groups_list": {
+      "category": "device",
+      "class": "open",
+      "read_only": true
+    },
+    "device_groups_remove_devices": {
+      "category": "destructive",
+      "class": "brief",
+      "read_only": false
+    },
+    "device_groups_update": {
+      "category": "device",
+      "class": "brief",
+      "read_only": false
+    },
+    "device_groups_update_config": {
+      "category": "device",
+      "class": "brief",
+      "read_only": false
+    },
+    "devices_apply_pending_config": {
+      "category": "device",
+      "class": "brief",
+      "read_only": false
+    },
+    "devices_create": {
+      "category": "device",
+      "class": "brief",
+      "read_only": false
+    },
+    "devices_delete": {
+      "category": "destructive",
+      "class": "brief",
+      "read_only": false
+    },
+    "devices_discover_cameras": {
+      "category": "device",
+      "class": "brief",
+      "read_only": false
+    },
+    "devices_get": {
+      "category": "device",
+      "class": "open",
+      "read_only": true
+    },
+    "devices_get_config": {
+      "category": "device",
+      "class": "open",
+      "read_only": true
+    },
+    "devices_get_config_history": {
+      "category": "device",
+      "class": "open",
+      "read_only": true
+    },
+    "devices_get_default_config": {
+      "category": "device",
+      "class": "open",
+      "read_only": true
+    },
+    "devices_get_deployments": {
+      "category": "deployment",
+      "class": "open",
+      "read_only": true
+    },
+    "devices_get_event_store_stats": {
+      "category": "device",
+      "class": "open",
+      "read_only": true
+    },
+    "devices_get_events": {
+      "category": "device",
+      "class": "open",
+      "read_only": true
+    },
+    "devices_get_exception_occurrences": {
+      "category": "device",
+      "class": "open",
+      "read_only": true
+    },
+    "devices_get_inference_versions": {
+      "category": "device",
+      "class": "open",
+      "read_only": true
+    },
+    "devices_get_logs": {
+      "category": "device",
+      "class": "open",
+      "read_only": true
+    },
+    "devices_get_plc_status": {
+      "category": "device",
+      "class": "open",
+      "read_only": true
+    },
+    "devices_get_secure_gateway_status": {
+      "category": "device",
+      "class": "open",
+      "read_only": true
+    },
+    "devices_get_service_series": {
+      "category": "device",
+      "class": "open",
+      "read_only": true
+    },
+    "devices_get_services": {
+      "category": "device",
+      "class": "open",
+      "read_only": true
+    },
+    "devices_get_snapshot": {
+      "category": "device",
+      "class": "open",
+      "read_only": true
+    },
+    "devices_get_stream_options": {
+      "category": "device",
+      "class": "open",
+      "read_only": true
+    },
+    "devices_get_telemetry": {
+      "category": "device",
+      "class": "open",
+      "read_only": true
+    },
+    "devices_list": {
+      "category": "device",
+      "class": "open",
+      "read_only": true
+    },
+    "devices_list_events": {
+      "category": "device",
+      "class": "open",
+      "read_only": true
+    },
+    "devices_os_image_create": {
+      "category": "device",
+      "class": "brief",
+      "read_only": false
+    },
+    "devices_os_image_get": {
+      "category": "device",
+      "class": "open",
+      "read_only": true
+    },
+    "devices_provisioning_qr": {
+      "category": "device",
+      "class": "brief",
+      "read_only": false
+    },
+    "devices_redeploy": {
+      "category": "deployment",
+      "class": "brief",
+      "read_only": false
+    },
+    "devices_restart_inference": {
+      "category": "device",
+      "class": "brief",
+      "read_only": false
+    },
+    "devices_restart_poe_port": {
+      "category": "device",
+      "class": "brief",
+      "read_only": false
+    },
+    "devices_send_command": {
+      "category": "device",
+      "class": "brief",
+      "read_only": false
+    },
+    "devices_set_service_version": {
+      "category": "device",
+      "class": "brief",
+      "read_only": false
+    },
+    "devices_snooze_alerts": {
+      "category": "device",
+      "class": "brief",
+      "read_only": false
+    },
+    "devices_streams_capture_frame": {
+      "category": "device",
+      "class": "brief",
+      "read_only": false
+    },
+    "devices_streams_create": {
+      "category": "device",
+      "class": "brief",
+      "read_only": false
+    },
+    "devices_streams_delete": {
+      "category": "destructive",
+      "class": "brief",
+      "read_only": false
+    },
+    "devices_streams_get": {
+      "category": "device",
+      "class": "open",
+      "read_only": true
+    },
+    "devices_streams_list": {
+      "category": "device",
+      "class": "open",
+      "read_only": true
+    },
+    "devices_streams_pause": {
+      "category": "device",
+      "class": "brief",
+      "read_only": false
+    },
+    "devices_streams_resume": {
+      "category": "device",
+      "class": "brief",
+      "read_only": false
+    },
+    "devices_streams_sample_frame": {
+      "category": "device",
+      "class": "brief",
+      "read_only": false
+    },
+    "devices_streams_terminate": {
+      "category": "destructive",
+      "class": "brief",
+      "read_only": false
+    },
+    "devices_streams_trigger": {
+      "category": "inference",
+      "class": "brief",
+      "read_only": false
+    },
+    "devices_streams_update": {
+      "category": "device",
+      "class": "brief",
+      "read_only": false
+    },
+    "devices_update": {
+      "category": "device",
+      "class": "brief",
+      "read_only": false
+    },
+    "devices_update_config": {
+      "category": "device",
+      "class": "brief",
+      "read_only": false
+    },
+    "devices_update_default_config": {
+      "category": "device",
+      "class": "brief",
+      "read_only": false
+    },
+    "folders_list": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "get_aws_storage_credential_setup_link": {
+      "category": "credentials",
+      "class": "brief",
+      "read_only": false
+    },
+    "image_upload": {
+      "category": "data-movement",
+      "class": "brief",
+      "read_only": false
+    },
+    "image_upload_files": {
+      "category": "data-movement",
+      "class": "brief",
+      "read_only": false
+    },
+    "image_upload_status": {
+      "category": "data-movement",
+      "class": "open",
+      "read_only": true
+    },
+    "images_add_to_project": {
+      "category": "data-movement",
+      "class": "brief",
+      "read_only": false
+    },
+    "images_batch_update_metadata": {
+      "category": "other",
+      "class": "brief",
+      "read_only": false
+    },
+    "images_screening_status": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "images_search": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "images_update_metadata": {
+      "category": "other",
+      "class": "brief",
+      "read_only": false
+    },
+    "images_workspace_search": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "list_skills": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "media_analyze": {
+      "category": "inference",
+      "class": "brief",
+      "read_only": true
+    },
+    "media_trim": {
+      "category": "other",
+      "class": "brief",
+      "read_only": false
+    },
+    "media_upload": {
+      "category": "data-movement",
+      "class": "brief",
+      "read_only": false
+    },
+    "media_upload_finalize": {
+      "category": "data-movement",
+      "class": "brief",
+      "read_only": false
+    },
+    "meta_feedback_send": {
+      "category": "other",
+      "class": "brief",
+      "read_only": false
+    },
+    "model_evals_compare": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "model_evals_get": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "model_evals_get_confidence_sweep": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "model_evals_get_confusion_matrix": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "model_evals_get_image_predictions": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "model_evals_get_map_results": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "model_evals_get_performance_by_class": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "model_evals_get_recommendations": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "model_evals_get_vector_analysis": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "model_evals_list": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "models_custom_weights_upload_guide": {
+      "category": "data-movement",
+      "class": "open",
+      "read_only": true
+    },
+    "models_get": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "models_infer": {
+      "category": "inference",
+      "class": "budget",
+      "read_only": true
+    },
+    "models_list": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "models_star_nas": {
+      "category": "other",
+      "class": "brief",
+      "read_only": false
+    },
+    "models_weights_download_url": {
+      "category": "data-movement",
+      "class": "brief",
+      "read_only": false
+    },
+    "project_deployment_configure_active_learning": {
+      "category": "deployment",
+      "class": "brief",
+      "read_only": false
+    },
+    "project_deployment_disable_active_learning": {
+      "category": "deployment",
+      "class": "brief",
+      "read_only": false
+    },
+    "project_deployment_enable_active_learning": {
+      "category": "deployment",
+      "class": "brief",
+      "read_only": false
+    },
+    "project_deployment_get": {
+      "category": "deployment",
+      "class": "open",
+      "read_only": true
+    },
+    "project_deployment_launch": {
+      "category": "deployment",
+      "class": "brief",
+      "read_only": false
+    },
+    "project_deployment_list_review_queues": {
+      "category": "deployment",
+      "class": "open",
+      "read_only": true
+    },
+    "project_deployment_run": {
+      "category": "inference",
+      "class": "brief",
+      "read_only": false
+    },
+    "project_deployment_set_model": {
+      "category": "deployment",
+      "class": "brief",
+      "read_only": false
+    },
+    "projects_create": {
+      "category": "other",
+      "class": "brief",
+      "read_only": false
+    },
+    "projects_delete": {
+      "category": "destructive",
+      "class": "brief",
+      "read_only": false
+    },
+    "projects_fork": {
+      "category": "data-movement",
+      "class": "brief",
+      "read_only": false
+    },
+    "projects_get": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "projects_health": {
+      "category": "other",
+      "class": "brief",
+      "read_only": false
+    },
+    "projects_list": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "read_skill": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "trainings_cancel": {
+      "category": "training",
+      "class": "brief",
+      "read_only": false
+    },
+    "trainings_create": {
+      "category": "training",
+      "class": "brief",
+      "read_only": false
+    },
+    "trainings_delete": {
+      "category": "destructive",
+      "class": "brief",
+      "read_only": false
+    },
+    "trainings_describe_recipe": {
+      "category": "training",
+      "class": "open",
+      "read_only": true
+    },
+    "trainings_get": {
+      "category": "training",
+      "class": "open",
+      "read_only": true
+    },
+    "trainings_list": {
+      "category": "training",
+      "class": "open",
+      "read_only": true
+    },
+    "trainings_stop": {
+      "category": "training",
+      "class": "brief",
+      "read_only": false
+    },
+    "trash_list": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "trash_restore_project": {
+      "category": "other",
+      "class": "brief",
+      "read_only": false
+    },
+    "trash_restore_training": {
+      "category": "other",
+      "class": "brief",
+      "read_only": false
+    },
+    "trash_restore_version": {
+      "category": "other",
+      "class": "brief",
+      "read_only": false
+    },
+    "trash_restore_workflow": {
+      "category": "other",
+      "class": "brief",
+      "read_only": false
+    },
+    "universe_dataset_images_search": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "universe_search": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "versions_delete": {
+      "category": "destructive",
+      "class": "brief",
+      "read_only": false
+    },
+    "versions_export": {
+      "category": "data-movement",
+      "class": "brief",
+      "read_only": false
+    },
+    "versions_generate": {
+      "category": "dataset-version",
+      "class": "brief",
+      "read_only": false
+    },
+    "versions_get": {
+      "category": "dataset-version",
+      "class": "open",
+      "read_only": true
+    },
+    "video_segments_annotate": {
+      "category": "annotation",
+      "class": "brief",
+      "read_only": false
+    },
+    "video_upload": {
+      "category": "data-movement",
+      "class": "brief",
+      "read_only": false
+    },
+    "video_upload_status": {
+      "category": "data-movement",
+      "class": "open",
+      "read_only": true
+    },
+    "vision_events_custom_metadata_schema_get": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "vision_events_delete": {
+      "category": "destructive",
+      "class": "brief",
+      "read_only": false
+    },
+    "vision_events_image_metadata_schema_get": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "vision_events_query": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "vision_events_saved_filter_create": {
+      "category": "other",
+      "class": "brief",
+      "read_only": false
+    },
+    "vision_events_saved_filter_delete": {
+      "category": "destructive",
+      "class": "brief",
+      "read_only": false
+    },
+    "vision_events_saved_filter_get": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "vision_events_saved_filter_update": {
+      "category": "other",
+      "class": "brief",
+      "read_only": false
+    },
+    "vision_events_saved_filters_list": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "vision_events_use_case_archive": {
+      "category": "destructive",
+      "class": "brief",
+      "read_only": false
+    },
+    "vision_events_use_case_create": {
+      "category": "other",
+      "class": "brief",
+      "read_only": false
+    },
+    "vision_events_use_case_rename": {
+      "category": "other",
+      "class": "brief",
+      "read_only": false
+    },
+    "vision_events_use_case_unarchive": {
+      "category": "other",
+      "class": "brief",
+      "read_only": false
+    },
+    "vision_events_use_cases_list": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_blocks_get_schema": {
+      "category": "workflow",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_blocks_list": {
+      "category": "workflow",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_deploy_gates_list": {
+      "category": "deployment",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_deploy_gates_openapi_get": {
+      "category": "deployment",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_deploy_gates_workspace_list": {
+      "category": "deployment",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_eval_deploy_checks_list": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_eval_deploy_gate_get": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_eval_deploy_gate_new_check_thresholds_set": {
+      "category": "evaluation",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_eval_deploy_gate_policy_update": {
+      "category": "evaluation",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_eval_deploy_gate_remove": {
+      "category": "destructive",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_eval_deploy_gate_set": {
+      "category": "evaluation",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_evals_agent_manifest": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_agent_resource_get": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_agent_resources_list": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_bindings_suggest": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_bindings_validate": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_capabilities": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_case_assets_upload": {
+      "category": "data-movement",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_evals_case_assets_upload_complete": {
+      "category": "data-movement",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_evals_case_imports_get": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_case_preparations_cases": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_case_preparations_get": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_case_preparations_resume": {
+      "category": "evaluation",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_evals_case_preparations_start": {
+      "category": "evaluation",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_evals_cases_create": {
+      "category": "evaluation",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_evals_cases_delete": {
+      "category": "destructive",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_evals_cases_get": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_cases_import": {
+      "category": "data-movement",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_evals_cases_list": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_cases_replace": {
+      "category": "evaluation",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_evals_create": {
+      "category": "evaluation",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_evals_datasets_compatible_specs": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_datasets_create": {
+      "category": "evaluation",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_evals_datasets_get": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_datasets_list": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_datasets_search": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_datasets_update": {
+      "category": "evaluation",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_evals_datasets_update_contract": {
+      "category": "evaluation",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_evals_delete": {
+      "category": "destructive",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_evals_embeddings_cancel": {
+      "category": "evaluation",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_evals_embeddings_get": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_embeddings_start": {
+      "category": "evaluation",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_evals_evaluators_get": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_evaluators_list": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_executions_configuration": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_executions_get": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_executions_input_cases": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_executions_list": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_executions_submit_capture": {
+      "category": "evaluation",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_evals_exports_download_url": {
+      "category": "data-movement",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_exports_get_job": {
+      "category": "data-movement",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_exports_start": {
+      "category": "data-movement",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_evals_get": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_list": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_openapi_get": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_operation_get": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_results_case_get": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_results_cases_list": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_results_compare": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_results_overview": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_runs_cancel": {
+      "category": "evaluation",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_evals_runs_configuration": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_runs_delete": {
+      "category": "destructive",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_evals_runs_get": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_runs_list": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_runs_replay": {
+      "category": "evaluation",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_evals_runs_rescore": {
+      "category": "evaluation",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_evals_runs_retry_failed": {
+      "category": "evaluation",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_evals_runs_start": {
+      "category": "evaluation",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_evals_schema_get": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_specs_compatible_datasets": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_specs_create": {
+      "category": "evaluation",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_evals_specs_get": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_specs_list": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_specs_update": {
+      "category": "evaluation",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_evals_specs_validate": {
+      "category": "evaluation",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_evals_update": {
+      "category": "evaluation",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_manual_approval_gate_get": {
+      "category": "workflow",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_manual_approval_gate_remove": {
+      "category": "destructive",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_manual_approval_gate_set": {
+      "category": "workflow",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_specs_run": {
+      "category": "inference",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_specs_validate": {
+      "category": "workflow",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_version_approval_get": {
+      "category": "workflow",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_version_approvals_list": {
+      "category": "workflow",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_version_deploy": {
+      "category": "deployment",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_version_deploy_gates_get": {
+      "category": "deployment",
+      "class": "open",
+      "read_only": true
+    },
+    "workflow_version_deploy_gates_run": {
+      "category": "deployment",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflow_versions_save": {
+      "category": "workflow",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflows_create": {
+      "category": "workflow",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflows_delete": {
+      "category": "destructive",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflows_get": {
+      "category": "workflow",
+      "class": "open",
+      "read_only": true
+    },
+    "workflows_list": {
+      "category": "workflow",
+      "class": "open",
+      "read_only": true
+    },
+    "workflows_run": {
+      "category": "inference",
+      "class": "brief",
+      "read_only": false
+    },
+    "workflows_update": {
+      "category": "workflow",
+      "class": "brief",
+      "read_only": false
+    },
+    "workspace_announcements_create": {
+      "category": "other",
+      "class": "brief",
+      "read_only": false
+    },
+    "workspace_announcements_delete": {
+      "category": "destructive",
+      "class": "brief",
+      "read_only": false
+    },
+    "workspace_announcements_list": {
+      "category": "other",
+      "class": "open",
+      "read_only": true
+    },
+    "workspace_announcements_update": {
+      "category": "other",
+      "class": "brief",
+      "read_only": false
+    }
+  }
+}

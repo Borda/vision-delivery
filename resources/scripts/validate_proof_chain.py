@@ -42,6 +42,20 @@ def _validate_binding(data: dict[str, Any], label: str, acceptance_id: str, acce
         raise ValueError(f"{label} does not match the frozen acceptance")
 
 
+def _check_scored_verdict(baseline: dict[str, Any], comparator: str, threshold: float) -> None:
+    """Reject an interval-scored baseline unless its verdict is pass and its interval clears the threshold."""
+    verdict = baseline.get("verdict")
+    if verdict is not None and verdict != "pass":
+        raise ValueError(f"baseline verdict is {verdict}; only pass counts as a passed acceptance")
+    bound = baseline.get("interval_lower" if comparator == "gte" else "interval_upper")
+    if bound is None:
+        return
+    if isinstance(bound, bool) or not isinstance(bound, int | float) or not math.isfinite(bound):
+        raise ValueError("baseline interval bound must be finite numeric")
+    if not (bound >= threshold if comparator == "gte" else bound <= threshold):
+        raise ValueError("baseline 95% interval does not clear the frozen threshold")
+
+
 def _load_ledger(path: Path) -> list[dict[str, Any]]:
     """Load a regular JSONL ledger and reject malformed rows."""
     if path.is_symlink() or not path.is_file():
@@ -82,6 +96,7 @@ def validate_chain(args: argparse.Namespace) -> dict[str, str]:
     if isinstance(observed, bool) or not isinstance(observed, int | float) or not math.isfinite(observed):
         raise ValueError("baseline observed_value must be finite numeric")
     threshold = float(acceptance["threshold"])
+    _check_scored_verdict(baseline, str(acceptance["comparator"]), threshold)
     passes = observed >= threshold if acceptance["comparator"] == "gte" else observed <= threshold
     if baseline.get("passes_acceptance") is not passes:
         raise ValueError("baseline passes_acceptance disagrees with the frozen criterion")

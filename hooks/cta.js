@@ -5,13 +5,19 @@
 const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
-const { ledgerFile, operation, operationCategory } = require("./roboflow-ops");
+const {
+  acquireLedgerLock,
+  appendLedgerLine,
+  ledgerFile,
+  operation,
+  operationCategory,
+  prepareLedgerPath,
+  releaseLedgerLock,
+} = require("./roboflow-ops");
 
 const LEDGER_FILE = ledgerFile();
 const DIAGNOSTIC_FILE = "sentinel-hook-diagnostics.jsonl";
 const MAX_DIAGNOSTIC_BYTES = 4096;
-const LOCK_TIMEOUT_MILLISECONDS = 5000;
-const LOCK_RETRY_MILLISECONDS = 10;
 
 function writeDiagnostic(code) {
   const pluginData = process.env.PLUGIN_DATA || process.env.CLAUDE_PLUGIN_DATA;
@@ -90,53 +96,6 @@ function outcome(payload) {
   return resultSignalsSuccess(legacyResult) ? "success" : "unknown";
 }
 
-function rejectSymlinkPath(target) {
-  for (let current = path.resolve(target); ; current = path.dirname(current)) {
-    try {
-      if (fs.lstatSync(current).isSymbolicLink()) {
-        throw new Error(`ledger path may not contain a symlink: ${current}`);
-      }
-    } catch (error) {
-      if (error.code !== "ENOENT") throw error;
-    }
-    if (current === path.dirname(current)) return;
-  }
-}
-
-function prepareLedgerPath(ledgerFile) {
-  rejectSymlinkPath(ledgerFile);
-  fs.mkdirSync(path.dirname(ledgerFile), { recursive: true });
-  rejectSymlinkPath(ledgerFile);
-  if (!fs.existsSync(ledgerFile)) return;
-  const entry = fs.lstatSync(ledgerFile);
-  if (entry.isSymbolicLink() || !entry.isFile()) {
-    throw new Error(`ledger path must be a regular file: ${ledgerFile}`);
-  }
-}
-
-function waitForLock() {
-  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, LOCK_RETRY_MILLISECONDS);
-}
-
-function acquireLedgerLock(ledgerFile) {
-  const lockPath = `${ledgerFile}.lock`;
-  const deadline = Date.now() + LOCK_TIMEOUT_MILLISECONDS;
-  for (;;) {
-    rejectSymlinkPath(lockPath);
-    try {
-      fs.mkdirSync(lockPath);
-      return lockPath;
-    } catch (error) {
-      if (error.code !== "EEXIST") throw error;
-      rejectSymlinkPath(lockPath);
-      if (Date.now() >= deadline) {
-        throw new Error(`timed out waiting for ledger lock: ${lockPath}`);
-      }
-      waitForLock();
-    }
-  }
-}
-
 function comparableRecord(record) {
   return Object.fromEntries(Object.entries(record).filter(([key]) => key !== "ts"));
 }
@@ -162,20 +121,9 @@ function appendLedgerRecord(record) {
         // Malformed historical rows do not prevent a separately identified event.
       }
     }
-    const flags = fs.constants.O_WRONLY | fs.constants.O_APPEND | fs.constants.O_CREAT;
-    const noFollow = fs.constants.O_NOFOLLOW || 0;
-    const descriptor = fs.openSync(LEDGER_FILE, flags | noFollow, 0o600);
-    try {
-      fs.writeFileSync(descriptor, JSON.stringify(record) + "\n", "utf8");
-    } finally {
-      fs.closeSync(descriptor);
-    }
+    appendLedgerLine(LEDGER_FILE, record);
   } finally {
-    try {
-      if (fs.lstatSync(lockPath).isDirectory()) fs.rmdirSync(lockPath);
-    } catch {
-      // A replaced lock path is left untouched rather than risking a victim delete.
-    }
+    releaseLedgerLock(lockPath);
   }
 }
 

@@ -9,7 +9,7 @@ For feasibility, first baselines, and internal "is this worth pursuing?" decisio
 - Record the target in plain words in `.vision-delivery/eval-<session>.md`: what counts as a hit, how many misses or false alarms are acceptable out of 100, which error is worse, and the gold images. The fields of `fde-methodology.md` Step 2 still apply; they stay in the file, not in the chat.
 - Freeze the target before any baseline result, exactly as in deliver mode. Say "target locked" with its time, not a digest.
 - Climb `baseline-ladder.md` from rung 0 and score with `scripts/score_baseline.py` using the inline `--metric/--comparator/--threshold` target.
-- Report in plain language: "caught 34 of 40 (85%); target was at least 80%; pass on a small sample of 40".
+- Report the scorer's plain line with its numerator/denominator, 95% interval, and verdict, for example: "Real cases caught: 34 of 40 real cases (85%, 95% interval 71% to 93%); target >= 80%: INCONCLUSIVE. The 95% interval includes the target: label more images to settle it, or treat the result as not yet proven. Missing predictions: 0." Never report an `INCONCLUSIVE` or `NO VERDICT` result as a pass.
 - Do not show SHA-256 digests, schema versions, ledger event IDs, or helper command lines unless the user asks. Run the helpers yourself and summarize their result.
 - Explore results may say `go to deliver`, `revise`, or `stop`. They never say production-ready.
 

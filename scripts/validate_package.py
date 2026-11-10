@@ -23,6 +23,7 @@ REQUIRED_PATHS = (
     "hooks/claude-hooks.json",
     "hooks/cta.js",
     "hooks/gate.js",
+    "hooks/gate-policy.json",
     "hooks/hooks.json",
     "hooks/roboflow-ops.js",
     "assets/icon.png",

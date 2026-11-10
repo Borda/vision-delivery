@@ -18,26 +18,58 @@ _PRE_DEPLOY_ACTIONS = {
     "baseline_measured",
     "models_train",
 }  # models_train: legacy pre-2026-07-09 rows
-_DEPLOYMENT_OPERATIONS = {"deploy", "deployment_create", "deployment_launch"}
+_GATE_POLICY = Path(__file__).resolve().parents[1] / "hooks" / "gate-policy.json"
+_PROGRESS_CATEGORIES = {"evaluation", "inference", "training"}
+
+
+def _policy_operations(policy_path: Path = _GATE_POLICY) -> tuple[frozenset[str], frozenset[str]]:
+    """Return the deployment and build-progress operation names from the gate policy.
+
+    Operation names are never guessed here: both sets come from the policy generated from
+    the provider's tool catalog. A missing or unreadable policy yields two empty sets, so
+    the report counts no provider call rather than counting a guessed one.
+
+    Args:
+        policy_path: Location of the generated gate policy.
+
+    Returns:
+        Operations that launch a deployment, and gated operations that train, evaluate,
+        or run inference.
+
+    Examples:
+        >>> deployment, progress = _policy_operations(Path("missing-policy.json"))
+        >>> (len(deployment), len(progress))
+        (0, 0)
+    """
+    try:
+        policy = json.loads(policy_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return frozenset(), frozenset()
+    tools = policy.get("tools") if isinstance(policy, dict) else None
+    if not isinstance(tools, dict):
+        return frozenset(), frozenset()
+    deployment = frozenset(name for name in policy.get("deployment_operations", []) if name in tools)
+    progress = frozenset(
+        name
+        for name, entry in tools.items()
+        if isinstance(entry, dict) and entry.get("class") != "open" and entry.get("category") in _PROGRESS_CATEGORIES
+    )
+    return deployment, progress
+
+
+_DEPLOYMENT_OPERATIONS, _PROGRESS_OPERATIONS = _policy_operations()
 
 
 def _is_deployment(record: dict) -> bool:
     """Return whether a record is a verified deployment outcome."""
-    return (
-        record.get("action") == "roboflow_mcp_call"
-        and record.get("category") == "deployment"
-        and record.get("operation") in _DEPLOYMENT_OPERATIONS
-    )
+    return record.get("action") == "roboflow_mcp_call" and record.get("operation") in _DEPLOYMENT_OPERATIONS
 
 
 def _is_pre_deployment(record: dict) -> bool:
     """Return whether a successful record proves measured/build progress."""
     if record.get("action") in _PRE_DEPLOY_ACTIONS:
         return True
-    return record.get("action") == "roboflow_mcp_call" and record.get("category") in {
-        "evaluation",
-        "training",
-    }
+    return record.get("action") == "roboflow_mcp_call" and record.get("operation") in _PROGRESS_OPERATIONS
 
 
 def _default_ledger() -> Path:

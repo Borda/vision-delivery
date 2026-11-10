@@ -30,7 +30,7 @@ Sentinel owns task framing, success gates, baseline-first decisions, proof reque
 Lookup order for platform truth:
 
 1. installed official `roboflow/computer-vision-skills`,
-2. exposed `roboflow://skills/...` MCP resources,
+2. exposed `skill://roboflow/<name>/SKILL.md` MCP resources,
 3. official current documentation or a request to install the official skills,
 4. otherwise mark guidance unverified.
 

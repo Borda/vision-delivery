@@ -1,0 +1,71 @@
+{
+  "categories": [
+    {
+      "category": "credentials",
+      "pattern": "^api_keys_|^credentials_|credential|^connect_cloud_storage$"
+    },
+    {
+      "category": "inference",
+      "pattern": "^models_infer$|^media_analyze$|^project_deployment_run$|^workflows_run$|^workflow_specs_run$|^batch_processing_(run|.*job_(create|start|restart))$|^autolabel_(start|preview)$|^datasource_trigger$|^devices_streams_trigger$"
+    },
+    {
+      "category": "destructive",
+      "pattern": "_delete$|_delete_|_remove$|_remove_|_revoke$|_archive$|_terminate$|_abort$"
+    },
+    {
+      "category": "training",
+      "pattern": "^trainings_"
+    },
+    {
+      "category": "deployment",
+      "pattern": "^project_deployment_|^workflow_version_deploy|^workflow_deploy_gates|^devices_redeploy$|^devices_get_deployments$"
+    },
+    {
+      "category": "data-movement",
+      "pattern": "upload|^images_add_to_project$|_import$|^projects_fork$|_export|^models_weights_download_url$"
+    },
+    {
+      "category": "dataset-version",
+      "pattern": "^versions_|^datasets_"
+    },
+    {
+      "category": "evaluation",
+      "pattern": "^model_evals_|^workflow_evals_|^workflow_eval_"
+    },
+    {
+      "category": "annotation",
+      "pattern": "^annotation|^autolabel_|^video_segments_annotate$"
+    },
+    {
+      "category": "device",
+      "pattern": "^devices_|^device_groups_"
+    },
+    {
+      "category": "workflow",
+      "pattern": "^workflow|^agent_"
+    }
+  ],
+  "deployment_operations": [
+    "project_deployment_launch",
+    "workflow_version_deploy"
+  ],
+  "overrides": [
+    {
+      "class": "budget",
+      "reason": "Upstream marks it read-only, but the upstream inference skill lists serverless inference as billed per-inference credit. It takes one image per call, so one brief with a stated call budget covers a measurement run.",
+      "tool": "models_infer"
+    },
+    {
+      "class": "brief",
+      "reason": "Upstream marks it read-only, but its description says each call costs workspace credits, and it accepts video as well as images. Each call needs its own brief.",
+      "tool": "media_analyze"
+    },
+    {
+      "class": "budget",
+      "reason": "Single-image preview. Upstream says it spends no credits but is rate limited per workspace; one brief with a call budget keeps the preview loop usable.",
+      "tool": "autolabel_preview"
+    }
+  ],
+  "provider": "roboflow",
+  "schema_version": 1
+}

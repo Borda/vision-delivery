@@ -8,17 +8,24 @@ The repository manifests, package metadata, citation metadata, runtime ledger re
 
 ### Added
 
-- Claude Code `PreToolUse` gate (`hooks/gate.js`): paid, data-moving, destructive, or state-changing Roboflow MCP calls are denied without a recorded `action_brief_emitted` ledger row and otherwise routed to the host permission prompt; non-interactive permission modes are denied. Codex remains brief-only.
-- `ledger_append.py --operation`, required for successful `action_brief_emitted` rows.
+- Claude Code `PreToolUse` gate (`hooks/gate.js`): every Roboflow MCP call is classified from `hooks/gate-policy.json`, a policy generated from Roboflow's published tool catalog by `scripts/build_gate_policy.py`. Tools the catalog marks read-only pass, except two billed ones (`models_infer`, `media_analyze`). Every other tool, and any tool the policy does not list, is denied without a structured `action_brief_emitted` ledger row and otherwise routed to the host permission prompt, which shows the brief's scope, cost, data movement, and rollback. `bypassPermissions` and `dontAsk` modes are denied; `auto` mode gets `ask`. Codex remains brief-only.
+- Call budgets: two single-image tools (`models_infer`, `autolabel_preview`) run under one brief that states a call budget, so a rung 1 measurement does not prompt for every image. The gate reserves one unit in the ledger (`roboflow_mcp_call_reserved`) for every attempt, under the ledger lock, so parallel calls and calls with no recorded outcome count. In `auto` mode every call inside a budget is still asked.
+- The hooks match any MCP server whose name contains `roboflow` in any letter case (a plugin-provided server or a connector included), not only the server named exactly `roboflow`.
+- `make eval-upstream`: a release check that fails unless a current upstream tool catalog and skills directory are supplied and still match the committed policy and roster.
+- `ledger_append.py --operation` plus `--scope`, `--cost-amount`, `--cost-unit`, `--cost-source`, `--cost-as-of`, `--data-movement`, `--rollback`, and `--call-budget`; a successful `action_brief_emitted` row requires the structured fields, a price date no more than 90 days old, and a readable gate policy, and is rejected for a read-only operation.
+- Delegation map freshness check: `evals/platform-routing/upstream-skills.json` pins the upstream Roboflow skill roster, and `make eval-platform-routing` fails on a mapped name the roster lacks, an unmapped roster skill, or a stale skill address anywhere in the shipped text.
 - Explore and deliver modes (`resources/delivery-modes.md`); explore is the default and keeps digests and helper commands out of the conversation.
-- Baseline ladder (`resources/baseline-ladder.md`) and stdlib scorer `resources/scripts/score_baseline.py` for a rung 0 baseline with no account.
+- Baseline ladder (`resources/baseline-ladder.md`) and stdlib scorer `resources/scripts/score_baseline.py` for a rung 0 baseline with no account. The scorer prints the numerator, denominator, and a 95% interval (Wilson for binomial rates, seeded image bootstrap for per-object count metrics) and gives a four-way verdict: `PASS` only when the whole interval meets the target, `BELOW-TARGET`, `INCONCLUSIVE`, or `NO VERDICT` when a gold image has no prediction, the denominator is zero, or too few cases back the number. Its record adds `numerator`, `denominator`, `interval_lower`, `interval_upper`, `interval_method`, `verdict_reasons`, `passes_acceptance`, and `metric_counts`.
+- `validate_proof_chain.py` rejects a baseline record whose `verdict` is not `pass` or whose interval bound does not clear the threshold.
 - Credit-plan economics: `cost_model.py --managed-credits-mo/--credits-source/--credits-as-of` prices sourced credit use against public plan anchors instead of always abstaining.
 - A/B analyzer metric v5 with `trap_resisted` and `guardrail_score`; correct trap refusal is no longer a progress loss.
+- A/B runner simulated approver (`evals/ab/approver.py`, `runner.py --approver`): answers host permission prompts from persona rules in both arms, pins `--permission-mode default`, and logs each decision to `approvals.jsonl`. It has not been exercised in a live run.
 - `scripts/sync_codex_skills.py` generates `codex-skills/` from `claude-skills/`; `make eval-parity` fails on drift.
 - Outcome-report issue form, first-baseline example with synthetic placeholder labels, flagship/preview route labels.
 
 ### Changed
 
+- `ledger_report.py` takes deployment and progress operations from the gate policy. Progress now counts only gated training, evaluation, and inference calls; a read such as a training status poll no longer counts as progress.
 - Ledger hook and helpers resolve the project root (`CLAUDE_PROJECT_DIR`, then the nearest `.vision-delivery` or `.git` ancestor) instead of the working directory.
 - README leads with the spend-protection and first-baseline value, with status condensed into one section.
 - Mermaid diagrams replaced by hand-authored animated SVGs in `docs/assets/diagrams/` (README diagram in `assets/`) (flowing edges, sequential node pulse, `prefers-reduced-motion` aware, theme-neutral colours); the `mkdocs-mermaid2-plugin` dependency and the `check-yaml --unsafe` override are removed.
@@ -27,6 +34,8 @@ The repository manifests, package metadata, citation metadata, runtime ledger re
 
 - The v0.5 public-install path is unverified; local clean-home probes pass.
 - On Codex, provider action briefs are advisory; authorization and execution remain external host/provider controls. On Claude Code, the gate guarantees a host prompt but reads a locally writable ledger and does not cap spend.
+- The gate covers Roboflow MCP tool calls only; SDK, CLI, and REST calls from a shell or a generated script do not pass through it, and neither does a Roboflow server registered under a name that does not contain `roboflow`. The agent that wants the call writes the brief, and the gate checks its form, not its truth.
+- The gate policy is generated from the catalog Roboflow publishes for another host surface; the tool names Claude Code actually receives have not been checked against it in a live session. Unlisted names fail closed.
 - Metric v5 has not been applied to recorded A/B runs; the first-baseline example has no recorded real run yet.
 - Live routing has not been re-run on the current route set; the release gate now requires it.
 

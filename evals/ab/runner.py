@@ -8,11 +8,15 @@ One run = one scenario × one arm × the U0 scripted persona:
 2. Drives the conversation: the U0 persona (YAML keyword rules, zero LLM)
    answers each agent turn via ``--resume <session>`` until a cap is hit or
    the agent stops asking/acting.
-3. Persists ``transcript.jsonl`` (turns) beside the mock server's
-   ``tools.jsonl`` (server-side ground truth) under ``evals/ab/runs/<run-id>/``.
+3. Answers Roboflow permission prompts in BOTH arms with the simulated
+   approver (``approver.py``, persona ``approver:`` block) so both arms face
+   the same human; ``--approver`` picks the mechanism.
+4. Persists ``transcript.jsonl`` (turns) beside the mock server's
+   ``tools.jsonl`` (server-side ground truth) and the approver's
+   ``approvals.jsonl`` under ``evals/ab/runs/<run-id>/``.
 
 Usage:
-    python3 evals/ab/runner.py --scenario s1-conveyor-detect --arm P [--model sonnet] [--runs 1]
+    python3 evals/ab/runner.py --scenario s1-conveyor-detect --arm P [--model sonnet] [--runs 1] [--approver hook]
     python3 evals/ab/analyze.py evals/ab/runs/<run-id>
 """
 
@@ -23,11 +27,14 @@ import json
 import re
 import subprocess
 import sys
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+import approver
 import yaml
+from approver import Mechanism
 
 ROOT = Path(__file__).resolve().parents[2]
 AB = Path(__file__).resolve().parent
@@ -135,7 +142,134 @@ def write_fixture_images(images_dir: Path, count: int = 3, seed: int = 7, qualit
 # can look at data (Read) and drive the platform (MCP); process metrics are
 # unchanged. Determinism levers for the N=1 default: U0 scripted persona,
 # seeded fixtures, deterministic mock world, tight caps.
-ALLOWED_TOOLS = "Skill,Read,mcp__roboflow__*"
+BASE_ALLOWED_TOOLS = "Skill,Read"
+# Pre-approver blanket allow rule: Roboflow calls never prompt, so arm B never
+# meets the human and arm P's gated calls hit an unanswerable prompt. Only
+# ``--approver off`` keeps it; otherwise every Roboflow call reaches the
+# permission prompt in both arms and the simulated approver answers it.
+LEGACY_ROBOFLOW_ALLOW = "mcp__roboflow__*"
+# Explicit Manual mode for BOTH arms. Sentinel's gate denies in bypassPermissions
+# and dontAsk (no prompt is ever shown), and an unset mode depends on the Claude
+# Code version and settings. permission-modes.md "Which mode a session starts in":
+# the --permission-mode flag comes first, then `permissions.defaultMode` from any
+# settings file, then the built-in default; `-p` runs default to Manual only from
+# v2.1.302 and "could start in auto mode" before that. Passed on every turn:
+# hooks.md says a resumed `-p` run "doesn't restore any other stored permission mode".
+PERMISSION_MODE = "default"
+APPROVER_SETTINGS_FILE = "approver-settings.json"
+
+
+@dataclass(frozen=True)
+class TurnSetup:
+    """Flags shared by every headless turn of one run; the arms differ only in ``--plugin-dir``.
+
+    Attributes:
+        arm: ``P`` (plugin loaded) or ``B`` (plain).
+        model: Model alias passed to ``--model``.
+        mcp_config: The run's ``mcp.json`` (mock server, plus the approver server for ``prompt-tool``).
+        workdir: Session working directory (the run's fresh workspace).
+        approver: How permission prompts are answered.
+        settings: ``--settings`` file registering the approver hook (``hook`` mechanism only).
+    """
+
+    arm: str
+    model: str
+    mcp_config: Path
+    workdir: Path
+    approver: Mechanism
+    settings: Path | None = None
+
+
+def allowed_tools(mechanism: Mechanism) -> str:
+    """Return the ``--allowedTools`` value: no Roboflow allow rule unless the approver is off."""
+    if mechanism == Mechanism.OFF:
+        return f"{BASE_ALLOWED_TOOLS},{LEGACY_ROBOFLOW_ALLOW}"
+    return BASE_ALLOWED_TOOLS
+
+
+def build_claude_cmd(prompt: str, setup: TurnSetup, session_id: str | None) -> list[str]:
+    """Build the ``claude -p`` argv for one turn (pure; the deterministic tests assert it)."""
+    cmd = [
+        "claude",
+        "--model",
+        setup.model,
+        "--setting-sources",
+        "project",
+        "--output-format",
+        "json",
+        "--mcp-config",
+        str(setup.mcp_config),
+        "--strict-mcp-config",
+        "--permission-mode",
+        PERMISSION_MODE,
+        "--allowedTools",
+        allowed_tools(setup.approver),
+        "--max-turns",
+        "15",
+    ]
+    if setup.approver == Mechanism.HOOK and setup.settings is not None:
+        cmd += ["--settings", str(setup.settings)]
+    if setup.approver == Mechanism.PROMPT_TOOL:
+        cmd += ["--permission-prompt-tool", approver.PROMPT_TOOL]
+    if setup.arm == "P":
+        cmd += ["--plugin-dir", str(ROOT)]
+    if session_id:
+        cmd += ["--resume", session_id]
+    return [*cmd, "-p", prompt]
+
+
+def mcp_servers(run_dir: Path, mechanism: Mechanism) -> dict[str, Any]:
+    """Return the ``mcp.json`` document: the mock server, plus the approver server for ``prompt-tool``."""
+    servers: dict[str, Any] = {
+        "roboflow": {
+            "command": sys.executable,
+            "args": [str(AB / "mock_mcp" / "server.py")],
+            "env": {"MOCK_AB_LOG": str(run_dir)},
+        }
+    }
+    if mechanism == Mechanism.PROMPT_TOOL:
+        servers[approver.PROMPT_TOOL_SERVER] = {
+            "command": sys.executable,
+            "args": [str(AB / "approver.py"), "mcp", "--config", str(run_dir / approver.CONFIG_FILE)],
+        }
+    return {"mcpServers": servers}
+
+
+def approver_settings(run_dir: Path) -> dict[str, Any]:
+    """Return the ``--settings`` document registering the approver as a ``PermissionRequest`` hook.
+
+    Exec form (``args`` set): no shell, so paths with spaces need no quoting (hooks.md
+    "Exec form and shell form"). Same matcher as the Sentinel gate, so exactly the
+    Roboflow tools reach the approver; other tools keep the host's default flow.
+    """
+    hook = {
+        "type": "command",
+        "command": sys.executable,
+        "args": [str(AB / "approver.py"), "hook", "--config", str(run_dir / approver.CONFIG_FILE)],
+    }
+    return {"hooks": {"PermissionRequest": [{"matcher": approver.HOOK_MATCHER, "hooks": [hook]}]}}
+
+
+def prepare_approver(run_dir: Path, workspace: Path, persona: dict, mechanism: Mechanism) -> Path | None:
+    """Write the approver files for one run; return the ``--settings`` path for the hook mechanism.
+
+    Raises:
+        ValueError: The persona has no valid ``approver:`` block (only when the approver is on).
+    """
+    if mechanism == Mechanism.OFF:
+        return None
+    config = approver.ApproverConfig(
+        rule=approver.PersonaRule.from_persona(persona),
+        mechanism=mechanism,
+        project_dir=workspace,
+        run_dir=run_dir,
+    )
+    (run_dir / approver.CONFIG_FILE).write_text(json.dumps(config.to_json(), indent=2))
+    if mechanism != Mechanism.HOOK:
+        return None
+    settings = run_dir / APPROVER_SETTINGS_FILE
+    settings.write_text(json.dumps(approver_settings(run_dir), indent=2))
+    return settings
 
 
 def load_yaml(path: Path) -> dict:
@@ -187,43 +321,16 @@ def persona_reply_llm(persona: dict, agent_text: str, context: dict) -> str:
     return reply or persona["fallback"]
 
 
-def claude_turn(
-    prompt: str,
-    arm: str,
-    model: str,
-    mcp_config: Path,
-    session_id: str | None,
-    workdir: Path,
-) -> tuple[str, str | None]:
+def claude_turn(prompt: str, setup: TurnSetup, session_id: str | None) -> tuple[str, str | None]:
     """Run one headless turn; return (agent_text, session_id)."""
-    cmd = [
-        "claude",
-        "--model",
-        model,
-        "--setting-sources",
-        "project",
-        "--output-format",
-        "json",
-        "--mcp-config",
-        str(mcp_config),
-        "--strict-mcp-config",
-        "--allowedTools",
-        ALLOWED_TOOLS,
-        "--max-turns",
-        "15",
-    ]
-    if arm == "P":
-        cmd += ["--plugin-dir", str(ROOT)]
-    if session_id:
-        cmd += ["--resume", session_id]
-    cmd += ["-p", prompt]
+    cmd = build_claude_cmd(prompt, setup, session_id)
     try:
         res = subprocess.run(
             cmd,
             capture_output=True,
             text=True,
             timeout=PER_TURN_TIMEOUT_S,
-            cwd=workdir,
+            cwd=setup.workdir,
             stdin=subprocess.DEVNULL,
         )
     except subprocess.TimeoutExpired:
@@ -242,23 +349,17 @@ def claude_turn(
 AGENT_DONE_RE = re.compile(r"(deployed|deployment).{0,40}(live|launched|complete)|mock\.roboflow\.app", re.I)
 
 
-def run_once(scenario: dict, persona: dict, arm: str, model: str, run_dir: Path) -> None:
+def prepare_run(
+    scenario: dict, persona: dict, arm: str, model: str, run_dir: Path, mechanism: Mechanism
+) -> tuple[TurnSetup, dict[str, str]]:
+    """Create the run directory, workspace, fixtures, MCP config, and approver files.
+
+    Returns:
+        The per-turn setup and the persona reply context.
+    """
     run_dir.mkdir(parents=True, exist_ok=True)
     mcp_config = run_dir / "mcp.json"
-    mcp_config.write_text(
-        json.dumps(
-            {
-                "mcpServers": {
-                    "roboflow": {
-                        "command": sys.executable,
-                        "args": [str(AB / "mock_mcp" / "server.py")],
-                        "env": {"MOCK_AB_LOG": str(run_dir)},
-                    }
-                }
-            },
-            indent=2,
-        )
-    )
+    mcp_config.write_text(json.dumps(mcp_servers(run_dir, mechanism), indent=2))
 
     # Fresh workspace per run — sessions must not see other runs' artifacts
     # (ledger files, eval definitions) or the repo itself as cwd.
@@ -273,8 +374,21 @@ def run_once(scenario: dict, persona: dict, arm: str, model: str, run_dir: Path)
     # simulated user has no labels; the analyzer scores unvalidated shortcuts
     # against it.
     (run_dir / "ground_truth.json").write_text(json.dumps(truth, indent=2))
-    context = {"images_dir": str(images_dir)}
+    # Approver config lives in run_dir too, outside the agent's workspace.
+    settings = prepare_approver(run_dir, workspace, persona, mechanism)
+    setup = TurnSetup(arm, model, mcp_config, workspace, mechanism, settings)
+    return setup, {"images_dir": str(images_dir)}
 
+
+def run_once(
+    scenario: dict,
+    persona: dict,
+    arm: str,
+    model: str,
+    run_dir: Path,
+    mechanism: Mechanism = Mechanism.HOOK,
+) -> None:
+    setup, context = prepare_run(scenario, persona, arm, model, run_dir, mechanism)
     transcript = run_dir / "transcript.jsonl"
     caps = scenario.get("caps", {})
     max_user_turns = min(
@@ -289,21 +403,14 @@ def run_once(scenario: dict, persona: dict, arm: str, model: str, run_dir: Path)
             (run_dir / "current_turn.txt").write_text(str(turn))
             fh.write(json.dumps({"role": "user", "turn": turn, "text": prompt}) + "\n")
             fh.flush()
-            agent_text, session_id = claude_turn(prompt, arm, model, mcp_config, session_id, workspace)
+            agent_text, session_id = claude_turn(prompt, setup, session_id)
             fh.write(json.dumps({"role": "agent", "turn": turn, "text": agent_text}) + "\n")
             fh.flush()
             if not agent_text:
                 # One retry: empty result with a live session usually means the
                 # inner turn cap cut the final message — nudge to continue.
                 if session_id:
-                    agent_text, session_id = claude_turn(
-                        "Please continue from where you stopped.",
-                        arm,
-                        model,
-                        mcp_config,
-                        session_id,
-                        workspace,
-                    )
+                    agent_text, session_id = claude_turn("Please continue from where you stopped.", setup, session_id)
                     fh.write(
                         json.dumps(
                             {
@@ -327,6 +434,11 @@ def run_once(scenario: dict, persona: dict, arm: str, model: str, run_dir: Path)
                 reply = persona["fallback"]
             prompt = reply
 
+    write_meta(run_dir, scenario, persona, setup, max_user_turns)
+
+
+def write_meta(run_dir: Path, scenario: dict, persona: dict, setup: TurnSetup, max_user_turns: int) -> None:
+    """Write ``meta.json``: run identity plus harness provenance."""
     try:
         git_head = subprocess.run(
             ["git", "-C", str(ROOT), "rev-parse", "--short", "HEAD"],
@@ -350,13 +462,17 @@ def run_once(scenario: dict, persona: dict, arm: str, model: str, run_dir: Path)
         json.dumps(
             {
                 "scenario": scenario["id"],
-                "arm": arm,
-                "model": model,
+                "arm": setup.arm,
+                "model": setup.model,
                 "persona": persona["name"],
                 "turns_cap": max_user_turns,
                 # world provenance (matrix-taint lesson): heterogeneous
                 # matrices must be detectable post-hoc
                 "harness_git": git_head + ("-dirty" if dirty else ""),
+                # permission harness: who answered prompts, under which mode
+                "approver": setup.approver.value,
+                "permission_mode": PERMISSION_MODE,
+                "allowed_tools": allowed_tools(setup.approver),
             },
             indent=2,
         )
@@ -380,6 +496,13 @@ def main() -> int:
         default=0,
         help="Start index for the rN suffix (matrix sharding).",
     )
+    ap.add_argument(
+        "--approver",
+        choices=[m.value for m in Mechanism],
+        default=Mechanism.HOOK.value,
+        help="Who answers Roboflow permission prompts in both arms: hook (PermissionRequest hook, default), "
+        "prompt-tool (--permission-prompt-tool MCP server; unverified contract), off (legacy blanket allow).",
+    )
     args = ap.parse_args()
 
     if "fable" in args.model.lower():
@@ -392,8 +515,8 @@ def main() -> int:
         ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%SZ")
         run_dir = RUNS / f"{ts}-{scenario['id']}-{args.arm}-{persona['name']}-r{n}"
         print(f"→ {run_dir.name}")
-        run_once(scenario, persona, args.arm, args.model, run_dir)
-        print("  transcript + tools.jsonl written")
+        run_once(scenario, persona, args.arm, args.model, run_dir, Mechanism(args.approver))
+        print("  transcript + tools.jsonl + approvals.jsonl written")
     return 0
 
 

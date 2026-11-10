@@ -23,6 +23,24 @@ Skills can request project reads, writes, edits, searches, and shell commands. T
 
 Sentinel stops before uploads, dataset mutation, paid training, deployment, deletion, and other state-changing provider actions. It states the action, rationale, expected cost/data movement, target, and evidence, then hands execution to a host/provider control that can enforce approval. Conversational approval does not authorize Sentinel itself to invoke the action.
 
+On Claude Code part of that control is Sentinel's own `PreToolUse` gate (`hooks/gate.js`):
+
+- It checks each Roboflow MCP call against a policy generated from Roboflow's published tool catalog (`hooks/gate-policy.json`). Tools Roboflow marks read-only pass, except two that are billed per call (`models_infer`, `media_analyze`).
+- Every other tool, and any tool the policy does not list, is denied until a structured action brief is recorded in the project ledger: scope, an upper cost estimate with its source and a date no more than 90 days old, data movement, and rollback. The call then goes to the host permission prompt, which shows those fields in quotes. The gate never returns `allow`.
+- One brief covers one execution. A call the host reports as failed or cancelled leaves the brief open, and the next prompt warns that the provider may already have started the work.
+- Two single-image tools are the exception (`models_infer`, `autolabel_preview`): one brief states a call budget. You see the prompt until one call has run; later calls inside the budget follow your normal host permission rules. Every attempt that reaches the gate takes one unit of the budget, whether or not it ran, and a call past the budget is denied. Video analysis, batch jobs, and Workflow or endpoint runs never run under a budget.
+- In `bypassPermissions` and `dontAsk` modes gated calls are denied, because the host shows no prompt there. In `auto` mode the gate returns `ask` for every gated call, including each call inside a budget.
+
+**What the gate does not cover.**
+
+- Anything that is not an MCP tool call. A Roboflow SDK, CLI, or REST call made from a shell command or a generated script never reaches the gate, and neither does any other provider. Those calls are governed only by the host's shell permission prompt, your credentials, and your account budget.
+- A Roboflow server under another name. The hooks match any MCP server whose name contains `roboflow` in any letter case: the bare server, one provided by a plugin, or a connector. The same server registered under a name without `roboflow` (for example `rf`) is not gated at all.
+- The truth of the brief. The agent that wants to make the call writes the brief. The gate checks that every field is present and well formed, not that the estimate is right. Read the prompt before you approve.
+- Spend. The gate does not cap or meter credits. A call budget counts calls, not credits.
+- Later calls inside a budget, outside `auto` mode. Once one call under a budget brief has run, the gate gives no decision for the rest of that budget. If your host rules allow the tool, those calls run without a prompt.
+- Tampering. The gate reads a ledger file and a policy file that any local process can write. An edit that only marks a tool open stays gated, and the repository checks catch a changed read-only flag, but an edit that rewrites the policy and its recorded digest together is caught only when the policy is compared with Roboflow's catalog at release time.
+- Tool names it has never seen. The policy is generated from the catalog Roboflow publishes for another host surface. A tool that reaches Claude Code under a name the policy does not list is treated as gated, which is safe but may block a harmless read until the policy is regenerated.
+
 Use host approvals, least-privilege account authorization or sessions, account budgets, and non-production targets as the real control. A separately generated standalone client may require a provider key; follow current provider guidance and scope it to the minimum permissions. Read-only discovery still depends on host and upstream behavior; inspect permission prompts.
 
 ## Ledger semantics

@@ -53,7 +53,7 @@ Pick the delivery mode from `delivery-modes.md`: explore by default, deliver onc
 
 The acceptance target is **frozen before any baseline**, candidate search, threshold sweep, or training result is read. A baseline is diagnostic evidence; it never raises or lowers the business threshold. If the business requirement changes, create a new revision with a new acceptance ID, rationale, and confirmation. Never overwrite the original target or report passing when the active revision is not cleared.
 
-**Step 3 — Existing-capability-first. (Modality-specific evidence in the skill file.)** Start at rung 0 of `baseline-ladder.md`: score the host model's own vision on the gold images with `scripts/score_baseline.py` before any account, upload, or spend. Climb a rung only when the lower one misses the frozen target. For rungs 1–3, ask current upstream discovery/training resources for no-training and trainable candidate categories before labeling or paid work. Present 2–3 options with provenance, license, and relevance. Let the user pick before fetching. Do not preserve current model IDs, queries, or provider operations in a local recipe. Do not perform speculative platform inventory calls during discovery.
+**Step 3 — Existing-capability-first. (Modality-specific evidence in the skill file.)** Start at rung 0 of `baseline-ladder.md`: score the host model's own vision on the gold images with `scripts/score_baseline.py` before any account, upload, or spend. Climb a rung only when the lower one misses the frozen target (`BELOW-TARGET`). On `INCONCLUSIVE` or `NO VERDICT`, do not climb and do not report a pass: label more gold images or supply the missing predictions, then re-score the same rung. For rungs 1–3, ask current upstream discovery/training resources for no-training and trainable candidate categories before labeling or paid work. Present 2–3 options with provenance, license, and relevance. Let the user pick before fetching. Do not preserve current model IDs, queries, or provider operations in a local recipe. Do not perform speculative platform inventory calls during discovery.
 
 **Step 4 — Measure against the eval. (Modality-specific metrics in skill file.)** Run inference. Report exact numbers vs defined threshold:
 
@@ -177,7 +177,7 @@ Offer (lowest friction first):
 If user picks A:
 
 - State exactly what would leave the machine and its destination, then emit a sourced upload action brief and stop. Conversational consent does not authorize Sentinel to upload.
-- Use `roboflow:data-management`, `roboflow:product-navigation`, or their MCP skill resources only for read-only destination, schema, and navigation facts needed by the brief. Never invoke upload or annotation state changes outside the host-gated path; do not guess UI paths or request shapes.
+- Use `roboflow-data-management`, `roboflow-product-navigation`, or their MCP skill resources only for read-only destination, schema, and navigation facts needed by the brief. Never invoke upload or annotation state changes outside the host-gated path; do not guess UI paths or request shapes.
 - First batch: 20–30 images. Label consistently (every occurrence in every frame).
 - Stop and measure early: "Label 25 → train → measure → decide if more labeling helps."
 
@@ -200,10 +200,13 @@ Sentinel never invokes a credit-spending, data-moving, destructive, or state-cha
 - **Paid training** — use official training/pricing resources only for read-only model/cost lookup and emit the sourced quantified brief below. Never call the training tool from Sentinel outside the host-gated path. Required format:
 
   ```
-  "This training run will consume approximately X credits (~$Y at current pricing).
-   Dataset: <N> images, upstream-verified candidate/version: <identity>, epochs: <N>.
-   Confirm to proceed? (yes / no)"
+  Scope: train <upstream-verified candidate/version> on <N> images for <N> epochs in <workspace/project>.
+  Cost: up to X credits (source: <official pricing resource>, as of <YYYY-MM-DD>).
+  Data movement: <what leaves the machine and its destination, or none>.
+  Rollback: <how to undo it, or irreversible>.
   ```
+
+  Record the same fields with the ledger helper as shown in `roboflow-platform-lookup.md`. On Claude Code the host permission prompt shows them; a typed "yes" in the conversation is not the approval.
 
   If a current estimate is unavailable, do not emit an executable action brief. Do not invent a typical range.
 

@@ -10,6 +10,19 @@ Usage:
         --session m1-acceptance --skill detect-and-analyze \
         --action artifact_verified --event-id manual:m1:artifact:1 \
         --status success --notes "acceptance_id=m1; digest=abc123"
+
+A successful ``action_brief_emitted`` row is what the Claude Code PreToolUse gate reads
+before a paid or state-changing provider call. It must carry every structured field:
+
+    python3 scripts/ledger_append.py \
+        --session m1 --skill detect-and-analyze --action action_brief_emitted \
+        --operation trainings_create --event-id manual:m1:brief:1 --status success \
+        --scope "train detection model on project conveyor, version 3" \
+        --cost-amount 10 --cost-unit credits \
+        --cost-source "Roboflow plans-and-pricing skill, training table" \
+        --cost-as-of 2026-11-10 \
+        --data-movement "none; the dataset is already in the workspace" \
+        --rollback "cancel the training job; spent credits are not refunded"
 """
 
 from __future__ import annotations
@@ -19,12 +32,13 @@ import hashlib
 import json
 import math
 import os
+import re
 import stat
 import sys
 import time
 from collections.abc import Iterator
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -60,6 +74,111 @@ PROOF_ACTIONS = {
 ARTIFACT_ACTIONS = {"artifact_verified", "delivery_handoff_emitted"}
 REPORT_ACTION = "decision_report_emitted"
 BRIEF_ACTION = "action_brief_emitted"
+GATE_POLICY = Path(__file__).resolve().parents[1] / "hooks" / "gate-policy.json"
+MAX_CALL_BUDGET = 1000
+#: A cost estimate dated further back than this is not a current price; the gate applies the same limit.
+COST_MAX_AGE_DAYS = 90
+ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+OPERATION_NAME = re.compile(r"^[A-Za-z0-9_-]{1,200}$")
+BRIEF_TEXT_FIELDS = ("scope", "cost_unit", "cost_source", "data_movement", "rollback")
+
+
+def _operation_class(operation: str) -> str:
+    """Return the gate class of a provider operation, as the PreToolUse gate will read it.
+
+    An operation the policy does not list is gated, so it reports the policy's default class
+    and a warning is printed: the name may be misspelled. A tool is ``open`` only when the
+    policy also records the provider's read-only flag, matching the gate.
+
+    Raises:
+        ValueError: When the gate policy is missing or unreadable, because the brief could
+            then not be checked against what the gate enforces.
+    """
+    try:
+        policy = json.loads(GATE_POLICY.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(
+            f"cannot read the gate policy {GATE_POLICY.name}, so the brief cannot be checked: {exc}"
+        ) from exc
+    tools = policy.get("tools") if isinstance(policy, dict) else None
+    if not isinstance(tools, dict):
+        raise ValueError(f"the gate policy {GATE_POLICY.name} has no tools table, so the brief cannot be checked")
+    entry = tools.get(operation)
+    if not isinstance(entry, dict):
+        print(
+            f"ledger-append-warning: {operation} is not in the gate policy; check the spelling. "
+            "The gate treats an unlisted operation as gated.",
+            file=sys.stderr,
+        )
+        return "brief"
+    operation_class = str(entry.get("class", "brief"))
+    if operation_class == "open" and entry.get("read_only") is not True:
+        return "brief"
+    return operation_class if operation_class in ("open", "brief", "budget") else "brief"
+
+
+def _brief_cost(args: argparse.Namespace) -> tuple[float, str]:
+    """Validate the cost estimate and its date for an action brief."""
+    amount = args.cost_amount
+    if amount is None or not math.isfinite(amount) or amount < 0:
+        raise ValueError("--cost-amount must be a finite number of zero or more (the upper estimate)")
+    raw_date = args.cost_as_of or ""
+    try:
+        if not ISO_DATE.match(raw_date):
+            raise ValueError(raw_date)
+        as_of = date.fromisoformat(raw_date)
+    except ValueError:
+        raise ValueError("--cost-as-of must be the date of the price source, as YYYY-MM-DD") from None
+    today = datetime.now(timezone.utc).date()
+    if as_of > today + timedelta(days=1):
+        raise ValueError("--cost-as-of may not be in the future")
+    if as_of < today - timedelta(days=COST_MAX_AGE_DAYS):
+        raise ValueError(
+            f"--cost-as-of is more than {COST_MAX_AGE_DAYS} days old; look the price up again and use today's source"
+        )
+    return amount, as_of.isoformat()
+
+
+def _brief_call_budget(operation: str, call_budget: int | None) -> int | None:
+    """Check the call budget against the operation's gate class."""
+    operation_class = _operation_class(operation)
+    if operation_class == "open":
+        raise ValueError(f"{operation} is read-only in the gate policy and needs no action brief")
+    if call_budget is not None and not 1 <= call_budget <= MAX_CALL_BUDGET:
+        raise ValueError(f"--call-budget must be between 1 and {MAX_CALL_BUDGET}")
+    if operation_class == "budget" and call_budget is None:
+        raise ValueError(f"{operation} runs under a call budget: pass --call-budget with the number of calls")
+    if operation_class == "brief" and call_budget is not None:
+        raise ValueError(f"{operation} needs one brief per execution; --call-budget does not apply")
+    return call_budget
+
+
+def _brief_fields(args: argparse.Namespace) -> dict[str, Any]:
+    """Return the structured action brief the PreToolUse gate requires.
+
+    Args:
+        args: Parsed command-line arguments.
+
+    Returns:
+        The ``brief`` object stored on the ledger row.
+
+    Raises:
+        ValueError: When the operation or any structured field is missing or invalid.
+    """
+    operation = args.operation.strip()
+    if not OPERATION_NAME.match(operation) or operation.startswith("mcp__"):
+        raise ValueError("--operation must be the exact provider operation name, such as trainings_create")
+    missing = [f"--{name.replace('_', '-')}" for name in BRIEF_TEXT_FIELDS if not (getattr(args, name) or "").strip()]
+    if missing:
+        raise ValueError(f"a successful {BRIEF_ACTION} needs {', '.join(missing)}")
+    amount, as_of = _brief_cost(args)
+    brief: dict[str, Any] = {name: getattr(args, name).strip() for name in BRIEF_TEXT_FIELDS}
+    brief["cost_amount"] = amount
+    brief["cost_as_of"] = as_of
+    call_budget = _brief_call_budget(operation, args.call_budget)
+    if call_budget is not None:
+        brief["call_budget"] = call_budget
+    return brief
 
 
 def _absolute_path(path: Path) -> Path:
@@ -247,8 +366,16 @@ def main() -> int:
     p.add_argument(
         "--operation",
         default="",
-        help="provider operation or category an action_brief_emitted row approves (read by the PreToolUse gate)",
+        help="exact provider operation an action_brief_emitted row covers (read by the PreToolUse gate)",
     )
+    p.add_argument("--scope", default="", help="action brief: what runs on what")
+    p.add_argument("--cost-amount", type=float, default=None, help="action brief: upper cost estimate")
+    p.add_argument("--cost-unit", default="", help="action brief: unit of the estimate, such as credits or USD")
+    p.add_argument("--cost-source", default="", help="action brief: where the price comes from")
+    p.add_argument("--cost-as-of", default="", help="action brief: date of the price source (YYYY-MM-DD)")
+    p.add_argument("--data-movement", default="", help="action brief: what leaves this machine, or 'none'")
+    p.add_argument("--rollback", default="", help="action brief: how to undo, or 'not reversible'")
+    p.add_argument("--call-budget", type=int, default=None, help="action brief: calls covered (budget operations)")
     p.add_argument("--acceptance", type=Path)
     p.add_argument("--artifact-dir", type=Path)
     p.add_argument("--report", type=Path)
@@ -261,9 +388,12 @@ def main() -> int:
     acceptance_sha256 = ""
     artifact_sha256 = ""
     report_sha256 = ""
+    brief: dict[str, Any] = {}
     if args.status == "success" and args.action == BRIEF_ACTION and not args.operation.strip():
         p.error(f"--operation is required for successful {BRIEF_ACTION}")
     try:
+        if args.status == "success" and args.action == BRIEF_ACTION:
+            brief = _brief_fields(args)
         if args.status == "success" and args.action in PROOF_ACTIONS:
             if args.acceptance is None:
                 p.error(f"--acceptance is required for successful {args.action}")
@@ -301,7 +431,9 @@ def main() -> int:
     if report_sha256:
         record["report_sha256"] = report_sha256
     if args.operation:
-        record["operation"] = args.operation
+        record["operation"] = args.operation.strip()
+    if brief:
+        record["brief"] = brief
     if args.streams is not None:
         record["streams"] = args.streams
     if args.decision is not None:

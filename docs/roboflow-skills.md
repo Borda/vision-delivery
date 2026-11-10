@@ -25,11 +25,29 @@ Roboflow MCP is the upstream live-operation surface. It is operated by Roboflow,
 For platform-specific guidance:
 
 1. Read the installed official Roboflow plugin skill.
-2. If the host exposes authenticated MCP resources, read the related `roboflow://skills/...` resource.
+2. If the host exposes authenticated MCP resources, read the related `skill://roboflow/<name>/SKILL.md` resource.
 3. Consult current official Roboflow documentation.
 4. If none is available, stop before a paid/state-changing action or mark the exact platform guidance unverified.
 
 MCP-hosted skill resources may lag the source repository. Exact resource names, tool names, schemas, model identifiers, plan limits, and pricing must be verified in the active authenticated environment.
+
+## Official skills
+
+Sentinel delegates to these skills from the official `roboflow` plugin. Claude Code runs each one as `roboflow:<name>`; the MCP entrypoint is `skill://roboflow/<name>/SKILL.md`. `make eval-platform-routing` keeps this list and Sentinel's delegation map aligned with a committed roster of upstream skill names.
+
+- `roboflow-training-and-evaluation`: training models, evaluating them, diagnosing why a model underperforms, and setting up a production feedback loop.
+- `roboflow-model-journey`: choosing and trying a model without training first, then putting it on a project's live endpoint.
+- `roboflow-inference`: image and video previews, deployment option comparison, Workflow publishing, device management, and Vision Events.
+- `workflow-from-eval`: building or improving a Workflow by eval-driven search, for open-ended problems or when comparing alternatives.
+- `roboflow-batch-processing`: running a Workflow over many images or videos as a batch job, monitoring jobs, and downloading results.
+- `roboflow-data-management`: uploading images or videos, labeling, creating projects, tags, splits, versions, and dataset search.
+- `roboflow-cloud-storage`: connecting S3 or GCS buckets to mirror images into a workspace.
+- `roboflow-custom-weights-upload`: uploading locally trained model weights with the Python SDK and verifying the upload.
+- `roboflow-api-reference`: REST and Inference API URL patterns, auth, parameters, error codes, and SDK quick-start.
+- `roboflow-universe`: searching for and using public datasets and models on Roboflow Universe.
+- `roboflow-plans-and-pricing`: plans, credit usage, and cost estimation from current official pricing.
+- `roboflow-product-navigation`: where features live in the Roboflow web app.
+- `draw-vision`: drawing annotations, labels, and predictions over images and videos with Supervision.
 
 ## Thin delegation pattern
 

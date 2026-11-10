@@ -67,4 +67,4 @@ No credential environment variable is required for plugin installation. The v0.5
 - `deliver-cv-project`: verified packaging, integration, consumer smoke, monitoring status, and rollback for an accepted capability.
 - `check-sentinel-setup`: offline package doctor that separates install, host enablement, and hosted authorization.
 
-Prefer installed official [Roboflow computer-vision skills](https://github.com/roboflow/computer-vision-skills), then exposed `roboflow://skills/...` resources, for current platform truth.
+Prefer installed official [Roboflow computer-vision skills](https://github.com/roboflow/computer-vision-skills), then exposed `skill://roboflow/<name>/SKILL.md` resources, for current platform truth.

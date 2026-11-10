@@ -9,7 +9,7 @@ This matrix records what the repository currently demonstrates. It is not a prom
 | Codex and Claude hooks   | Statically validated; Codex active       | Host-specific manifests; Codex reports one installed and active `PostToolUse` hook           | Event delivery is host-managed and best-effort, not complete telemetry or an upstream receipt.     |
 | Cursor                   | Unverified                               | None                                                                                         | Do not claim support until a manifest, install path, and acceptance test exist.                    |
 | Roboflow MCP             | Upstream dependency                      | URL-only `.mcp.json`; Codex marketplace policy requests authorization on use                 | Actual sign-in, account scope, tools, billing, and service behavior are unverified upstream state. |
-| Official Roboflow skills | Compatible by delegation                 | Prefer installed local skills, then exposed `roboflow://skills/...` resources                | Installing two plugins may duplicate MCP configuration on some hosts.                              |
+| Official Roboflow skills | Compatible by delegation                 | Prefer installed local skills, then exposed `skill://roboflow/<name>/SKILL.md` resources     | Installing two plugins may duplicate MCP configuration on some hosts.                              |
 
 ## Runtime expectations
 

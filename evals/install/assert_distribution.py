@@ -49,7 +49,16 @@ def require(condition: bool, message: str) -> None:
         raise DistributionError(message)
 
 
-def require_hook_contract(config: dict[str, Any], event_scripts: dict[str, str], root_variable: str) -> None:
+#: Codex post-action hook: the bare server or a plugin-provided one.
+CODEX_MATCHER = "^mcp__(plugin_[A-Za-z0-9_-]+_)?roboflow__.*$"
+#: Claude Code hooks: any MCP server whose name contains "roboflow" in any letter case, the
+#: same rule as ROBOFLOW_TOOL in hooks/roboflow-ops.js.
+CLAUDE_MATCHER = "^mcp__((?!__).)*[Rr][Oo][Bb][Oo][Ff][Ll][Oo][Ww]((?!__).)*__.*$"
+
+
+def require_hook_contract(
+    config: dict[str, Any], event_scripts: dict[str, str], root_variable: str, matcher: str
+) -> None:
     """Validate one host-native hook manifest uses only its supported events and scripts."""
     hooks = config.get("hooks")
     if not isinstance(hooks, dict):
@@ -64,7 +73,7 @@ def require_hook_contract(config: dict[str, Any], event_scripts: dict[str, str],
         group = groups[0]
         require(isinstance(group, dict), f"{event_name} group must be an object")
         require(
-            group.get("matcher") == "^mcp__(plugin_[A-Za-z0-9_-]+_)?roboflow__.*$",
+            group.get("matcher") == matcher,
             f"{event_name} matcher drifted",
         )
         handlers = group.get("hooks")
@@ -120,11 +129,12 @@ def validate_distribution() -> None:
         claude.get("hooks") == "./hooks/claude-hooks.json",
         "Claude must point to its explicit hook manifest",
     )
-    require_hook_contract(codex_hooks, {"PostToolUse": "cta.js"}, "PLUGIN_ROOT")
+    require_hook_contract(codex_hooks, {"PostToolUse": "cta.js"}, "PLUGIN_ROOT", CODEX_MATCHER)
     require_hook_contract(
         claude_hooks,
         {"PreToolUse": "gate.js", "PostToolUse": "cta.js", "PostToolUseFailure": "cta.js"},
         "CLAUDE_PLUGIN_ROOT",
+        CLAUDE_MATCHER,
     )
 
     claude_entries = claude_marketplace.get("plugins")

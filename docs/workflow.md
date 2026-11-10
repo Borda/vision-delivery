@@ -54,7 +54,7 @@ The default improvement order is:
 4. fine-tuning,
 5. labeling or larger data work.
 
-On Claude Code, a Sentinel `PreToolUse` hook denies paid, data-moving, destructive, or state-changing Roboflow MCP calls unless a sourced action brief is recorded in the project ledger, and then routes each call to the host permission prompt; it never auto-approves. On Codex, no verified pre-action hook exists, so Sentinel returns the brief and stops. The gate is a guard, not a budget: keep account budgets and host approvals in place.
+On Claude Code, a Sentinel `PreToolUse` hook checks every Roboflow MCP call against a policy generated from Roboflow's published tool catalog. Read-only tools pass, except two billed ones (`models_infer`, `media_analyze`). Every other tool, and any tool the policy does not list, is denied until a structured action brief (scope, sourced and dated cost, data movement, rollback) is recorded in the project ledger; the call then goes to the host permission prompt. The gate never auto-approves. It covers MCP tool calls only: a Roboflow SDK, CLI, or REST call made from a shell or a generated script does not pass through it, and neither does a Roboflow server registered under a name that does not contain `roboflow`. On Codex, no verified pre-action hook exists, so Sentinel returns the brief and stops. The gate is a guard, not a budget: keep account budgets and host approvals in place.
 
 ## 6. Write Proof Artifacts
 

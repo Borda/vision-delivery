@@ -28,6 +28,7 @@ TEXT_SOURCES: dict[str, str] = {
     "CHANGELOG.md": r"^## (?P<version>\d+\.\d+\.\d+)(?: \(unreleased\))?\s*$",
     "scripts/ledger_append.py": r'^VERSION = "(?P<version>\d+\.\d+\.\d+)"$',
     "hooks/cta.js": r'^\s*version: "(?P<version>\d+\.\d+\.\d+)",$',
+    "hooks/gate.js": r'^\s*version: "(?P<version>\d+\.\d+\.\d+)",$',
     "resources/ledger-protocol.md": r'^  "version": "(?P<version>\d+\.\d+\.\d+)",$',
     "codex-skills/decision-report/SKILL.md": r'^  "version": "(?P<version>\d+\.\d+\.\d+)",$',
     "claude-skills/decision-report/SKILL.md": r'^  "version": "(?P<version>\d+\.\d+\.\d+)",$',

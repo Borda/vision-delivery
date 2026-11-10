@@ -15,7 +15,7 @@ Climb one rung at a time. Stop at the first rung that clears the frozen acceptan
 
 Rung 0 gives a novice a measured number before any sign-in, upload, or spend.
 
-1. Take the frozen acceptance target and the independently labeled gold images (10–40 is enough for a first look; say how small it is).
+1. Take the frozen acceptance target and the independently labeled gold images (10–40 is enough for a first look; say how small it is). The per-object count metrics need at least 20 images with labeled objects; with fewer, target `exact_count_rate`.
 2. Look at each gold image with the host model's vision. Answer only the business question: a count, or a yes/no flag. Do not look at the gold label first.
 3. Write one JSON line per image to `.vision-delivery/pred-rung0-<session>.jsonl`, for example `{"image": "frame_014.jpg", "count": 3}` or `{"image": "frame_014.jpg", "flag": true}`.
 4. Score it with `resources/scripts/score_baseline.py` (below) and report the plain-language line it prints.
@@ -42,7 +42,26 @@ python3 "/absolute/plugin/root/resources/scripts/score_baseline.py" \
     [--evidence-out "/absolute/project/.vision-delivery/baseline-rung0-<session>.json"]
 ```
 
-- `--task count` reports `count_mae`, `exact_count_rate`, `catch_rate` (share of real objects counted, capped per image), and `over_count_rate`.
+- `--task count` reports `count_mae`, `exact_count_rate`, `catch_rate` (printed as "per-image count agreement": labeled objects matched by each image's count, capped at the label; it is not object-level recall), and `over_count_rate`.
 - `--task flag` reports `catch_rate` (recall), `false_alarm_rate`, `precision`, and `accuracy`.
+- An error metric (`count_mae`, `over_count_rate`, `false_alarm_rate`) takes a maximum (`lte`); every other metric takes a minimum (`gte`). The scorer refuses a target that points the wrong way or that every result would meet (a minimum of 0%, a maximum of 100%).
+- Count `catch_rate` does not penalize over-counting; when the predictions exceed the labels the printed line says by how much. Pair it with `over_count_rate`, or target `exact_count_rate`.
 - In explore mode, pass the target inline with `--metric/--comparator/--threshold`. In deliver mode, pass `--acceptance`; the file's metric, comparator, and threshold win and the evidence records its SHA-256.
-- Images missing from the predictions count as wrong (count 0 or flag false). Predictions for images not in the gold file fail the run.
+- Every gold image needs a prediction: a missing prediction gives `NO VERDICT`. Predictions for images not in the gold file fail the run (exit 2).
+
+The printed line gives the target metric's numerator and denominator, its point estimate, and a 95% interval. Rates over a simple count (every flag metric and `exact_count_rate`) use the Wilson score interval; the other count metrics use a seeded bootstrap over images, so the same files always print the same line. The verdict compares the whole interval with the target:
+
+| Verdict        | Meaning                                                                                             |
+| -------------- | --------------------------------------------------------------------------------------------------- |
+| `PASS`         | The whole interval meets the target.                                                                |
+| `BELOW-TARGET` | The whole interval misses the target.                                                               |
+| `INCONCLUSIVE` | The interval includes the target. Label more images, or treat the result as not yet proven.         |
+| `NO VERDICT`   | Refusal: a gold image has no prediction, the denominator is zero, or too few cases stand behind it. |
+
+"Too few" means fewer than 5 cases for a Wilson metric and fewer than 20 images for a bootstrap metric (`count_mae`, count `catch_rate`, `over_count_rate`). A bootstrap metric also gets `NO VERDICT` when every image gives the same result, because resampling identical images shows no spread; score `exact_count_rate` on that sample instead.
+
+Only `PASS` counts as a passed acceptance. A refusal still prints its reason and exits 0; unusable input, or an evidence file that cannot be written, exits 2. Example, 34 of 40 real cases caught against a target of at least 80%:
+
+```text
+Real cases caught: 34 of 40 real cases (85%, 95% interval 71% to 93%); target >= 80%: INCONCLUSIVE. The 95% interval includes the target: label more images to settle it, or treat the result as not yet proven. Missing predictions: 0.
+```

@@ -1,0 +1,23 @@
+{
+  "not_mapped": {},
+  "plugin": "roboflow",
+  "plugin_version": "1.0.12",
+  "skills": [
+    "draw-vision",
+    "roboflow-api-reference",
+    "roboflow-batch-processing",
+    "roboflow-cloud-storage",
+    "roboflow-custom-weights-upload",
+    "roboflow-data-management",
+    "roboflow-inference",
+    "roboflow-model-journey",
+    "roboflow-plans-and-pricing",
+    "roboflow-product-navigation",
+    "roboflow-training-and-evaluation",
+    "roboflow-universe",
+    "workflow-from-eval"
+  ],
+  "source_commit": "c4263a7e5a5d79d7e2473b22e802f94de6c0bd4c",
+  "source_commit_date": "2026-11-10",
+  "source_repo": "roboflow/computer-vision-skills"
+}

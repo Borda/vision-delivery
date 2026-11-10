@@ -23,7 +23,9 @@ Before a human publishes a release:
 7. update the [changelog](https://github.com/Borda/vision-delivery/blob/main/CHANGELOG.md) and compatibility notes,
 8. inspect the built package or plugin from a clean environment,
 9. re-run live routing (`make eval-trigger-live`) on the current route set, at least two repeats and on both hosts where available, and record the summary; a release that adds, removes, or rewrites a skill trigger cannot reuse an older run,
-10. triage open outcome reports (`outcome-report` label) and note any that change a support tier.
+10. triage open outcome reports (`outcome-report` label) and note any that change a support tier,
+11. refresh the upstream Roboflow skill roster (`evals/platform-routing/upstream-skills.json`: names, source commit, date) from a current `roboflow/computer-vision-skills` clone, then run `SENTINEL_UPSTREAM_SKILLS_DIR=<clone>/skills make eval-platform-routing` and update the delegation map for any drift,
+12. download Roboflow's current published tool catalog, regenerate the gate policy with `python scripts/build_gate_policy.py --catalog <file> --release <release tag> --as-of <date> --expect-sha256 <digest>`, review the `hooks/gate-policy.json` diff (new tools, changed read-only flags, every override reason), then run `SENTINEL_TOOL_CATALOG=<file> SENTINEL_UPSTREAM_SKILLS_DIR=<clone>/skills make eval-upstream`, which fails when either source is missing or has drifted.
 
 Remote publication, tags, releases, marketplace changes, and branch protection are human-owned operations. Their existence must not be claimed until verified on the remote service.
 

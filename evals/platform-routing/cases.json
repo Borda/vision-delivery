@@ -1,46 +1,82 @@
 {
   "platform_routes": [
     {
-      "local_skill": "roboflow:training-and-evaluation",
-      "mcp_resource": "roboflow://skills/training-and-evaluation",
+      "local_skill": "roboflow-training-and-evaluation",
+      "mcp_resource": "skill://roboflow/roboflow-training-and-evaluation/SKILL.md",
       "need": "model IDs and training architecture",
       "prompt": "Which Roboflow model ID should I train for this dataset?"
     },
     {
-      "local_skill": "roboflow:inference",
-      "mcp_resource": "roboflow://skills/inference",
+      "local_skill": "roboflow-inference",
+      "mcp_resource": "skill://roboflow/roboflow-inference/SKILL.md",
       "need": "Workflow and deployment option guidance",
       "prompt": "How do I run this as a Roboflow Workflow?"
     },
     {
-      "local_skill": "roboflow:data-management",
-      "mcp_resource": "roboflow://skills/data-management",
+      "local_skill": "roboflow-data-management",
+      "mcp_resource": "skill://roboflow/roboflow-data-management/SKILL.md",
       "need": "project upload and dataset versioning",
       "prompt": "How should I upload images and generate a Roboflow version?"
     },
     {
-      "local_skill": "roboflow:api-reference",
-      "mcp_resource": "roboflow://skills/api-reference",
+      "local_skill": "roboflow-api-reference",
+      "mcp_resource": "skill://roboflow/roboflow-api-reference/SKILL.md",
       "need": "REST API and auth reference",
       "prompt": "What API host and auth shape should I use?"
     },
     {
-      "local_skill": "roboflow:universe",
-      "mcp_resource": "roboflow://skills/universe",
+      "local_skill": "roboflow-universe",
+      "mcp_resource": "skill://roboflow/roboflow-universe/SKILL.md",
       "need": "Universe dataset or public model search",
       "prompt": "Find a Universe model for hard-hat detection."
     },
     {
-      "local_skill": "roboflow:plans-and-pricing",
-      "mcp_resource": "roboflow://skills/plans-and-pricing",
+      "local_skill": "roboflow-plans-and-pricing",
+      "mcp_resource": "skill://roboflow/roboflow-plans-and-pricing/SKILL.md",
       "need": "plans credits and current pricing references",
       "prompt": "Which Roboflow plan or credit limit applies?"
     },
     {
-      "local_skill": "roboflow:product-navigation",
-      "mcp_resource": "roboflow://skills/product-navigation",
+      "local_skill": "roboflow-product-navigation",
+      "mcp_resource": "skill://roboflow/roboflow-product-navigation/SKILL.md",
       "need": "Roboflow UI paths",
       "prompt": "Where is the API key page in the Roboflow UI?"
+    },
+    {
+      "local_skill": "roboflow-model-journey",
+      "mcp_resource": "skill://roboflow/roboflow-model-journey/SKILL.md",
+      "need": "trying a model without training and putting it on a live endpoint",
+      "prompt": "Is there a model I can try for this without training one first?"
+    },
+    {
+      "local_skill": "workflow-from-eval",
+      "mcp_resource": "skill://roboflow/workflow-from-eval/SKILL.md",
+      "need": "eval-driven Workflow search",
+      "prompt": "Compare a few candidate Roboflow Workflows for this problem and keep the best one."
+    },
+    {
+      "local_skill": "roboflow-batch-processing",
+      "mcp_resource": "skill://roboflow/roboflow-batch-processing/SKILL.md",
+      "need": "batch Workflow runs over many images or videos",
+      "prompt": "Run my Roboflow Workflow over ten thousand archived images."
+    },
+    {
+      "local_skill": "roboflow-cloud-storage",
+      "mcp_resource": "skill://roboflow/roboflow-cloud-storage/SKILL.md",
+      "need": "cloud bucket mirroring into a workspace",
+      "prompt": "Mirror the images in my S3 bucket into Roboflow."
+    },
+    {
+      "local_skill": "roboflow-custom-weights-upload",
+      "mcp_resource": "skill://roboflow/roboflow-custom-weights-upload/SKILL.md",
+      "need": "uploading locally trained weights",
+      "prompt": "Upload the weights I trained on my laptop to Roboflow."
+    },
+    {
+      "local_skill": "draw-vision",
+      "mcp_resource": "skill://roboflow/draw-vision/SKILL.md",
+      "need": "drawing predictions over images or video",
+      "prompt": "Draw the detected boxes and labels on these frames for the report."
     }
   ]
 }

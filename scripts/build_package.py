@@ -37,6 +37,7 @@ INCLUDE_DIRS = (
 REQUIRED_FILES = (".mcp.json", "CHANGELOG.md", "LICENSE", "NOTICE", "README.md")
 BOOTSTRAP_RUNTIME_FILES = (
     "hooks/gate.js",
+    "hooks/gate-policy.json",
     "hooks/roboflow-ops.js",
     "resources/baseline-ladder.md",
     "resources/delivery-modes.md",

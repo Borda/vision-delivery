@@ -68,7 +68,7 @@ If you do not know a metric or threshold, say what the error costs in plain lang
 
 ## What the first measured number looks like
 
-In explore mode Sentinel scores a rung 0 baseline with no account: the host model looks at your labeled sample images, and `score_baseline.py` compares its answers with your labels. You get one plain line such as "Real cases caught: 85% on 40 images (target >= 80%): PASS". See the [first-baseline example](https://github.com/Borda/vision-delivery/tree/main/examples/first-baseline).
+In explore mode Sentinel scores a rung 0 baseline with no account: the host model looks at your labeled sample images, and `score_baseline.py` compares its answers with your labels. You get one plain line such as "Real cases caught: 34 of 40 real cases (85%, 95% interval 71% to 93%); target >= 80%: INCONCLUSIVE. The 95% interval includes the target: label more images to settle it, or treat the result as not yet proven. Missing predictions: 0." The verdict is `PASS` only when the whole 95% interval meets the target. See the [first-baseline example](https://github.com/Borda/vision-delivery/tree/main/examples/first-baseline).
 
 ## Expected first response
 
