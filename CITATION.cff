@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
-title: "Sentinel: business-first computer vision delivery copilot"
+title: "Sentinel: computer vision delivery plugin"
 authors:
   - family-names: Borovec
     given-names: Jiří

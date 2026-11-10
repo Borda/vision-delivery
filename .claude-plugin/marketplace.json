@@ -1,12 +1,12 @@
 {
-  "description": "Install Sentinel's business-first computer vision delivery copilot.",
+  "description": "Get a measured first answer to a computer-vision question with no Roboflow account, then keep an independent acceptance check and, on Claude Code, a spend gate beside the official Roboflow plugin.",
   "name": "sentinel",
   "owner": {
     "name": "Jirka Borovec"
   },
   "plugins": [
     {
-      "description": "Guide an operational computer vision goal toward verified proof, costs, and a decision while delegating current platform execution to Roboflow.",
+      "description": "Get a measured first answer to a computer-vision question with no Roboflow account, then keep an independent acceptance check and, on Claude Code, a spend gate beside the official Roboflow plugin.",
       "name": "sentinel",
       "source": "./",
       "version": "0.5.0"

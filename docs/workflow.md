@@ -32,7 +32,7 @@ Ambiguous wording gets one clarifying question. For example, "count defective it
 
 ## 3. Define The Eval Gate
 
-The eval gate is committed before model search. It should include:
+The eval gate is committed before model search. In explore mode, the default, it is recorded in plain words; in deliver mode it is frozen in a file with a digest. [Modes and the baseline ladder](modes-and-ladder.md) explains when each applies. It should include:
 
 - metric,
 - threshold,
@@ -42,7 +42,7 @@ The eval gate is committed before model search. It should include:
 
 ## 4. Measure A Baseline
 
-The plugin tries a pretrained or Roboflow Universe candidate before training. If the baseline passes, training is unnecessary. If it fails, the miss pattern determines the next lever.
+The plugin climbs the baseline ladder one rung at a time. Rung 0 is the host model's own vision on your labeled images, scored with no Roboflow account, upload to Roboflow, or Roboflow spend; the images go to your host model, like any image you attach to a chat. Only when a rung misses the target does the plugin try the next: an open-vocabulary model, a public pretrained model, then fine-tuning. The scorer prints the counts, a 95% interval, and a verdict; only `PASS` counts as passing, and an inconclusive result means more labeled images, not a higher rung. If a baseline passes, training is unnecessary. If it fails, the miss pattern determines the next lever.
 
 ## 5. Improve In Cost Order
 
@@ -54,7 +54,7 @@ The default improvement order is:
 4. fine-tuning,
 5. labeling or larger data work.
 
-On Claude Code, a Sentinel `PreToolUse` hook checks every Roboflow MCP call against a policy generated from Roboflow's published tool catalog. Read-only tools pass, except two billed ones (`models_infer`, `media_analyze`). Every other tool, and any tool the policy does not list, is denied until a structured action brief (scope, sourced and dated cost, data movement, rollback) is recorded in the project ledger; the call then goes to the host permission prompt. The gate never auto-approves. It covers MCP tool calls only: a Roboflow SDK, CLI, or REST call made from a shell or a generated script does not pass through it, and neither does a Roboflow server registered under a name that does not contain `roboflow`. On Codex, no verified pre-action hook exists, so Sentinel returns the brief and stops. The gate is a guard, not a budget: keep account budgets and host approvals in place.
+Any step that spends credits, moves data, or changes provider state needs a written action brief first. On Claude Code a Sentinel hook holds the call for that brief and your approval at the host permission prompt, with single-image inference approved once as a call budget; on Codex Sentinel writes the brief and stops. [Trust and Safety](trust.md#paid-actions) describes the gate and what it does not cover.
 
 ## 6. Write Proof Artifacts
 

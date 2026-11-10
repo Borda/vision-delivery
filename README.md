@@ -1,10 +1,12 @@
-# 🛡️ Sentinel: the computer-vision copilot that won't burn your credits or overclaim
+# 🛡️ Sentinel
 
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/Borda/vision-delivery/main.svg)](https://results.pre-commit.ci/latest/github/Borda/vision-delivery/main) [![Docs](https://img.shields.io/badge/docs-online-0F766E.svg)](https://borda.github.io/vision-delivery/) [![docs](https://github.com/Borda/vision-delivery/actions/workflows/docs.yml/badge.svg)](https://github.com/Borda/vision-delivery/actions/workflows/docs.yml) [![evals](https://github.com/Borda/vision-delivery/actions/workflows/evals.yml/badge.svg)](https://github.com/Borda/vision-delivery/actions/workflows/evals.yml) [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 ![Sentinel banner](assets/sentinel-banner.webp)
 
-`vision-delivery` ships the `sentinel` plugin for Claude Code and Codex. It is a delivery-discipline layer on top of [Roboflow](https://roboflow.com) and the official [Roboflow skills](https://github.com/roboflow/computer-vision-skills). You describe the outcome you need from images or video. Sentinel locks a success target, measures the cheapest baseline first, and gives you an auditable go / revise / stop decision. Paid or state-changing Roboflow actions need a written action brief and your approval.
+**Get a measured first answer to a computer-vision question with no Roboflow account, then keep an independent acceptance check and, on Claude Code, a spend gate beside the official Roboflow plugin.**
+
+`vision-delivery` ships the `sentinel` plugin for Claude Code and Codex. You describe the outcome you need from images or video. Sentinel locks a success target, measures the cheapest baseline first, and gives you an auditable go / revise / stop decision. It complements [Roboflow](https://roboflow.com) and the official [Roboflow skills](https://github.com/roboflow/computer-vision-skills): they own the platform, Sentinel owns the target, the measurement, and the approval before spend.
 
 ```text
 "Count pallets crossing this line and report the hourly total. I have 60 sample frames.
@@ -17,7 +19,7 @@ The first session runs in **explore mode**. You get plain-language numbers and n
 
 1. Sentinel reads your files and asks at most three business questions, such as "out of 100 real cases, how many misses are acceptable?".
 2. It locks that target before looking at any result.
-3. It runs **rung 0** of the [baseline ladder](resources/baseline-ladder.md). The host model looks at your labeled sample images, and [`score_baseline.py`](resources/scripts/score_baseline.py) scores the answers. No sign-in, upload, or spend is needed.
+3. It runs **rung 0** of the [baseline ladder](resources/baseline-ladder.md). The host model looks at your labeled sample images, and [`score_baseline.py`](resources/scripts/score_baseline.py) scores the answers. No Roboflow sign-in, upload to Roboflow, or Roboflow spend is needed; the images go to your host model, like any image you attach to a chat.
 4. You get one line, for example: *"Real cases caught: 39 of 40 real cases (98%, 95% interval 87% to 100%); target >= 80%: PASS. Missing predictions: 0."*, plus what to try next. A result too close to the target to call on that sample reads INCONCLUSIVE instead of PASS, and a sample too small or missing predictions gets NO VERDICT.
 
 Only when the result heads for production, a third party, or a paid action does Sentinel switch to **deliver mode**: frozen acceptance files, digest-bound evidence, and validated handoffs. See [delivery modes](resources/delivery-modes.md).
@@ -33,16 +35,16 @@ On **Claude Code**, Sentinel installs a `PreToolUse` hook ([`hooks/gate.js`](hoo
 
 The gate covers Roboflow MCP tool calls only, from a server whose name contains `roboflow`. A Roboflow SDK, CLI, or REST call made from a shell command or a generated script does not pass through it, and neither does the same server registered under another name; [Trust and Safety](https://borda.github.io/vision-delivery/trust/) lists what the gate does not cover.
 
-On **Codex**, no verified pre-action hook exists, so Sentinel writes the brief and stops; you execute it yourself. The gate is a guard, not a budget. Keep account budgets and a non-production workspace too.
+**Codex is the methodology tier: no gate.** No verified pre-action hook exists there, so Sentinel writes the brief and stops; you execute it yourself. The locked target, the baseline ladder, and the scorer are the same on both hosts (no recorded live run on either host yet). The gate is a guard, not a budget. Keep account budgets and a non-production workspace too.
 
 ## 🚀 Install
 
 ```bash
-# Claude Code
+# Claude Code: methodology and spend gate
 claude plugin marketplace add Borda/vision-delivery
 claude plugin install sentinel@sentinel
 
-# Codex
+# Codex: methodology only, no gate
 codex plugin marketplace add https://github.com/Borda/vision-delivery
 codex plugin add sentinel@sentinel
 ```
@@ -51,21 +53,21 @@ No credential environment variable is needed. Roboflow sign-in uses the host-man
 
 ## 🎯 Routes
 
-| Status       | Route                                                         | Use it for                                     |
-| ------------ | ------------------------------------------------------------- | ---------------------------------------------- |
-| **Flagship** | `detect-and-analyze`                                          | counting and finding objects or defects        |
-| **Flagship** | `classify-or-flag`                                            | one pass/fail or category verdict per image    |
-| Guided       | `estimate-economics`, `deliver-cv-project`, `decision-report` | cost, packaging, and the final decision record |
-| Preview      | `track-and-count`, `read-text`, `segment-and-analyze`         | tracking over time, OCR, masks and measurement |
-| Preview      | `recognize-pose-or-gesture`, `decompose-to-pipeline`          | keypoints and multi-stage systems              |
+| Status       | Route                                                         | Use it for                                     | Sentinel scorer                                                                      |
+| ------------ | ------------------------------------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **Flagship** | `detect-and-analyze`                                          | counting and finding objects or defects        | yes: per-image counts (`--task count`)                                               |
+| **Flagship** | `classify-or-flag`                                            | one pass/fail or category verdict per image    | yes: yes/no flags only (`--task flag`); multi-class categories need your own tooling |
+| Guided       | `estimate-economics`, `deliver-cv-project`, `decision-report` | cost, packaging, and the final decision record | not a measurement route                                                              |
+| Preview      | `track-and-count`, `read-text`, `segment-and-analyze`         | tracking over time, OCR, masks and measurement | no Sentinel scorer yet                                                               |
+| Preview      | `recognize-pose-or-gesture`, `decompose-to-pipeline`          | keypoints and multi-stage systems              | no Sentinel scorer yet                                                               |
 
-Flagship routes are the ones being taken to live end-to-end proof on public data first. Preview routes have a full workflow but less evidence; use them with more caution. Start with `solve-cv-task` (Claude Code: `/sentinel:solve-cv-task`) when you are unsure which route fits.
+Flagship routes are the ones being taken to live end-to-end proof on public data first. Preview routes have a full workflow but less evidence, and "no Sentinel scorer yet" means the route defines its metric but you measure it with your own or upstream tooling; use them with more caution. Start with `solve-cv-task` (Claude Code: `/sentinel:solve-cv-task`) when you are unsure which route fits.
 
 ## 📋 Honest status
 
 > **v0.5 release candidate.** The v0.5 release candidate passed local clean-home marketplace simulations. Manual public-GitHub marketplace installation was recorded for v0.3 on Codex and Claude Code; the v0.5 public-install path remains unverified.
 >
-> Evidence so far: one pre-v0.2 live routing run (precision `0.94`, recall `0.85` on 143 prompts), a mocked plugin-vs-plain A/B at one run per cell, and one small private detection result. No novice user study has been run, and live end-to-end results for the flagship routes are pending. Read [Support & Evidence](https://borda.github.io/vision-delivery/support-and-scope/) before relying on any route in production.
+> Evidence is thin, and it is stated in one place. [Support & Evidence](https://borda.github.io/vision-delivery/support-and-scope/) holds every claim with its numbers and limits; read it before relying on any route in production.
 
 Tried it? [Tell us how it went](https://github.com/Borda/vision-delivery/issues/new?template=outcome-report.yml). Outcome reports from real projects are the most useful thing you can send right now.
 
@@ -77,7 +79,7 @@ Generated scripts, eval files, and ledger rows are workflow outputs, not proof t
 
 ## 🤝 Sentinel and official Roboflow skills
 
-Sentinel owns the delivery question: *what should we build, what evidence is enough, and what decision follows?* Roboflow owns current product truth: MCP tool semantics, model IDs, Workflows, plans, and pricing. Sentinel reads the installed official Roboflow skills first, then `skill://roboflow/<name>/SKILL.md` MCP resources. When neither is available, it marks platform details unverified. Installing both full plugins can duplicate the `roboflow` MCP server on hosts that do not deduplicate; see [Roboflow Skills Integration](https://borda.github.io/vision-delivery/roboflow-skills/).
+Use both. Sentinel owns the delivery question: *what should we build, what evidence is enough, and what decision follows?* Roboflow owns current product truth: MCP tool semantics, model IDs, Workflows, plans, and pricing. Sentinel reads the installed official Roboflow skills first, then `skill://roboflow/<name>/SKILL.md` MCP resources. When neither is available, it marks platform details unverified. Installing both full plugins can duplicate the `roboflow` MCP server on hosts that do not deduplicate; see [Roboflow Skills Integration](https://borda.github.io/vision-delivery/roboflow-skills/).
 
 ## ⚠️ Safety boundary
 

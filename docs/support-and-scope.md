@@ -5,7 +5,9 @@ title: Support & Evidence
 
 # Support & Evidence
 
-Sentinel is a business-first delivery copilot, not a model and not an autonomous production owner. It is designed to let a user begin with an operational outcome while the plugin supplies CV task framing, evaluation discipline, improvement order, and decision structure.
+This is the one page that states what Sentinel's evidence shows and where it stops. Other pages give one line and link here. Three kinds of page still carry detail on purpose: the benchmark pages, which are the source records; the `llms.txt` summaries, which an agent reads alone; and the README and [Trust and Safety](trust.md), which describe the spend gate in full.
+
+Sentinel is a delivery copilot, not a model and not an autonomous production owner. It is designed to let a user begin with an operational outcome while the plugin supplies CV task framing, evaluation discipline, improvement order, and decision structure.
 
 The entry barrier is intentionally low, but it is not zero. A safe first session still needs:
 
@@ -43,6 +45,17 @@ Flagship routes are the first to be taken to live end-to-end proof on public, li
 
 ## Claim register
 
+| Evidence           | What it tests                                                                                                                                 | Result                                                                                                        | What it does not prove                                                                                          |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Live trigger suite | Whether a skill fires for a labeled prompt                                                                                                    | One Claude Sonnet run: 143 prompts, precision `0.94`, recall `0.85`; 4 false positives and 11 false negatives | Correct task completion, Codex parity, repeat stability, or user outcomes                                       |
+| Synthetic A/B      | Workflow behavior with mocked Roboflow tools                                                                                                  | 16 runs at `N=1` per cell: 1 supported, 6 mixed/parity, 1 loss                                                | Live model quality, market advantage, or production behavior                                                    |
+| B1 CV fixture      | One detection/counting workflow record                                                                                                        | Post-training result on 11 private test images                                                                | Conveyor equivalence, broad transfer, production readiness, or a controlled plugin advantage                    |
+| Spend gate         | The Claude Code hook's decision for every tool in the policy with no brief recorded, plus named brief, call-budget, and permission-mode cases | Deterministic repository tests pass                                                                           | How the host renders the prompt, which tool names a live Claude Code session receives, or any behavior on Codex |
+| Baseline scorer    | Verdicts on built fixtures, including the refusal cases                                                                                       | Deterministic repository tests pass                                                                           | That a host model's rung 0 answers are good on your images; no recorded real run exists                         |
+| Novice use         | Whether a non-expert completes a safe first session                                                                                           | No study                                                                                                      | Any entry-barrier claim                                                                                         |
+
+The sections below give each claim's detail.
+
 ### Live routing
 
 One Claude Sonnet run used 143 labeled prompts: 74 positive and 69 negative. It reported 63 true positives, 4 false positives, and 11 false negatives, for micro precision `0.94` and recall `0.85`. Tolerating two direct specialist routes raises positive coverage to 65/74 (`0.88`).
@@ -55,7 +68,11 @@ The plugin-vs-plain comparison contains 16 mocked runs at one repeat per cell. T
 
 ### CV task result
 
-B1 reports a post-training result on 11 private test images. The fixture is useful evidence that the detection path can produce a measured record; it is not evidence for broad domains, production deployment, or a plugin advantage over a controlled plain-agent run. B2-B5 remain pending.
+B1 reports a post-training result on 11 private test images. It has no controlled plain-agent comparator, no post-training count error, and no public independent reproduction, and the equivalence of its aerial-vehicle data to the intended conveyor domain is unverified. The fixture is useful evidence that the detection path can produce a measured record; it is not evidence for broad domains, production deployment, or a plugin advantage over a controlled plain-agent run. B2-B5 remain pending.
+
+### Spend gate and scorer
+
+The Claude Code spend gate and the baseline scorer are covered by deterministic tests in the repository: the gate's decision is checked for every tool in its policy, and the scorer's verdicts are checked on built fixtures. Neither has a recorded live session. The gate policy is generated from the tool catalog Roboflow publishes for another host surface, so the tool names a Claude Code session receives are unconfirmed; an unlisted name is treated as gated. The mocked A/B has not been re-run with the gate's approval prompt answered, so it says nothing about the gate. [Trust and Safety](trust.md#paid-actions) lists what the gate does not cover, and [Sample Output](sample-output.md) shows what the tools print.
 
 ### Entry-barrier claim
 
@@ -94,7 +111,8 @@ Sentinel can make a stronger “go-to plugin” claim only after objective evide
 - authenticated end-to-end B2-B5 runs with representative datasets,
 - a controlled plain-agent comparator for live work,
 - independent novice usability studies with safety and recovery measures,
-- hard authorization or documented host-enforced approval for paid actions,
+- a recorded live session showing the Claude Code gate's prompt and a rung 0 baseline on public, licensed images,
+- a host-enforced approval path for paid actions on Codex,
 - artifact execution tests rather than instruction-presence checks,
 - threat modeling and sensitive-use evaluation,
 - verified release integrity and remote repository controls.

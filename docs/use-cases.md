@@ -9,19 +9,19 @@ Sentinel routes a business request by required output before model search. A rou
 
 ## Route matrix
 
-| Business outcome                          | Route                       | Eval examples                               | Support boundary                                                           |
-| ----------------------------------------- | --------------------------- | ------------------------------------------- | -------------------------------------------------------------------------- |
-| Count objects or defects                  | `detect-and-analyze`        | recall, box overlap, count MAE              | Guided; B1 is historical private evidence, not reproducible support proof. |
-| Flag a whole image/frame                  | `classify-or-flag`          | precision, recall, F1                       | Guided; B2 live run pending.                                               |
-| Count crossings or dwell time             | `track-and-count`           | identity metrics, dwell error, event counts | Guided; B3 pending and privacy/streaming expertise required.               |
-| Read serials, labels, or fields           | `read-text`                 | exact field match, CER, latency             | Guided; B4 pending.                                                        |
-| Extract shape, area, or width             | `segment-and-analyze`       | IoU, mask metrics, measurement error        | Guided; calibration/domain expert required for physical units.             |
-| Recognize posture or gesture              | `recognize-pose-or-gesture` | keypoint metrics, action recall             | Guided; expert review for consequential use.                               |
-| Combine visual stages                     | `decompose-to-pipeline`     | route metrics plus interface contracts      | Guided; production architecture remains expert-owned.                      |
-| Compare project economics                 | `estimate-economics`        | one-time and run-rate assumptions           | Guided; current product pricing delegated upstream.                        |
-| Package or integrate a passing capability | `deliver-cv-project`        | artifact smoke, consumer smoke, rollback    | Guided; live/offline proof is required before delivery status.             |
+| Business outcome                          | Route                       | Eval examples                               | Support boundary                                                           | Sentinel scorer                                                      |
+| ----------------------------------------- | --------------------------- | ------------------------------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Count objects or defects                  | `detect-and-analyze`        | recall, box overlap, count MAE              | Guided; B1 is historical private evidence, not reproducible support proof. | Yes: per-image counts                                                |
+| Flag a whole image/frame                  | `classify-or-flag`          | precision, recall, F1                       | Guided; B2 live run pending.                                               | Yes: yes/no flags only; multi-class categories need your own tooling |
+| Count crossings or dwell time             | `track-and-count`           | identity metrics, dwell error, event counts | Guided; B3 pending and privacy/streaming expertise required.               | No Sentinel scorer yet                                               |
+| Read serials, labels, or fields           | `read-text`                 | exact field match, CER, latency             | Guided; B4 pending.                                                        | No Sentinel scorer yet                                               |
+| Extract shape, area, or width             | `segment-and-analyze`       | IoU, mask metrics, measurement error        | Guided; calibration/domain expert required for physical units.             | No Sentinel scorer yet                                               |
+| Recognize posture or gesture              | `recognize-pose-or-gesture` | keypoint metrics, action recall             | Guided; expert review for consequential use.                               | No Sentinel scorer yet                                               |
+| Combine visual stages                     | `decompose-to-pipeline`     | route metrics plus interface contracts      | Guided; production architecture remains expert-owned.                      | No Sentinel scorer yet                                               |
+| Compare project economics                 | `estimate-economics`        | one-time and run-rate assumptions           | Guided; current product pricing delegated upstream.                        | Not a measurement route                                              |
+| Package or integrate a passing capability | `deliver-cv-project`        | artifact smoke, consumer smoke, rollback    | Guided; live/offline proof is required before delivery status.             | Not a measurement route                                              |
 
-Detection and classification are the flagship routes: they get live end-to-end proof first. Tracking, OCR, segmentation, pose, and pipelines are preview routes with the same workflow and less evidence.
+Detection and classification are the flagship routes: they get live end-to-end proof first. Tracking, OCR, segmentation, pose, and pipelines are preview routes with the same workflow and less evidence. Sentinel ships a scorer (`score_baseline.py`) for per-image counts and per-image flags only. A route marked "no Sentinel scorer yet" still defines its metric and target, but you measure it with your own or upstream tooling, and Sentinel cannot check the number independently.
 
 ## Plain-language route selection
 

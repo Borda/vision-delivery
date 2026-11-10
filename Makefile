@@ -1,4 +1,4 @@
-.PHONY: ci lint format lint-js typecheck docs-setup docs-build docs-serve eval-setup pre-commit-coverage eval eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-baseline eval-proof-chain eval-decision-report probe-codex probe-claude eval-trigger-live eval-e2e-self-test eval-ab-smoke eval-ab-metrics eval-ab-approver eval-upstream
+.PHONY: ci lint format lint-js typecheck docs-setup docs-build docs-serve eval-setup pre-commit-coverage eval eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-baseline eval-proof-chain eval-decision-report eval-docs-samples probe-codex probe-claude eval-trigger-live eval-e2e-self-test eval-ab-smoke eval-ab-metrics eval-ab-approver eval-upstream
 
 ci: eval-setup lint format lint-js typecheck eval
 
@@ -35,7 +35,7 @@ eval-setup:
 pre-commit-coverage:
 	@echo "make ci runs the Ruff, Ruff format, ESLint, and mypy pre-commit hooks plus repository evals."
 
-eval: eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-baseline eval-proof-chain eval-decision-report eval-e2e-self-test eval-ab-metrics eval-ab-approver
+eval: eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-baseline eval-proof-chain eval-decision-report eval-docs-samples eval-e2e-self-test eval-ab-metrics eval-ab-approver
 
 eval-version:
 	python scripts/check_versions.py
@@ -123,3 +123,6 @@ eval-proof-chain:
 
 eval-decision-report:
 	python evals/decision-report/assert_contract.py
+
+eval-docs-samples:  # the docs sample-output page must show what the shipped gate, ledger helper, and scorer print
+	python evals/docs/assert_sample_output.py

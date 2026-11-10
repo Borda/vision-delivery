@@ -1,5 +1,5 @@
 site_name: vision-delivery
-site_description: Business-first computer-vision delivery copilot for Codex and Claude Code, with explicit evidence, safety, and production boundaries.
+site_description: Get a measured first answer to a computer-vision question with no Roboflow account, then keep an independent acceptance check and, on Claude Code, a spend gate beside the official Roboflow plugin.
 site_url: https://borda.github.io/vision-delivery/
 repo_url: https://github.com/Borda/vision-delivery
 repo_name: Borda/vision-delivery
@@ -52,6 +52,8 @@ nav:
   - Start Here: index.md
   - Guides:
       - Quick Start: quickstart.md
+      - Modes And The Ladder: modes-and-ladder.md
+      - Sample Output: sample-output.md
       - Use Cases: use-cases.md
       - Workflow: workflow.md
       - CV Economics: economics.md

@@ -15,7 +15,7 @@ It is designed for them: a user can describe the outcome and consequences in pla
 
 ## What evidence exists?
 
-A pre-v0.2 live routing sample, a directional synthetic process A/B, and one small private detection result exist as historical evidence. The private data is not independently reproducible, and current routes are guided rather than proven end to end. See [Support & Evidence](support-and-scope.md).
+Little: one historical routing run, a mocked process comparison, and one small private detection result. [Support & Evidence](support-and-scope.md) states every claim with its numbers and limits.
 
 ## Does it guarantee accuracy or production readiness?
 
@@ -27,7 +27,7 @@ No. Sentinel uses MCP for read-only discovery and, on Claude Code, for paid or s
 
 ## Which hosts are supported?
 
-Codex and Claude Code marketplace installations are documented from the public GitHub repository. Other hosts are outside the supported surface. See the [compatibility policy](compatibility.md).
+Claude Code and Codex, installed from the public GitHub repository. They are not equal. Claude Code gets the methodology and the spend gate. Codex is the methodology tier: the locked target, the baseline ladder, and the scorer are the same there (no recorded live run on either host yet), but no pre-action hook exists, so there is no gate. Other hosts are outside the supported surface. See the [compatibility policy](compatibility.md).
 
 ## How do I authenticate to Roboflow?
 
@@ -35,7 +35,7 @@ Plugin installation does not require a credential environment variable. Codex me
 
 ## Does it spend credits automatically?
 
-On Claude Code, a Sentinel `PreToolUse` hook checks every Roboflow MCP call against a policy generated from Roboflow's published tool catalog. Read-only tools pass, except two billed ones (`models_infer`, `media_analyze`). Every other tool, and any tool the policy does not list, is denied until a structured action brief (scope, sourced and dated cost, data movement, rollback) is recorded in the project ledger; the call then goes to the host permission prompt. The gate never auto-approves. It covers MCP tool calls only: a Roboflow SDK, CLI, or REST call made from a shell or a generated script does not pass through it, and neither does a Roboflow server registered under a name that does not contain `roboflow`. On Codex, no verified pre-action hook exists, so Sentinel returns the brief and stops. A gated call still depends on your answer in the host prompt, and the gate does not cap spend. Use host approvals, account budgets, least-privilege account authorization or sessions, and non-production workspaces. If a separately generated standalone client requires a provider key, follow current provider guidance and scope it to the minimum permissions.
+Not on Claude Code without a recorded brief and your approval. On Claude Code, a Sentinel `PreToolUse` hook holds each paid, data-moving, or state-changing Roboflow MCP call for a recorded action brief and your approval at the host permission prompt; single-image inference is approved once, as a call budget. After that first approval, later calls inside the budget follow your own host permission rules. On Codex there is no gate: Sentinel is instructed to write the brief and stop, and nothing in the plugin enforces it. The gate does not cap spend and does not see calls made outside MCP. [Trust and Safety](trust.md#paid-actions) describes the gate and what it does not cover.
 
 ## What access does it request?
 

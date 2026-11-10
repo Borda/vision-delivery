@@ -3,7 +3,7 @@
     "name": "Jirka Borovec",
     "url": "https://github.com/Borda"
   },
-  "description": "Business-first computer vision delivery guide for Codex. Turn an operational goal into a scoped proof plan, verified evidence, costs, and a decision.",
+  "description": "Get a measured first answer to a computer-vision question with no Roboflow account, then keep an independent acceptance check and, on Claude Code, a spend gate beside the official Roboflow plugin.",
   "homepage": "https://borda.github.io/vision-delivery/",
   "hooks": "./hooks/hooks.json",
   "interface": {
@@ -24,8 +24,8 @@
     "displayName": "Sentinel",
     "logo": "./assets/logo.png",
     "logoDark": "./assets/logo.png",
-    "longDescription": "Describe the operational outcome in plain language. Sentinel guides you through scoping the computer-vision task, freezing business and evaluation gates, measuring a baseline, recording replayable evidence, and estimating the economics for a go, revise, or stop decision. Generated artifacts and live provider results require execution and verification. Roboflow integrations remain delegated to Roboflow's current MCP and computer-vision-skills plugin.",
-    "shortDescription": "Guide a business CV problem toward verified proof and a decision.",
+    "longDescription": "Get a measured first answer to a computer-vision question with no Roboflow account, then keep an independent acceptance check and, on Claude Code, a spend gate beside the official Roboflow plugin. Codex has no spend gate: before a paid or state-changing Roboflow action Sentinel writes an action brief and stops, and you run the action yourself. Generated artifacts and live provider results require execution and verification.",
+    "shortDescription": "A measured first answer with no Roboflow account, then an independent acceptance check.",
     "websiteURL": "https://borda.github.io/vision-delivery/"
   },
   "keywords": [

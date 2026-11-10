@@ -21,12 +21,17 @@ The repository manifests, package metadata, citation metadata, runtime ledger re
 - A/B analyzer metric v5 with `trap_resisted` and `guardrail_score`; correct trap refusal is no longer a progress loss.
 - A/B runner simulated approver (`evals/ab/approver.py`, `runner.py --approver`): answers host permission prompts from persona rules in both arms, pins `--permission-mode default`, and logs each decision to `approvals.jsonl`. It has not been exercised in a live run.
 - `scripts/sync_codex_skills.py` generates `codex-skills/` from `claude-skills/`; `make eval-parity` fails on drift.
+- Docs pages "Modes and the baseline ladder" and "Sample Output". The sample page shows gate decisions, a refused brief, and scorer lines printed by the shipped tools on fixtures; `make eval-docs-samples` fails when a block stops matching the code. It is not a recorded session.
 - Outcome-report issue form, first-baseline example with synthetic placeholder labels, flagship/preview route labels.
 
 ### Changed
 
 - `ledger_report.py` takes deployment and progress operations from the gate policy. Progress now counts only gated training, evaluation, and inference calls; a read such as a training status poll no longer counts as progress.
 - Ledger hook and helpers resolve the project root (`CLAUDE_PROJECT_DIR`, then the nearest `.vision-delivery` or `.git` ancestor) instead of the working directory.
+- One pitch sentence, word for word, in the plugin manifests (the Codex display copy opens with it), the docs site description and home page, the README, and both `docs/llms*.txt` files; `make eval-release` checks each of those places. It puts the first answer with no Roboflow account first and names Claude Code as the host with the spend gate.
+- Quick start reordered: install, a first measured number with no Roboflow account, then Roboflow sign-in only when a later step needs it.
+- "Support & Evidence" is the one page that states evidence and limits; the README, docs home, FAQ, trust page, and benchmarks index now give one line and a link instead of repeating the evidence numbers, and the docs home, FAQ, and workflow page link to the trust page instead of repeating the gate paragraph. The benchmark pages and `docs/llms*.txt` keep their numbers, and the README keeps its gate section.
+- Codex is labelled the methodology tier with no gate in the README, FAQ, compatibility page, and quick start. Routes without a Sentinel scorer are labelled "no Sentinel scorer yet" in the README and the use-cases page.
 - README leads with the spend-protection and first-baseline value, with status condensed into one section.
 - Mermaid diagrams replaced by hand-authored animated SVGs in `docs/assets/diagrams/` (README diagram in `assets/`) (flowing edges, sequential node pulse, `prefers-reduced-motion` aware, theme-neutral colours); the `mkdocs-mermaid2-plugin` dependency and the `check-yaml --unsafe` override are removed.
 

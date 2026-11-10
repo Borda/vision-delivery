@@ -5,15 +5,7 @@ title: Benchmarks And Evidence
 
 # Benchmarks And Evidence
 
-The repository contains three different evidence types. They answer different questions and must not be merged into one “proven CV” claim.
-
-| Evidence           | What it tests                                | Result                                                                                                        | What it does not prove                                                                       |
-| ------------------ | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Live trigger suite | Whether a skill fires for a labeled prompt   | One Claude Sonnet run: 143 prompts, precision `0.94`, recall `0.85`; 4 false positives and 11 false negatives | Correct task completion, Codex parity, repeat stability, or user outcomes                    |
-| Synthetic A/B      | Workflow behavior with mocked Roboflow tools | 16 runs at `N=1` per cell: 1 supported, 6 mixed/parity, 1 loss                                                | Live model quality, market advantage, or production behavior                                 |
-| B1 CV fixture      | One detection/counting workflow record       | Post-training result on 11 private test images                                                                | Conveyor equivalence, broad transfer, production readiness, or a controlled plugin advantage |
-
-The honest current summary is: Sentinel has evidence for routing and a narrow detection/process path; broad live end-to-end coverage remains pending.
+The repository holds three kinds of benchmark evidence: one live trigger run, a mocked process A/B, and one small CV fixture. They answer different questions and must not be merged into one “proven CV” claim. [Support & Evidence](../support-and-scope.md#claim-register) gives each result with its numbers and what it does not prove; this page covers the fixtures and how to reproduce them.
 
 ## Route fixtures
 

@@ -18,7 +18,7 @@ python3 resources/scripts/score_baseline.py \
 Expected first line:
 
 ```text
-Per-image count agreement: 42 of 47 labeled objects (89%, 95% interval 81% to 96%); target >= 85%: INCONCLUSIVE. The 95% interval includes the target: label more images to settle it, or treat the result as not yet proven. Missing predictions: 0.
+Per-image count agreement: 42 of 47 labeled objects (89%, 95% interval 81% to 96%); target >= 85%: INCONCLUSIVE. The 95% interval includes the target: label more images to settle it, or treat the result as not yet proven. This number does not penalize over-counting: the predictions hold 2 counts beyond the labels (see over_count_rate). Missing predictions: 0.
 ```
 
 The point estimate is above 85%, but 24 images cannot rule out a true rate below 85%, so the verdict is `INCONCLUSIVE`, not `PASS`. "Per-image count agreement" compares each image's count with its label, capped at the label. It does not check which object was found, so it is not object-level recall.
@@ -26,14 +26,14 @@ The point estimate is above 85%, but 24 images cannot rule out a true rate below
 Every gold image needs a prediction. Delete the last line of the prediction file and run again: the scorer refuses instead of scoring the gap as a miss.
 
 ```text
-Per-image count agreement: 40 of 47 labeled objects (85.1%, 95% interval 70.3% to 95.9%); target >= 85.0%: NO VERDICT. No verdict because 1 of 24 gold images has no prediction. Missing predictions: 1.
+Per-image count agreement: 40 of 47 labeled objects (85.1%, 95% interval 70.3% to 95.9%); target >= 85.0%: NO VERDICT. No verdict because 1 of 24 gold images has no prediction. This number does not penalize over-counting: the predictions hold 2 counts beyond the labels (see over_count_rate). Missing predictions: 1.
 ```
 
 The per-object count metrics (`catch_rate`, `over_count_rate`, `count_mae`) need at least 20 images, because their interval comes from resampling images. With fewer, or when every image gives the same result, score `exact_count_rate` ("images counted exactly right"), which needs 5.
 
 ## 2. Do it on your own images with Sentinel
 
-1. Put 10–40 representative images in a folder you are allowed to use.
+1. Put your representative images in a folder you are allowed to use: 10 or more for a yes/no flag, 20 or more with objects for a count. The images go to your host model, like any image you attach to a chat.
 
 2. Label them yourself, independently of any model: one line per image in `gold.jsonl`, `{"image": "<file>", "count": <n>}` or `{"image": "<file>", "flag": true|false}`.
 

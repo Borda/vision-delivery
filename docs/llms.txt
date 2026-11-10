@@ -1,6 +1,6 @@
 # Sentinel / vision-delivery
 
-> Business-first computer-vision delivery copilot for Codex and Claude Code. It translates an operational request into a CV task, success gate, cheapest baseline, inspectable proof plan, and evidence-bound economics decision.
+> Get a measured first answer to a computer-vision question with no Roboflow account, then keep an independent acceptance check and, on Claude Code, a spend gate beside the official Roboflow plugin.
 
 Sentinel is a plugin and workflow layer, not a model, security boundary, autonomous deployer, or production certifier. A user can begin without CV vocabulary but must provide or confirm data authority, business outcome, representative examples, error consequences, and human ownership. No independent novice outcome study exists.
 
@@ -36,7 +36,7 @@ No credential environment variable is required for plugin installation. The v0.5
 - B1: 11 private test images; no controlled plain comparator, no public independent reproduction, post-train count MAE absent, conveyor proxy equivalence unverified.
 - B2-B5: specifications only; live results pending.
 - Generated scripts, IDs, eval files, and ledger rows require inspection and execution.
-- On Claude Code, a Sentinel PreToolUse hook denies paid or state-changing Roboflow MCP calls without a recorded action brief and routes the rest to the host permission prompt; on Codex, Sentinel returns the brief and stops. Ledger coverage is best-effort and not independent proof.
+- On Claude Code, a Sentinel PreToolUse hook denies paid or state-changing Roboflow MCP calls without a recorded action brief and routes the rest to the host permission prompt; single-image inference is approved once as a call budget, and later calls inside it follow host permission rules. On Codex there is no gate: Sentinel returns the brief and stops. Ledger coverage is best-effort and not independent proof.
 
 ## Primary docs
 

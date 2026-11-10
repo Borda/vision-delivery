@@ -71,10 +71,7 @@ Do not use Sentinel alone for medical, employment, law-enforcement, access-contr
 
 ## Evidence and generated outputs
 
-- B1 is a small private detection fixture; B2-B5 live results are pending.
-- The process A/B is mocked, `N=1` per cell, and directional.
-- Routing evidence is one Claude Sonnet run, not task completion or Codex evidence.
-- No independent novice usability study exists.
+- Evidence is thin; [Support & Evidence](support-and-scope.md) states every claim with its numbers and limits.
 - Generated files, scripts, IDs, and ledger entries require inspection and execution before reliance.
 - Pricing snapshots are dated; annotation and training inputs may remain assumptions.
 

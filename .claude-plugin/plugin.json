@@ -3,7 +3,7 @@
     "name": "Jirka Borovec",
     "url": "https://github.com/Borda"
   },
-  "description": "Business-first computer vision delivery guide for Claude Code and Codex. Turn an operational goal into a scoped proof plan, verified evidence, costs, and a decision.",
+  "description": "Get a measured first answer to a computer-vision question with no Roboflow account, then keep an independent acceptance check and, on Claude Code, a spend gate beside the official Roboflow plugin.",
   "homepage": "https://borda.github.io/vision-delivery/",
   "hooks": "./hooks/claude-hooks.json",
   "keywords": [

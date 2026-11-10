@@ -1,6 +1,6 @@
 # Sentinel / vision-delivery — full agent context
 
-`vision-delivery` ships the `sentinel` plugin for business-first CV delivery in Codex and Claude Code. Start from the operational outcome, not a model. The plugin translates plain language into a CV output type and evidence plan, measures a baseline before recommending training, stops with an action brief before paid/data-moving/state-changing provider actions, requests inspectable artifacts, and frames economics and the next human decision.
+Get a measured first answer to a computer-vision question with no Roboflow account, then keep an independent acceptance check and, on Claude Code, a spend gate beside the official Roboflow plugin. `vision-delivery` ships the `sentinel` plugin for Claude Code and Codex. The plugin translates plain language into a CV output type and evidence plan, measures a baseline before recommending training, stops with an action brief before paid/data-moving/state-changing provider actions, requests inspectable artifacts, and frames economics and the next human decision.
 
 ## Non-negotiable boundary
 
