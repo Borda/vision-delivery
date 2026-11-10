@@ -30,6 +30,9 @@ Usage:
 
 from __future__ import annotations
 
+import contextlib
+import importlib.util
+import io
 import json
 import re
 import subprocess
@@ -420,8 +423,41 @@ def check_fixture(fixture_path: Path, failures: list[str]) -> None:
         failures.append(str(exc))
 
 
+class _CountingRequests:
+    """Stand-in for the ``requests`` module that counts fetches and never touches the network."""
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def get(self, url: str, timeout: float = 0) -> None:
+        """Count one fetch, then fail the way an unreachable host would."""
+        self.calls += 1
+        raise OSError(f"network is off in this check: {url}")
+
+
+def assert_no_network_by_default(failures: list[str]) -> None:
+    """The default run must fetch nothing; only ``--check-sources`` may fetch."""
+    spec = importlib.util.spec_from_file_location("sentinel_cost_model", SCRIPT)
+    if spec is None or spec.loader is None:
+        failures.append(f"could not load {SCRIPT}")
+        return
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    for extra, expect_fetches in ((), False), (("--check-sources",), True):
+        stub = _CountingRequests()
+        setattr(module, "requests", stub)  # noqa: B010 - the loaded module has no static type
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            code = module.main(["--streams", "1", "--json", *extra])
+        if code != 0:
+            failures.append(f"cost_model {list(extra)} exited {code} with the network stubbed out")
+        if bool(stub.calls) != expect_fetches:
+            failures.append(f"cost_model {list(extra)} made {stub.calls} fetches; expected fetches: {expect_fetches}")
+
+
 def main() -> int:
     failures: list[str] = []
+    assert_no_network_by_default(failures)
 
     for fixture_path in sorted(FIXTURES_DIR.glob("*.json")):
         check_fixture(fixture_path, failures)

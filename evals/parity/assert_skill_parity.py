@@ -13,21 +13,13 @@ ROOT = Path(__file__).resolve().parents[2]
 CODEX_SKILLS = ROOT / "codex-skills"
 CLAUDE_SKILLS = ROOT / "claude-skills"
 CONTRACT = ROOT / "shared" / "capability-contract.md"
-EXPECTED_ROSTER = {
-    "auth-setup",
-    "check-sentinel-setup",
-    "classify-or-flag",
-    "decision-report",
-    "decompose-to-pipeline",
-    "deliver-cv-project",
-    "detect-and-analyze",
-    "estimate-economics",
-    "read-text",
-    "recognize-pose-or-gesture",
-    "segment-and-analyze",
-    "solve-cv-task",
-    "track-and-count",
-}
+if str(ROOT / "scripts") not in sys.path:
+    sys.path.insert(0, str(ROOT / "scripts"))
+
+from skill_roster import load_roster  # noqa: E402  (the shipped roster loader lives in scripts/)
+
+#: Every skill both hosts must ship, read from shared/skill-roster.json.
+EXPECTED_ROSTER = set(load_roster().names())
 
 
 def parse_frontmatter(path: Path) -> tuple[dict[str, object], str]:
@@ -48,7 +40,7 @@ def roster(root: Path) -> set[str]:
 
 
 def assert_skill_rosters() -> None:
-    """Require exactly the frozen thirteen-name roster on both hosts."""
+    """Require exactly the roster-file skills on both hosts."""
     codex_roster = roster(CODEX_SKILLS)
     claude_roster = roster(CLAUDE_SKILLS)
     assert codex_roster == EXPECTED_ROSTER, f"Codex roster drifted: {sorted(codex_roster)}"

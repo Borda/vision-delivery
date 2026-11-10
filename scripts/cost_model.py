@@ -19,8 +19,9 @@ plan floor alone is not comparable to a fully-loaded DIY run-rate, and
 treating it as a price would structurally bias the verdict.
 
 Pricing is read from the committed snapshot ``PRICING_SNAPSHOT.json`` beside
-this file. A live fetch of each source URL is *attempted* (to confirm sources
-are reachable) but live HTML is never parsed — snapshot values are used.
+this file. The script opens no network connection by default. With
+``--check-sources`` it fetches each source URL once to report whether it still
+answers; live HTML is never parsed — snapshot values are always used.
 
 Usage:
     python scripts/cost_model.py --streams 5 --fps 10 --model-size medium \\
@@ -1136,6 +1137,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Frozen acceptance JSON to bind into machine and text output.",
     )
     p.add_argument("--json", action="store_true", help="Emit machine-readable JSON.")
+    p.add_argument(
+        "--check-sources",
+        action="store_true",
+        help="Fetch each pricing source URL once and report on stderr whether it answers (network; off by default).",
+    )
     return p
 
 
@@ -1346,8 +1352,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
-    # Best-effort live-reachability probe (never parses HTML, never fatal).
-    probe_live_sources()
+    # Opt-in reachability probe: the only network use, never parses HTML, never fatal.
+    if args.check_sources:
+        for name, reachable in sorted(probe_live_sources().items()):
+            print(f"source {name}: {'reachable' if reachable else 'not reachable'}", file=sys.stderr)
     stale_days = snapshot_age_days(snapshot["as_of"])
 
     try:

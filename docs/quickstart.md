@@ -49,7 +49,7 @@ For local plugin development from a checkout, run `claude plugin validate .` and
 
 1. Put your representative images in a folder you are allowed to use.
 
-2. Label them yourself, without looking at any model output: one line per image in a `gold.jsonl` file kept outside the image folder. Each line is either `{"image": "<file>", "count": <n>}`, or `{"image": "<file>", "flag": true}` or `{"image": "<file>", "flag": false}`. Every image needs a line.
+2. Label them yourself, before any model output exists. Ask Sentinel to help you label the images: it names each image, you give the count or a yes or no, and it records your answer with its labeling helper. It never suggests a label, and it tells you when you have enough images for a verdict. Labels recorded this way are marked, and the scorer's line says so, because an agent typed them in for you. To enter them with no agent in between, run the helper yourself in a terminal; [Modes and the baseline ladder](modes-and-ladder.md) gives the command. You can also write the file by hand: one line per image in a `gold.jsonl` file kept outside the image folder, either `{"image": "<file>", "count": <n>}`, or `{"image": "<file>", "flag": true}` or `{"image": "<file>", "flag": false}`. Every image needs a line.
 
 3. Start with the job, not a model name:
 
@@ -60,7 +60,7 @@ For local plugin development from a checkout, run `claude plugin validate .` and
 
     Useful details are the input (images, video, stream, folder, or dataset), the target (object, defect, text field, region, or event), the output you need, which miss or false alarm matters more, and any latency or environment limit. If you do not know a metric or threshold, say what the error costs in plain language. Sentinel translates that into a proposed target and asks you to confirm it.
 
-4. Sentinel locks the target before it reads any result. It then looks at each image with the host model's own vision, writes its answers to a file, and scores them against your labels with `score_baseline.py`. Nothing goes to Roboflow and no Roboflow credit is spent; the images go to your host model, as the warning above says.
+4. Sentinel locks the target before it reads any result. It then looks at each image with the host model's own vision, writes its answers to a file, and scores them against your labels with `score_baseline.py`. A separate subagent is given the image paths and the question; your labels are not given to it. Sentinel freezes its answer file in the project ledger before it opens your labels, and the scorer refuses answers or labels that changed after the freeze. This shows the files were fixed before this scoring run. It does not show the predictor could never have opened your labels, since both run on your machine under your account, and the subagent step has not yet been recorded in a live session; [Modes and the baseline ladder](modes-and-ladder.md) lists the limits. Nothing goes to Roboflow and no Roboflow credit is spent; the images go to your host model, as the warning above says.
 
 5. Read the line it prints. For a count task on 24 images with an 85% target it looks like this:
 
@@ -105,5 +105,7 @@ If it skips the target, assumes permission, promises production accuracy, or sta
 ## What success looks like
 
 A first proof is complete only when the expected artifacts were inspected or executed, the measured result is compared with the agreed target, failures are visible, and a human accepts the next step. A chat statement or ledger row alone is not proof.
+
+When you come back to a project, ask "where does my project stand?": the `status` skill reads the project's ledger and evaluation files and prints the current step, any approval still waiting, and the next action, without spending anything. When a session ends, good or bad, ask Sentinel to draft an outcome report: the `report-outcome` skill fills the report form from the ledger with identifiers, paths, and notes left out, and you check it and post it yourself.
 
 Continue with [Use Cases](use-cases.md), [Workflow](workflow.md), [Support & Evidence](support-and-scope.md), and [Trust and Safety](trust.md).

@@ -9,7 +9,7 @@ title: A/B Process Benchmark — Plugin vs Plain Agent
 
 !!! warning "Directional synthetic evidence"
 
-    This benchmark contains 16 mocked runs at one repeat per cell. It tests workflow behavior, not live model quality or broad novice success. The environment has known developer-machine contamination, live capability confirmation is pending, and the result includes a loss. Treat the numbers as hypotheses and regression evidence, not a market or production claim.
+    This benchmark contains 16 mocked runs at one repeat per cell. It tests workflow behavior, not live model quality or broad novice success. The environment has known developer-machine contamination, live capability confirmation is pending, and the result includes a loss. Treat the numbers as hypotheses and regression evidence, not a market or production claim. These runs predate the committed-artifact rule (`evals/ab/published/README.md`) and cannot be re-scored.
 
 ______________________________________________________________________
 

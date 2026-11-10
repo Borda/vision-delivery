@@ -14,7 +14,15 @@ Cost: one model call per case. Default samples 1 should_fire case per skill;
     python3 evals/trigger-live/run_live.py --host claude [--all] [--model sonnet]
     CODEX_HOME=/isolated/home python3 evals/trigger-live/run_live.py --host codex
 
-Results land in ``evals/trigger-live/runs/<UTC-timestamp>.jsonl``.
+Results land in ``evals/trigger-live/runs/<UTC-timestamp>.jsonl``, which is gitignored scratch.
+
+No published number without a committed artifact folder: before a routing number goes into a docs page, README,
+or changelog, pack its results file with
+``python3 scripts/publish_run.py pack --suite trigger-live --run <results file> --set <set-id>``, commit
+``evals/trigger-live/published/<set-id>/``, and cite that folder next to the number
+(``evals/trigger-live/published/README.md`` says what is kept). The routing numbers published before this rule,
+including the run summarized in ``docs/support-and-scope.md``, predate it: their results were never committed and
+cannot be re-scored.
 """
 
 from __future__ import annotations

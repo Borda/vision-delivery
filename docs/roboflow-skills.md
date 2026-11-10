@@ -38,7 +38,7 @@ Sentinel delegates to these skills from the official `roboflow` plugin. Claude C
 - `roboflow-training-and-evaluation`: training models, evaluating them, diagnosing why a model underperforms, and setting up a production feedback loop.
 - `roboflow-model-journey`: choosing and trying a model without training first, then putting it on a project's live endpoint.
 - `roboflow-inference`: image and video previews, deployment option comparison, Workflow publishing, device management, and Vision Events.
-- `workflow-from-eval`: building or improving a Workflow by eval-driven search, for open-ended problems or when comparing alternatives.
+- `workflow-from-eval`: building or improving a Workflow by eval-driven search, for open-ended problems or when comparing alternatives. When it is installed, Sentinel hands it the candidate search only after locking the target and the gold set and measuring rung 0, keeps every paid step behind the action brief and gate, and scores the result again on its held-out gold set before reporting a pass.
 - `roboflow-batch-processing`: running a Workflow over many images or videos as a batch job, monitoring jobs, and downloading results.
 - `roboflow-data-management`: uploading images or videos, labeling, creating projects, tags, splits, versions, and dataset search.
 - `roboflow-cloud-storage`: connecting S3 or GCS buckets to mirror images into a workspace.
@@ -103,9 +103,47 @@ Specialist routes other than the narrow B1 fixture remain guided, not broadly li
 
 ## Combining plugins
 
-Both plugins may define a Roboflow MCP server. Hosts that do not deduplicate configuration can show duplicate or conflicting server entries. Prefer selective official skills when the host supports them, or inspect the resolved host configuration before enabling both full bundles.
+Sentinel complements the official Roboflow plugin; it does not replace it. One install topology is supported for using both, on Claude Code.
 
-Never assume duplicate configuration is harmless. Confirm which server, credentials, and permissions the active host will use.
+### Supported topology on Claude Code
+
+Install both plugins from their marketplaces:
+
+```bash
+claude plugin marketplace add Borda/vision-delivery
+claude plugin install sentinel@sentinel
+claude plugin marketplace add roboflow/computer-vision-skills
+claude plugin install roboflow@roboflow
+```
+
+Each plugin declares one MCP server named `roboflow` at the same Roboflow MCP URL: Sentinel in its `.mcp.json`, and the official plugin in its own `.mcp.json` at the upstream commit the skill roster was taken from. The upstream marketplace name, plugin name, and server name are recorded in `evals/platform-routing/upstream-skills.json`, and `make eval-upstream` compares them with a current clone before a release. A plugin's server reaches the session under a name that includes the plugin, so the same Roboflow tool can arrive under more than one name:
+
+| Where the server comes from                                     | Tool name the hooks see                       |
+| --------------------------------------------------------------- | --------------------------------------------- |
+| Sentinel installed as a plugin                                  | `mcp__plugin_sentinel_roboflow__<tool>`       |
+| Official Roboflow plugin                                        | `mcp__plugin_roboflow_roboflow__<tool>`       |
+| A server named `roboflow` in your own user or project MCP setup | `mcp__roboflow__<tool>`                       |
+| A connector whose name contains Roboflow                        | for example `mcp__claude_ai_Roboflow__<tool>` |
+
+**The gate covers every name above.** Sentinel's three Claude Code hook events (`PreToolUse`, `PostToolUse`, `PostToolUseFailure`) share one matcher that accepts any MCP server whose name contains `roboflow` in any letter case. The gate keys the action brief on the operation name without the server prefix, so a brief recorded for an operation opens the gate for that operation through either server, and one call through either server uses it up. A Roboflow server registered under a name without `roboflow` (for example `rf`) is not gated at all.
+
+**Duplicate servers.** With both plugins enabled, the session can hold two servers for the same Roboflow service and offer every Roboflow tool twice. Neither copy bypasses the gate. Each server can run its own sign-in, so the two can end up connected to different accounts or workspaces. After installing both, inspect the host's resolved MCP server list, confirm which account each server uses before the first paid action, and read the server name in every permission prompt.
+
+### What the repository proves, and what it does not
+
+Deterministic checks in this repository prove:
+
+- `evals/hooks/matcher_topology.mjs` reads every matcher in `hooks/claude-hooks.json`, compiles it as a JavaScript regular expression, and applies it to the tool names in the table above and to names that must not match (another server whose tool mentions roboflow, a server named without roboflow). The matcher and the hook's own rule agree on every name, and all three hook events use the same matcher.
+- `evals/hooks/gate_smoke.mjs` runs the gate itself on bare, plugin-prefixed, connector, and mixed-case server names.
+
+No live dual-install run is recorded, so these remain unverified:
+
+- the server names Claude Code actually assigns to the two plugins' servers; the table follows the naming the hooks are written for;
+- that the host applies a hook matcher exactly as the test compiles it;
+- whether the host merges or deduplicates two servers with the same URL, which one the agent calls, and whether one sign-in covers both;
+- how the official plugin's skills and Sentinel's skills route the same prompt in one live session.
+
+Treat the combined install as supported by design and checked offline, not as live-verified.
 
 ## Agent rule
 

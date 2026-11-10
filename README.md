@@ -53,13 +53,14 @@ No credential environment variable is needed. Roboflow sign-in uses the host-man
 
 ## 🎯 Routes
 
-| Status       | Route                                                         | Use it for                                     | Sentinel scorer                                                                      |
-| ------------ | ------------------------------------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------ |
-| **Flagship** | `detect-and-analyze`                                          | counting and finding objects or defects        | yes: per-image counts (`--task count`)                                               |
-| **Flagship** | `classify-or-flag`                                            | one pass/fail or category verdict per image    | yes: yes/no flags only (`--task flag`); multi-class categories need your own tooling |
-| Guided       | `estimate-economics`, `deliver-cv-project`, `decision-report` | cost, packaging, and the final decision record | not a measurement route                                                              |
-| Preview      | `track-and-count`, `read-text`, `segment-and-analyze`         | tracking over time, OCR, masks and measurement | no Sentinel scorer yet                                                               |
-| Preview      | `recognize-pose-or-gesture`, `decompose-to-pipeline`          | keypoints and multi-stage systems              | no Sentinel scorer yet                                                               |
+| Status       | Route                                                            | Use it for                                                            | Sentinel scorer                                                                      |
+| ------------ | ---------------------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **Flagship** | `detect-and-analyze`                                             | counting and finding objects or defects                               | yes: per-image counts (`--task count`)                                               |
+| **Flagship** | `classify-or-flag`                                               | one pass/fail or category verdict per image                           | yes: yes/no flags only (`--task flag`); multi-class categories need your own tooling |
+| Guided       | `estimate-economics`, `deliver-cv-project`, `decision-report`    | cost, packaging, and the final decision record                        | not a measurement route                                                              |
+| Preview      | `track-and-count`, `read-text`, `segment-and-analyze`            | tracking over time, OCR, masks and measurement                        | no Sentinel scorer yet                                                               |
+| Preview      | `recognize-pose-or-gesture`, `decompose-to-pipeline`             | keypoints and multi-stage systems                                     | no Sentinel scorer yet                                                               |
+| Utility      | `check-sentinel-setup`, `auth-setup`, `status`, `report-outcome` | install check, Roboflow sign-in, project status, outcome-report draft | not a measurement route                                                              |
 
 Flagship routes are the ones being taken to live end-to-end proof on public data first. Preview routes have a full workflow but less evidence, and "no Sentinel scorer yet" means the route defines its metric but you measure it with your own or upstream tooling; use them with more caution. Start with `solve-cv-task` (Claude Code: `/sentinel:solve-cv-task`) when you are unsure which route fits.
 
@@ -101,6 +102,6 @@ Do not use Sentinel as the sole basis for medical, employment, law-enforcement, 
 - [Compatibility](https://borda.github.io/vision-delivery/compatibility/) · [Release policy](https://borda.github.io/vision-delivery/release-policy/) · [Changelog](https://github.com/Borda/vision-delivery/blob/main/CHANGELOG.md)
 - [Contributing](https://github.com/Borda/vision-delivery/blob/main/.github/CONTRIBUTING.md) · [Support policy](https://github.com/Borda/vision-delivery/blob/main/.github/SUPPORT.md) · [Security](https://github.com/Borda/vision-delivery/blob/main/.github/SECURITY.md)
 
-💡 Found a reproducible bug or have a suggestion? [Open an issue](https://github.com/Borda/vision-delivery/issues/new/choose). External pull requests are paused for now while CI and contribution rules are hardened. Do not attach secrets, private customer data, faces, license plates, medical data, or media you are not authorized to share.
+💡 Found a reproducible bug or have a suggestion? [Open an issue](https://github.com/Borda/vision-delivery/issues/new/choose). Pull requests are limited to four narrow lanes, which are not open yet; see the [contributing guide](https://github.com/Borda/vision-delivery/blob/main/.github/CONTRIBUTING.md). Do not attach secrets, private customer data, faces, license plates, medical data, or media you are not authorized to share.
 
 Released under Apache-2.0. See [CITATION.cff](https://github.com/Borda/vision-delivery/blob/main/CITATION.cff) for citation metadata and [NOTICE](https://github.com/Borda/vision-delivery/blob/main/NOTICE) for redistribution notices.

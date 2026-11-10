@@ -23,13 +23,15 @@ HANDOFF_HELPER = RESOURCES / "scripts" / "validate_delivery_handoff.py"
 DELIVERY_CHECK_HELPER = RESOURCES / "scripts" / "record_delivery_check.py"
 FREEZE_CHECK_HELPER = RESOURCES / "scripts" / "freeze_delivery_check.py"
 FREEZE_ACCEPTANCE_HELPER = RESOURCES / "scripts" / "freeze_acceptance.py"
-MODALITY_SKILLS = (
-    "classify-or-flag",
-    "detect-and-analyze",
-    "read-text",
-    "recognize-pose-or-gesture",
-    "segment-and-analyze",
-    "track-and-count",
+#: Every flagship and preview route in the roster except the one that composes other routes, so a
+#: new route falls under the artifact contract without anyone adding it here.
+COMPOSITE_SKILL = "decompose-to-pipeline"
+MODALITY_SKILLS = tuple(
+    sorted(
+        entry["name"]
+        for entry in json.loads((ROOT / "shared" / "skill-roster.json").read_text(encoding="utf-8"))["skills"]
+        if entry["kind"] in ("flagship", "preview") and entry["name"] != COMPOSITE_SKILL
+    )
 )
 MODEL_ID = "committed deterministic fixture v1"
 LIVE_OUTPUT = (

@@ -2,7 +2,7 @@
 
 ## Skill roster
 
-Both hosts expose these thirteen capabilities:
+Both hosts expose every capability in `shared/skill-roster.json`, the one roster source; this list must match it:
 
 - `auth-setup`
 - `check-sentinel-setup`
@@ -14,8 +14,10 @@ Both hosts expose these thirteen capabilities:
 - `estimate-economics`
 - `read-text`
 - `recognize-pose-or-gesture`
+- `report-outcome`
 - `segment-and-analyze`
 - `solve-cv-task`
+- `status`
 - `track-and-count`
 
 ## Routing and workflow invariants

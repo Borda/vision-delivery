@@ -1,7 +1,7 @@
 ---
 name: solve-cv-task
 description: |
-  Turn a plain-language CV goal into the correct measurable build route. TRIGGER when: user asks to detect/count vehicles, read serial numbers, track people through zones, use a factory camera to catch mistakes, solve a CV problem from sample images, test feasibility, or build an end-to-end vision capability without knowing the modality. SKIP when: request clearly matches a specialist; asks managed deployment cost, annotation/training cost, or other economics only; asks current platform how-to; invokes estimate-economics; or says an evaluated model works and only needs package/export/deployment/delivery.
+  Turn a plain-language CV goal into the correct measurable build route. TRIGGER when: user asks to detect/count vehicles, read serial numbers, track people through zones, use a factory camera to catch mistakes, solve a CV problem from sample images, test feasibility, or build an end-to-end vision capability without knowing the modality. SKIP when: request clearly matches a specialist; asks managed deployment cost, annotation/training cost, or other economics only; asks current platform how-to; invokes estimate-economics; asks where the project stands or what step is next (status); asks to report how Sentinel went or give feedback (report-outcome); or says an evaluated model works and only needs package/export/deployment/delivery.
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 ---
 
@@ -74,6 +74,15 @@ Do not call a project impossible because a general model failed to see it. Do no
 ## 5. Hand off with continuity
 
 Invoke or recommend the selected skill with the proof brief and inspected artifact paths. The specialist owns frozen acceptance, candidate measurement, artifact, and decision. A passing build routes to `deliver-cv-project`; a material scale/build-vs-buy question routes through `estimate-economics`.
+
+**Upstream eval-driven search.** When the official `workflow-from-eval` skill is installed (expected on Claude Code as `roboflow:workflow-from-eval`; not confirmed in a live session with both plugins), it runs the candidate search; it is not a second front door. Sentinel stays the spend gate, the independent acceptance check, and the economics around that search (`../../resources/roboflow-platform-lookup.md`, eval-driven search hand-off):
+
+1. Sentinel locks the target and the independently labeled gold set first, then measures rung 0 (no account). Never start the upstream search before both; a rung 0 pass needs no search. Both must be on file first: the target as `metric:`, `comparator:`, and `threshold:` lines in the eval notes or as a frozen acceptance file, and the rung 0 run as a `predictions_frozen` or `baseline_measured` ledger row. Then record the hand-off with a successful `upstream_search_started` ledger row (`../../resources/ledger-protocol.md`); the `status` skill reports a search recorded before them.
+2. Hand upstream the locked metric, the threshold, and the fact that the gold set is held out. Never add gold images to upstream's suite. Upstream's suite, answer key, and scorecard steer its search only and never replace Sentinel's acceptance; labels drafted for its suite ("The user reviews; you label") are never gold.
+3. Every paid or state-changing step upstream proposes still needs Sentinel's sourced action brief and host gate first. On Codex there is no gate, so the brief is advice and the user decides.
+4. Score whatever upstream returns again on the held-out gold set, against the same frozen target, before reporting any pass. Score one search result on that set once. A further search after seeing that score has been steered by the held-out labels: say so, record it as a new `upstream_search_started` row, and use a fresh labeled set for the final score.
+
+When the upstream skill is not installed, the specialist route above stays unchanged.
 
 </methodology>
 

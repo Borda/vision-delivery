@@ -18,9 +18,11 @@ python3 evals/trigger/run.py detect-and-analyze  # one skill
 
 ## Add a new skill
 
-1. Create `codex-skills/<skill-name>/SKILL.md` with `TRIGGER when:` and `SKIP when:` in the `description` field.
-2. Add `evals/trigger/<skill-name>.cases.json` with at least 4 `should_fire` and 4 `should_not_fire` cases.
-3. Run `make eval-trigger` — exits 0 if all cases covered.
+1. Run `python3 scripts/new_route.py <skill-name> --kind <router|flagship|preview|guided|utility> --use "<one-line use>"` from the repository root; a flagship route also needs `--scorer count` or `--scorer flag`. It creates `claude-skills/<skill-name>/SKILL.md` from `templates/route/`, creates an empty `evals/trigger/<skill-name>.cases.json`, and registers the skill in `shared/skill-roster.json`. A name that already exists is refused and nothing is written.
+2. Replace every `TODO(template)` line in the new `SKILL.md`, keeping `TRIGGER when:` and `SKIP when:` in the `description` field.
+3. Add at least 4 `should_fire` and 4 `should_not_fire` cases to `evals/trigger/<skill-name>.cases.json`.
+4. Run `python3 scripts/sync_codex_skills.py` to generate `codex-skills/<skill-name>/SKILL.md`. Never create or edit `codex-skills/` by hand; it is generated.
+5. Name the skill in each listing the scaffold printed, then run `make eval-roster` and `make eval-trigger`; each exits 0 when the skill is complete.
 
 ## Limitation
 

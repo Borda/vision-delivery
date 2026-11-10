@@ -10,23 +10,27 @@ make eval
 
 ## Targets
 
-| Target                       | What it checks                                                        | Speed |
-| ---------------------------- | --------------------------------------------------------------------- | ----- |
-| `make eval-install`          | Distribution: manifest sync, MCP URL, resource-path containment       | ~1 s  |
-| `make eval-doctor`           | `check-sentinel-setup` doctor: healthy pass + host-mismatch rejection | ~5 s  |
-| `make eval-trigger`          | Skill SKILL.md descriptions declare correct TRIGGER/SKIP surface      | ~1 s  |
-| `make eval-entrypoints`      | Entry-point adapters stay consistent across hosts                     | ~1 s  |
-| `make eval-cost-model`       | Cost model math, provenance, and numeric-boundary guards              | ~2 s  |
-| `make eval-platform-routing` | Roboflow platform lookups stay thin, source-backed, and fallback-only | ~1 s  |
-| `make eval-hooks`            | `cta.js` ledger hook + `gate.js` PreToolUse paid-action gate          | ~1 s  |
-| `make eval-baseline`         | Rung 0 baseline scorer: count/flag metrics, frozen-target verdicts    | ~1 s  |
-| `make eval-ab-metrics`       | A/B analyzer metric v5 (trap resistance) on synthetic run fixtures    | ~2 s  |
-| `make eval-ledger`           | Ledger append dedup/conflict + report metrics                         | ~1 s  |
-| `make eval-methodology`      | FDE methodology contracts (acceptance, thresholds, routing, surface)  | ~1 s  |
-| `make eval-artifacts`        | Artifact contract: smoke helper, secret rejection, handoff matrix     | ~5 s  |
-| `make eval-decision-report`  | Decision-report contract (options, source format, schema version)     | ~1 s  |
+| Target                       | What it checks                                                          | Speed |
+| ---------------------------- | ----------------------------------------------------------------------- | ----- |
+| `make eval-install`          | Distribution: manifest sync, MCP URL, resource-path containment         | ~1 s  |
+| `make eval-doctor`           | `check-sentinel-setup` doctor: healthy pass + host-mismatch rejection   | ~5 s  |
+| `make eval-trigger`          | Skill SKILL.md descriptions declare correct TRIGGER/SKIP surface        | ~1 s  |
+| `make eval-entrypoints`      | Entry-point adapters stay consistent across hosts                       | ~1 s  |
+| `make eval-cost-model`       | Cost model math, provenance, and numeric-boundary guards                | ~2 s  |
+| `make eval-platform-routing` | Roboflow platform lookups stay thin, source-backed, and fallback-only   | ~1 s  |
+| `make eval-hooks`            | `cta.js` ledger hook + `gate.js` PreToolUse paid-action gate            | ~1 s  |
+| `make eval-baseline`         | Rung 0 baseline scorer: count/flag metrics, frozen-target verdicts      | ~1 s  |
+| `make eval-labeling`         | Gold-labeling helper, prediction freeze, `--frozen-ledger` refusal      | ~5 s  |
+| `make eval-ab-metrics`       | A/B analyzer metric v5 (trap resistance) on synthetic run fixtures      | ~2 s  |
+| `make eval-ledger`           | Ledger append dedup/conflict + report metrics                           | ~1 s  |
+| `make eval-methodology`      | FDE methodology contracts (acceptance, thresholds, routing, surface)    | ~1 s  |
+| `make eval-artifacts`        | Artifact contract: smoke helper, secret rejection, handoff matrix       | ~5 s  |
+| `make eval-decision-report`  | Decision-report contract (options, source format, schema version)       | ~1 s  |
+| `make eval-roster`           | One skill roster: schema, route scaffold in a temp root, listing drift  | ~5 s  |
+| `make eval-outcome-report`   | Outcome-report draft: form agreement, redaction, never writes or posts  | ~5 s  |
+| `make eval-publish-run`      | Run publisher: masking, refusals, manifests, committed folders verified | ~5 s  |
 
-On-demand (not part of `make eval` / per-PR): `make eval-trigger-live` (live routing accuracy, one model call per case), `make eval-ab-smoke` (one A/B cell vs mock MCP).
+On-demand (not part of `make eval` / per-PR): `make eval-trigger-live` (live routing accuracy, one model call per case), `make eval-ab-smoke` (one A/B cell vs mock MCP). Publish a run behind any published number with `scripts/publish_run.py`; `make eval-publish-run` checks that helper offline and verifies every committed `published/` folder.
 
 `make ci` runs lint + js-lint + format + types + `make eval`.
 

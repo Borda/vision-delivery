@@ -53,7 +53,7 @@ def require(condition: bool, message: str) -> None:
 CODEX_MATCHER = "^mcp__(plugin_[A-Za-z0-9_-]+_)?roboflow__.*$"
 #: Claude Code hooks: any MCP server whose name contains "roboflow" in any letter case, the
 #: same rule as ROBOFLOW_TOOL in hooks/roboflow-ops.js.
-CLAUDE_MATCHER = "^mcp__((?!__).)*[Rr][Oo][Bb][Oo][Ff][Ll][Oo][Ww]((?!__).)*__.*$"
+CLAUDE_MATCHER = "^mcp__((?!__).)*[Rr][Oo][Bb][Oo][Ff][Ll][Oo][Ww]((?!__).)*__.+$"
 
 
 def require_hook_contract(

@@ -64,6 +64,8 @@ nav:
       - FAQ: faq.md
       - Compatibility: compatibility.md
       - Release Policy: release-policy.md
+      - Developing: developing.md
+      - Roadmap: roadmap.md
   - Benchmarks:
       - Overview: benchmarks/index.md
       - B1 — Conveyor detect: benchmarks/b1-conveyor-detect.md

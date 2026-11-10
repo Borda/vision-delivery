@@ -1,0 +1,199 @@
+{
+  "kinds": {
+    "flagship": "Measurement route with a Sentinel scorer, taken to live end-to-end proof first.",
+    "guided": "Workflow route for cost, packaging, or the decision record; not a measurement route.",
+    "preview": "Measurement route with a full workflow but less evidence; no Sentinel scorer yet.",
+    "router": "Front door that picks the route when the user is unsure which one fits.",
+    "utility": "Setup, connection, status, or feedback helper around the delivery loop."
+  },
+  "schema_version": 1,
+  "skills": [
+    {
+      "kind": "utility",
+      "name": "auth-setup",
+      "scorer": null,
+      "surfaces": [
+        "capability-contract",
+        "readme"
+      ],
+      "use": "connect or troubleshoot the URL-only Roboflow MCP sign-in"
+    },
+    {
+      "kind": "utility",
+      "name": "check-sentinel-setup",
+      "scorer": null,
+      "surfaces": [
+        "capability-contract",
+        "llms",
+        "readme"
+      ],
+      "use": "offline package doctor that separates install, host enablement, and hosted authorization"
+    },
+    {
+      "kind": "flagship",
+      "name": "classify-or-flag",
+      "scorer": "flag",
+      "surfaces": [
+        "capability-contract",
+        "issue-form",
+        "llms",
+        "readme",
+        "use-cases"
+      ],
+      "use": "image/frame labels"
+    },
+    {
+      "kind": "guided",
+      "name": "decision-report",
+      "scorer": null,
+      "surfaces": [
+        "capability-contract",
+        "readme"
+      ],
+      "use": "portable stakeholder decision report after a cost crossover"
+    },
+    {
+      "kind": "preview",
+      "name": "decompose-to-pipeline",
+      "scorer": null,
+      "surfaces": [
+        "capability-contract",
+        "issue-form",
+        "llms",
+        "readme",
+        "use-cases"
+      ],
+      "use": "typed multi-stage handoffs"
+    },
+    {
+      "kind": "guided",
+      "name": "deliver-cv-project",
+      "scorer": null,
+      "surfaces": [
+        "capability-contract",
+        "issue-form",
+        "llms",
+        "readme",
+        "use-cases"
+      ],
+      "use": "verified packaging, integration, consumer smoke, monitoring status, and rollback for an accepted capability"
+    },
+    {
+      "kind": "flagship",
+      "name": "detect-and-analyze",
+      "scorer": "count",
+      "surfaces": [
+        "capability-contract",
+        "issue-form",
+        "llms",
+        "readme",
+        "use-cases"
+      ],
+      "use": "boxes and counts"
+    },
+    {
+      "kind": "guided",
+      "name": "estimate-economics",
+      "scorer": null,
+      "surfaces": [
+        "capability-contract",
+        "issue-form",
+        "llms",
+        "readme",
+        "use-cases"
+      ],
+      "use": "project/run-rate assumptions and decisions"
+    },
+    {
+      "kind": "preview",
+      "name": "read-text",
+      "scorer": null,
+      "surfaces": [
+        "capability-contract",
+        "issue-form",
+        "llms",
+        "readme",
+        "use-cases"
+      ],
+      "use": "OCR and structured fields"
+    },
+    {
+      "kind": "preview",
+      "name": "recognize-pose-or-gesture",
+      "scorer": null,
+      "surfaces": [
+        "capability-contract",
+        "issue-form",
+        "llms",
+        "readme",
+        "use-cases"
+      ],
+      "use": "keypoints and actions"
+    },
+    {
+      "kind": "utility",
+      "name": "report-outcome",
+      "scorer": null,
+      "surfaces": [
+        "capability-contract",
+        "llms",
+        "readme"
+      ],
+      "use": "draft a redacted outcome report from the ledger for you to check and post yourself"
+    },
+    {
+      "kind": "preview",
+      "name": "segment-and-analyze",
+      "scorer": null,
+      "surfaces": [
+        "capability-contract",
+        "issue-form",
+        "llms",
+        "readme",
+        "use-cases"
+      ],
+      "use": "masks and calibrated measurement questions"
+    },
+    {
+      "kind": "router",
+      "name": "solve-cv-task",
+      "scorer": null,
+      "surfaces": [
+        "capability-contract",
+        "llms"
+      ],
+      "use": "task router and orchestrator"
+    },
+    {
+      "kind": "utility",
+      "name": "status",
+      "scorer": null,
+      "surfaces": [
+        "capability-contract",
+        "llms",
+        "readme"
+      ],
+      "use": "where a project stands: step, locked target, last result, open action briefs, and the next action"
+    },
+    {
+      "kind": "preview",
+      "name": "track-and-count",
+      "scorer": null,
+      "surfaces": [
+        "capability-contract",
+        "issue-form",
+        "llms",
+        "readme",
+        "use-cases"
+      ],
+      "use": "identity, events, and dwell"
+    }
+  ],
+  "surfaces": {
+    "capability-contract": "shared/capability-contract.md, bullets under the Skill roster heading; every skill is listed there.",
+    "issue-form": ".github/ISSUE_TEMPLATE/outcome-report.yml, options of the Route used dropdown.",
+    "llms": "docs/llms.txt, bullets under the Canonical routes heading; each bullet text is the roster use.",
+    "readme": "README.md, Route column of the table under the Routes heading; the Status column is the kind.",
+    "use-cases": "docs/use-cases.md, Route column of the table under the Route matrix heading."
+  }
+}

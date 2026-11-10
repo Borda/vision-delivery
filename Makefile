@@ -1,4 +1,4 @@
-.PHONY: ci lint format lint-js typecheck docs-setup docs-build docs-serve eval-setup pre-commit-coverage eval eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-baseline eval-proof-chain eval-decision-report eval-docs-samples probe-codex probe-claude eval-trigger-live eval-e2e-self-test eval-ab-smoke eval-ab-metrics eval-ab-approver eval-upstream
+.PHONY: ci lint format lint-js typecheck docs-setup docs-build docs-serve eval-setup pre-commit-coverage eval eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-baseline eval-proof-chain eval-decision-report eval-docs-samples probe-codex probe-claude eval-trigger-live eval-e2e-self-test eval-ab-smoke eval-ab-metrics eval-ab-approver eval-upstream eval-labeling eval-publish-run eval-roster eval-outcome-report
 
 ci: eval-setup lint format lint-js typecheck eval
 
@@ -35,7 +35,7 @@ eval-setup:
 pre-commit-coverage:
 	@echo "make ci runs the Ruff, Ruff format, ESLint, and mypy pre-commit hooks plus repository evals."
 
-eval: eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-baseline eval-proof-chain eval-decision-report eval-docs-samples eval-e2e-self-test eval-ab-metrics eval-ab-approver
+eval: eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-baseline eval-labeling eval-proof-chain eval-decision-report eval-docs-samples eval-e2e-self-test eval-ab-metrics eval-ab-approver eval-publish-run eval-roster eval-outcome-report
 
 eval-version:
 	python scripts/check_versions.py
@@ -91,6 +91,9 @@ eval-ab-metrics:  # deterministic A/B analyzer + verdict-rule checks on syntheti
 eval-ab-approver:  # deterministic simulated-approver + runner-argv checks — no live calls, no network
 	python evals/ab/assert_approver.py
 
+eval-publish-run:  # deterministic publish-helper checks on synthetic runs — no live calls, no network
+	python evals/ab/assert_publish_run.py
+
 eval-cost-model:
 	python evals/cost-model/assert_cost_model.py
 
@@ -105,6 +108,7 @@ eval-hooks:
 	python evals/hooks/assert_gate_policy.py
 	node evals/hooks/cta_smoke.mjs
 	node evals/hooks/gate_smoke.mjs
+	node evals/hooks/matcher_topology.mjs
 
 eval-ledger:
 	python evals/ledger/assert_ledger.py
@@ -117,6 +121,15 @@ eval-artifacts:
 
 eval-baseline:
 	python evals/baseline/assert_score_baseline.py
+
+eval-roster:  # one skill roster: schema, route scaffold in a temp root, listing drift — offline
+	python evals/roster/assert_roster.py
+
+eval-outcome-report:  # outcome-report draft: form agreement, redaction defaults, never writes or posts — offline
+	python evals/outcome-report/assert_outcome_report.py
+
+eval-labeling:  # gold-labeling helper, prediction freeze, and the scorer's frozen-ledger refusal — offline, temp dirs
+	python evals/labeling/assert_labeling.py
 
 eval-proof-chain:
 	python evals/proof-chain/assert_proof_chain.py

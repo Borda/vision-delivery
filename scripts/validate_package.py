@@ -12,8 +12,9 @@ import sys
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from skill_roster import ROSTER_RELATIVE, RosterError, load_roster
+
 MANIFEST_NAME = "package-manifest.json"
-EXPECTED_SKILL_COUNT = 13
 REQUIRED_FILES = (".mcp.json", "CHANGELOG.md", "LICENSE", "NOTICE", "README.md")
 REQUIRED_PATHS = (
     ".agents/plugins/marketplace.json",
@@ -32,6 +33,9 @@ REQUIRED_PATHS = (
     "resources/scripts/artifact_smoke.py",
     "resources/scripts/freeze_acceptance.py",
     "resources/scripts/freeze_delivery_check.py",
+    "resources/scripts/freeze_predictions.py",
+    "resources/scripts/label_gold.py",
+    "resources/scripts/prediction_freeze.py",
     "resources/scripts/proof_chain.py",
     "resources/scripts/record_delivery_check.py",
     "resources/scripts/score_baseline.py",
@@ -39,7 +43,13 @@ REQUIRED_PATHS = (
     "resources/scripts/validate_proof_chain.py",
     "scripts/cost_model.py",
     "scripts/ledger_append.py",
+    "scripts/ledger_report.py",
+    "scripts/outcome_report.py",
+    "scripts/redaction.py",
+    "scripts/skill_roster.py",
+    "scripts/validate_package.py",
     "shared/capability-contract.md",
+    ROSTER_RELATIVE,
 )
 SECRET_PATTERNS = (
     re.compile(rb"-----BEGIN [A-Z ]*PRIVATE KEY-----"),
@@ -153,6 +163,24 @@ def hygiene_findings(package: Path, manifest: dict[str, Any]) -> list[str]:
     return findings
 
 
+def roster_source_findings(package: Path, shipped: list[str]) -> list[str]:
+    """Return findings when the packaged skills differ from the packaged roster source.
+
+    Examples:
+        >>> roster_source_findings(Path("no-such-package"), [])[0].startswith("unreadable skill roster")
+        True
+    """
+    try:
+        expected = load_roster(package / ROSTER_RELATIVE).names()
+    except RosterError as exc:
+        return [f"unreadable skill roster: {exc}"]
+    missing = sorted(expected - set(shipped))
+    extra = sorted(set(shipped) - expected)
+    if not missing and not extra:
+        return []
+    return [f"skills do not match {ROSTER_RELATIVE}: missing {missing}, not in the roster {extra}"]
+
+
 def component_findings(package: Path, manifest: dict[str, Any]) -> list[str]:
     """Return manifest-pointer, roster, metadata, and runtime closure findings."""
     findings = [
@@ -187,8 +215,7 @@ def component_findings(package: Path, manifest: dict[str, Any]) -> list[str]:
         findings.append("package manifest skill roster does not match package contents")
     if codex_roster != claude_roster:
         findings.append("Codex and Claude skill rosters differ")
-    if len(codex_roster) != EXPECTED_SKILL_COUNT:
-        findings.append(f"expected {EXPECTED_SKILL_COUNT} skills, found {len(codex_roster)}")
+    findings.extend(roster_source_findings(package, codex_roster))
 
     auth_metadata = package / "codex-skills/auth-setup/agents/openai.yaml"
     setup_metadata = package / "codex-skills/check-sentinel-setup/agents/openai.yaml"

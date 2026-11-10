@@ -92,6 +92,15 @@ def add_roster_mismatch(candidate: Path) -> None:
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
 
+def drop_roster_entry(candidate: Path) -> None:
+    """Remove one skill from the packaged roster source so shipped skills outnumber it."""
+    roster_path = candidate / "shared" / "skill-roster.json"
+    roster = json.loads(roster_path.read_text(encoding="utf-8"))
+    roster["skills"] = [entry for entry in roster["skills"] if entry["name"] != "solve-cv-task"]
+    roster_path.write_text(json.dumps(roster, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    update_inventory_hash(candidate, "shared/skill-roster.json")
+
+
 def add_symlink(candidate: Path) -> None:
     """Add a symlink only on platforms where symlink creation is supported."""
     os.symlink(candidate / "README.md", candidate / "duplicate-readme")
@@ -182,6 +191,7 @@ def main() -> int:
         )
         assert_rejected(candidate, "manifest-pointer", change_manifest_pointer, "does not point")
         assert_rejected(candidate, "roster-mismatch", add_roster_mismatch, "roster does not match")
+        assert_rejected(candidate, "roster-source", drop_roster_entry, "skills do not match shared/skill-roster.json")
         assert_rejected(candidate, "path-escape", add_path_escape, "unsafe manifest path")
         assert_rejected(candidate, "personal-path", add_personal_path, "personal-path leak")
         assert_rejected(candidate, "secret", add_secret_like_text, "secret-like material")

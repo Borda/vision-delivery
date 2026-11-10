@@ -27,6 +27,11 @@ import yaml
 
 ROOT = Path(__file__).parent.parent.parent
 EVALS_DIR = Path(__file__).parent
+if str(ROOT / "scripts") not in sys.path:
+    sys.path.insert(0, str(ROOT / "scripts"))
+
+from skill_roster import load_roster  # noqa: E402  (the shipped roster loader lives in scripts/)
+
 SKILL_ROOTS = {
     "Codex": ROOT / "codex-skills",
     "Claude": ROOT / "claude-skills",
@@ -117,12 +122,35 @@ def run_skill(host: str, skills_root: Path, skill_name: str) -> bool:
     return failed == 0
 
 
+def roster_case_problems(roster_names: frozenset[str]) -> list[str]:
+    """Return roster skills without a cases file and cases files for skills the roster lacks.
+
+    Examples:
+        >>> roster_case_problems(frozenset())[0].startswith("cases file for a skill the roster lacks")
+        True
+    """
+    case_names = {path.name.removesuffix(".cases.json") for path in EVALS_DIR.glob("*.cases.json")}
+    problems = [f"roster skill has no cases file: {name}.cases.json" for name in sorted(roster_names - case_names)]
+    problems += [
+        f"cases file for a skill the roster lacks: {name}.cases.json" for name in sorted(case_names - roster_names)
+    ]
+    return problems
+
+
 def main() -> None:
     arg = sys.argv[1] if len(sys.argv) > 1 else None
+    roster_names = load_roster().names()
     if arg:
+        if arg not in roster_names:
+            print(f"✗ {arg} is not in shared/skill-roster.json", file=sys.stderr)
+            sys.exit(1)
         skill_names = [arg]
     else:
-        skill_names = sorted(p.stem.replace(".cases", "") for p in EVALS_DIR.glob("*.cases.json"))
+        skill_names = sorted(roster_names)
+        problems = roster_case_problems(roster_names)
+        if problems:
+            print("\n".join(f"✗ {problem}" for problem in problems), file=sys.stderr)
+            sys.exit(1)
 
     all_passed = True
     for host, skills_root in SKILL_ROOTS.items():

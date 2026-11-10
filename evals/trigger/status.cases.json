@@ -1,0 +1,36 @@
+{
+  "should_fire": [
+    {
+      "prompt": "Where does my pallet-counting project stand?"
+    },
+    {
+      "prompt": "I'm back after a week; resume the Sentinel project."
+    },
+    {
+      "prompt": "What is the next step for this CV project?"
+    },
+    {
+      "prompt": "Is my action brief still open, and how many calls are left in the budget?"
+    },
+    {
+      "prompt": "Show me the status of the delivery loop."
+    }
+  ],
+  "should_not_fire": [
+    {
+      "prompt": "Count the boxes in these images."
+    },
+    {
+      "prompt": "Check whether Sentinel installed correctly."
+    },
+    {
+      "prompt": "Connect my Roboflow account."
+    },
+    {
+      "prompt": "Estimate the managed deployment cost for ten streams."
+    },
+    {
+      "prompt": "Draft an outcome report so the maintainers hear how it went."
+    }
+  ]
+}

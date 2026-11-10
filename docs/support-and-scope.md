@@ -60,11 +60,11 @@ The sections below give each claim's detail.
 
 One Claude Sonnet run used 143 labeled prompts: 74 positive and 69 negative. It reported 63 true positives, 4 false positives, and 11 false negatives, for micro precision `0.94` and recall `0.85`. Tolerating two direct specialist routes raises positive coverage to 65/74 (`0.88`).
 
-This pre-v0.2 run does not include `deliver-cv-project` or `check-sentinel-setup`. It does not show current-route coverage, zero misrouting, Codex parity, repeat-run stability, correct task completion, or novice outcomes.
+This pre-v0.2 run does not include `deliver-cv-project` or `check-sentinel-setup`. It does not show current-route coverage, zero misrouting, Codex parity, repeat-run stability, correct task completion, or novice outcomes. The run also predates the rule that every published number cites a committed artifact folder; its results were never committed and cannot be re-scored.
 
 ### Synthetic process comparison
 
-The plugin-vs-plain comparison contains 16 mocked runs at one repeat per cell. The preregistered result was one supported cell, six parity/mixed cells, and one loss. It tests workflow behavior in a mocked Roboflow world, not live model quality. Developer-machine contamination and the missing live capability confirmation remain disclosed limitations.
+The plugin-vs-plain comparison contains 16 mocked runs at one repeat per cell. The preregistered result was one supported cell, six parity/mixed cells, and one loss. It tests workflow behavior in a mocked Roboflow world, not live model quality. Developer-machine contamination and the missing live capability confirmation remain disclosed limitations. These runs predate the rule that every published number cites a committed artifact folder; they were never committed and cannot be re-scored.
 
 ### CV task result
 

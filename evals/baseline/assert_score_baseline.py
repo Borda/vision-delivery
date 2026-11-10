@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import doctest
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -357,6 +358,126 @@ def assert_rejections(tmp: Path) -> None:
     assert taken.read_text(encoding="utf-8") == "{}\n"
 
 
+def freeze_pred(gold: Path, pred: Path, ledger: Path, predictor: str) -> None:
+    """Freeze one flag prediction file through the public helper."""
+    frozen = subprocess.run(
+        [
+            sys.executable,
+            str(SCRIPTS / "freeze_predictions.py"),
+            "--task",
+            "flag",
+            "--gold",
+            str(gold),
+            "--pred",
+            str(pred),
+            "--predictor",
+            predictor,
+            "--session",
+            "baseline-eval",
+            "--skill",
+            "classify-or-flag",
+            "--ledger",
+            str(ledger),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert frozen.returncode == 0, frozen.stderr
+
+
+def assert_frozen_ledger(tmp: Path) -> None:
+    """--frozen-ledger scores only a frozen prediction file against the gold file it was frozen with."""
+    # The ledger helper refuses a ledger path with a symlinked ancestor (macOS /var is one).
+    base = (tmp / "frozen").resolve()
+    (base / ".vision-delivery").mkdir(parents=True)
+    ledger = base / ".vision-delivery" / "ledger.jsonl"
+    gold_rows = flag_rows(8, 4)
+    gold = write_jsonl(base / ".vision-delivery" / "gold.jsonl", gold_rows)
+    pred = write_jsonl(base / "pred.jsonl", caught_rows(gold_rows, 7))
+    target = ("--task", "flag", "--metric", "catch_rate", "--comparator", "gte", "--threshold", "0.5")
+    files = ("--gold", str(gold), "--pred", str(pred))
+
+    # Without the option the scorer behaves as before; with it and no freeze, nothing is scored.
+    plain = run(*files, *target)
+    assert plain.returncode == 0 and "frozen" not in plain.stdout, plain.stdout
+    assert "predictions_frozen" not in json.loads(plain.stdout.splitlines()[-1])
+    missing = run(*files, *target, "--frozen-ledger", str(ledger))
+    assert missing.returncode == 2 and "not frozen before scoring" in missing.stderr, missing.stderr
+    assert missing.stdout == "", missing.stdout
+
+    # A malformed prediction file is reported as malformed, not as unfrozen.
+    malformed = base / "pred-bad.jsonl"
+    malformed.write_text('{"image": "x.jpg", "flag": "yes"}\n', encoding="utf-8")
+    bad = run("--gold", str(gold), "--pred", str(malformed), *target, "--frozen-ledger", str(ledger))
+    assert bad.returncode == 2 and "flag must be true or false" in bad.stderr and "frozen" not in bad.stderr, bad.stderr
+
+    # Rows the ledger helper would never write are not a freeze: not a success, or no label digests.
+    digests = {"pred_sha256": score_baseline.sha256_file(pred), "gold_sha256": score_baseline.sha256_file(gold)}
+    attempted = {"action": "predictions_frozen", "status": "attempted", "event_id": "x", "ts": "t"}
+    attempted |= {**digests, "label_set": "gold.jsonl", "predictor": "isolated-subagent"}
+    hand = {**attempted, "status": "success", "event_id": "hand", "ts": "2026-11-10T00:00:00Z"}
+    ledger.write_text(json.dumps(attempted) + "\n" + json.dumps(hand) + "\n", encoding="utf-8")
+    assert run(*files, *target, "--frozen-ledger", str(ledger)).returncode == 2
+
+    freeze_pred(gold, pred, ledger, "isolated-subagent")
+    frozen = run(*files, *target, "--frozen-ledger", str(ledger))
+    assert frozen.returncode == 0, frozen.stderr
+    line, record = frozen.stdout.splitlines()[0], json.loads(frozen.stdout.splitlines()[-1])
+    note = (
+        "Predictions and labels were fixed before this scoring run; the freeze records the predictions as written by "
+        "an isolated subagent. The label file was not written by the labeling helper."
+    )
+    assert line == f"{plain.stdout.splitlines()[0]} {note}", line
+    assert "frozen before scoring" not in frozen.stdout, frozen.stdout
+    block = record["predictions_frozen"]
+    assert set(block) == {
+        "event_id",
+        "frozen_at",
+        "label_set",
+        "pred_sha256",
+        "gold_sha256",
+        "predictor_declared",
+        "label_entry",
+        "labels_changed_after_freeze",
+        "labels_changed_after_predictions",
+        "ledger_is_project_ledger",
+        "independent",
+    }, block
+    assert block["predictor_declared"] == "isolated-subagent" and block["label_entry"] == "unrecorded", block
+    assert block["independent"] is True and block["ledger_is_project_ledger"] is True, block
+    assert (block["pred_sha256"], block["gold_sha256"]) == (digests["pred_sha256"], digests["gold_sha256"]), block
+    assert block["event_id"].startswith("manual:baseline-eval:predictions_frozen:"), record
+
+    # Labels changed after the freeze, or predictions changed after it, are refused before scoring.
+    original = gold.read_bytes()
+    gold.write_bytes(original.replace(b'"flag": false', b'"flag": true', 1))
+    changed = run(*files, *target, "--frozen-ledger", str(ledger))
+    assert changed.returncode == 2 and "gold labels changed after these predictions were frozen" in changed.stderr
+    gold.write_bytes(original)
+    pred.write_bytes(pred.read_bytes().replace(b'"flag": false', b'"flag": true', 1))
+    tampered = run(*files, *target, "--frozen-ledger", str(ledger))
+    assert tampered.returncode == 2 and "not frozen before scoring" in tampered.stderr, tampered.stderr
+
+    # A same-session prediction is scored, and the line says independence was not enforced.
+    freeze_pred(gold, pred, ledger, "same-session")
+    same = run(*files, *target, "--frozen-ledger", str(ledger))
+    assert same.returncode == 0 and "so independence was not enforced." in same.stdout.splitlines()[0], same.stdout
+    block = json.loads(same.stdout.splitlines()[-1])["predictions_frozen"]
+    assert block["predictor_declared"] == "same-session" and block["independent"] is False, block
+
+    # A ledger that is not the project ledger is still read, with a warning and the fact in the evidence.
+    second = base / ".vision-delivery" / "second.jsonl"
+    freeze_pred(gold, pred, second, "isolated-subagent")
+    other = run(*files, *target, "--frozen-ledger", str(second))
+    assert other.returncode == 0 and "is not a project ledger" in other.stderr, other.stderr
+    assert json.loads(other.stdout.splitlines()[-1])["predictions_frozen"]["ledger_is_project_ledger"] is False
+    if os.name == "posix":
+        link = base / "ledger-link.jsonl"
+        link.symlink_to(ledger)
+        assert run(*files, *target, "--frozen-ledger", str(link)).returncode == 2
+
+
 def main() -> int:
     """Run doctests and CLI cases."""
     failures, _ = doctest.testmod(score_baseline)
@@ -371,6 +492,7 @@ def main() -> int:
         assert_bootstrap_refusals(tmp)
         assert_flag_deliver(tmp)
         assert_rejections(tmp)
+        assert_frozen_ledger(tmp)
     print("baseline scorer assertions passed")
     return 0
 

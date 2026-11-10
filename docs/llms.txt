@@ -66,5 +66,7 @@ No credential environment variable is required for plugin installation. The v0.5
 - `estimate-economics`: project/run-rate assumptions and decisions.
 - `deliver-cv-project`: verified packaging, integration, consumer smoke, monitoring status, and rollback for an accepted capability.
 - `check-sentinel-setup`: offline package doctor that separates install, host enablement, and hosted authorization.
+- `status`: where a project stands: step, locked target, last result, open action briefs, and the next action.
+- `report-outcome`: draft a redacted outcome report from the ledger for you to check and post yourself.
 
 Prefer installed official [Roboflow computer-vision skills](https://github.com/roboflow/computer-vision-skills), then exposed `skill://roboflow/<name>/SKILL.md` resources, for current platform truth.

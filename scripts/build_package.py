@@ -36,18 +36,31 @@ INCLUDE_DIRS = (
 )
 REQUIRED_FILES = (".mcp.json", "CHANGELOG.md", "LICENSE", "NOTICE", "README.md")
 BOOTSTRAP_RUNTIME_FILES = (
+    "claude-skills/report-outcome/SKILL.md",
+    "claude-skills/status/SKILL.md",
+    "codex-skills/report-outcome/SKILL.md",
+    "codex-skills/status/SKILL.md",
     "hooks/gate.js",
     "hooks/gate-policy.json",
     "hooks/roboflow-ops.js",
     "resources/baseline-ladder.md",
     "resources/delivery-modes.md",
     "resources/scripts/score_baseline.py",
+    "resources/scripts/label_gold.py",
+    "resources/scripts/freeze_predictions.py",
+    "resources/scripts/prediction_freeze.py",
     "resources/scripts/freeze_acceptance.py",
     "resources/scripts/freeze_delivery_check.py",
     "resources/scripts/proof_chain.py",
     "resources/scripts/record_delivery_check.py",
     "resources/scripts/validate_proof_chain.py",
+    "scripts/outcome_report.py",
+    "scripts/redaction.py",
+    "scripts/skill_roster.py",
+    "shared/skill-roster.json",
 )
+#: Maintainer tools that need repository-only folders (`templates/`, `evals/`) and cannot work from an install.
+EXCLUDED_FILES = frozenset({"scripts/new_route.py", "scripts/publish_run.py"})
 EXCLUDED_PARTS = frozenset(
     {
         ".cache",
@@ -107,6 +120,7 @@ def is_payload_path(relative: str) -> bool:
     parts = relative.split("/")
     return (
         parts[0] in INCLUDE_DIRS
+        and relative not in EXCLUDED_FILES
         and not any(part in EXCLUDED_PARTS for part in parts)
         and not relative.endswith((".pyc", ".pyo"))
     )

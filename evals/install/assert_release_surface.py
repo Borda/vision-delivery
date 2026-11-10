@@ -8,10 +8,20 @@ import json
 import re
 import sys
 from pathlib import Path
+from typing import Any
 
 import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT / "scripts") not in sys.path:
+    sys.path.insert(0, str(ROOT / "scripts"))
+
+from skill_roster import ROSTER_RELATIVE, SURFACE_FILES, Roster, RosterError, Surface, load_roster  # noqa: E402
+
+#: The issue form's route option for a user who does not know which route ran.
+NOT_SURE = "not sure"
+#: A backticked skill-shaped name: lowercase words joined by single hyphens.
+BACKTICKED_NAME = re.compile(r"`([a-z][a-z0-9]*(?:-[a-z0-9]+)*)`")
 #: Short form of the pitch for fields with a small length budget.
 SHORT_PITCH = "A measured first answer with no Roboflow account, then an independent acceptance check."
 
@@ -77,6 +87,121 @@ def assert_one_pitch(root: Path) -> None:
     require(full_prose[0].startswith(f"{pitch} "), "docs/llms-full.txt does not open with the pitch")
     for relative in ("CITATION.cff", "docs/llms-full.txt", "docs/llms.txt", "README.md", "docs/index.md"):
         require("business-first" not in read_text(root, relative).lower(), f"{relative} still carries the old pitch")
+
+
+def _section(text: str, heading_word: str) -> str | None:
+    """Return the lines under the first ``## `` heading that contains ``heading_word``."""
+    lines = text.splitlines()
+    start = next(
+        (index for index, line in enumerate(lines) if line.startswith("## ") and heading_word in line),
+        None,
+    )
+    if start is None:
+        return None
+    end = next((index for index in range(start + 1, len(lines)) if lines[index].startswith("## ")), len(lines))
+    return "\n".join(lines[start + 1 : end])
+
+
+def _table(block: str) -> list[dict[str, str]]:
+    """Parse the first Markdown table in a block into rows keyed by header text."""
+    rows = [line.strip().strip("|") for line in block.splitlines() if line.strip().startswith("|")]
+    if len(rows) < 2:
+        return []
+    header = [cell.strip() for cell in rows[0].split("|")]
+    return [dict(zip(header, (cell.strip() for cell in row.split("|")), strict=False)) for row in rows[2:]]
+
+
+def _names(cell: str) -> list[str]:
+    """Return the skill-shaped backticked names in one table cell or bullet."""
+    return BACKTICKED_NAME.findall(cell)
+
+
+def listing_rows(root: Path) -> dict[Surface, list[tuple[str, list[str], str]]]:
+    """Read every human-facing roster listing as rows of (label, names, extra text).
+
+    The label is the README Status cell; the extra text is the scorer cell for tables and the
+    bullet text for docs/llms.txt. A listing that cannot be found yields no rows.
+    """
+    readme = _section(read_text(root, SURFACE_FILES[Surface.README]), "Routes") or ""
+    use_cases = _section(read_text(root, SURFACE_FILES[Surface.USE_CASES]), "Route matrix") or ""
+    contract = _section(read_text(root, SURFACE_FILES[Surface.CAPABILITY_CONTRACT]), "Skill roster") or ""
+    llms = _section(read_text(root, SURFACE_FILES[Surface.LLMS]), "Canonical routes") or ""
+    form = yaml.safe_load(read_text(root, SURFACE_FILES[Surface.ISSUE_FORM]))
+    route_field: dict[str, Any] = next((item for item in form.get("body", []) if item.get("id") == "route"), {})
+    options = route_field.get("attributes", {}).get("options", [])
+    return {
+        Surface.README: [
+            (row.get("Status", "").strip("* ").lower(), _names(row.get("Route", "")), row.get("Sentinel scorer", ""))
+            for row in _table(readme)
+        ],
+        Surface.USE_CASES: [
+            ("", _names(row.get("Route", "")), row.get("Sentinel scorer", "")) for row in _table(use_cases)
+        ],
+        Surface.CAPABILITY_CONTRACT: [
+            ("", _names(line), "") for line in contract.splitlines() if line.startswith("- ")
+        ],
+        Surface.LLMS: [
+            ("", _names(line.split(":", 1)[0]), line.split(":", 1)[1].strip() if ":" in line else "")
+            for line in llms.splitlines()
+            if line.startswith("- `")
+        ],
+        Surface.ISSUE_FORM: [("", [option], "") for option in options if option != NOT_SURE],
+    }
+
+
+def _row_problems(surface: Surface, rows: list[tuple[str, list[str], str]], roster: Roster) -> list[str]:
+    """Check what a listing says about each skill beyond its name: kind, scorer, and use text."""
+    problems: list[str] = []
+    where = SURFACE_FILES[surface]
+    for label, names, extra in rows:
+        for entry in filter(None, (roster.entry(name) for name in names)):
+            if surface == Surface.README and label != entry.kind.value:
+                problems.append(
+                    f"{where}: {entry.name} is in the {label!r} row but the roster kind is {entry.kind.value}"
+                )
+            if surface in (Surface.README, Surface.USE_CASES):
+                says_yes = extra.lower().startswith("yes")
+                if says_yes != (entry.scorer is not None):
+                    problems.append(f"{where}: scorer cell for {entry.name} disagrees with the roster")
+                if surface == Surface.README and entry.scorer and f"--task {entry.scorer.value}" not in extra:
+                    problems.append(f"{where}: scorer cell for {entry.name} does not name --task {entry.scorer.value}")
+            if surface == Surface.LLMS and extra != f"{entry.use}.":
+                problems.append(f"{where}: {entry.name} text {extra!r} differs from the roster use {entry.use!r}")
+    return problems
+
+
+def roster_listing_problems(root: Path, roster: Roster) -> list[str]:
+    """Return every disagreement between the human-facing listings and the roster source.
+
+    A name the roster puts on a listing but the listing lacks is missing; a name the listing shows
+    but the roster does not put there (or does not know) is stale.
+    """
+    problems: list[str] = []
+    for surface, rows in listing_rows(root).items():
+        where = SURFACE_FILES[surface]
+        listed = [name for _, names, _ in rows for name in names]
+        if not listed:
+            problems.append(f"{where}: no skill listing found")
+        expected = roster.on_surface(surface)
+        problems += [f"{where}: missing {name}" for name in sorted(expected - set(listed))]
+        for name in sorted(set(listed) - expected):
+            why = (
+                "not in the roster" if roster.entry(name) is None else f"the roster does not list it on {surface.value}"
+            )
+            problems.append(f"{where}: stale {name} ({why})")
+        problems += [f"{where}: {name} is listed twice" for name in sorted({n for n in listed if listed.count(n) > 1})]
+        problems += _row_problems(surface, rows, roster)
+    return problems
+
+
+def assert_roster_listings(root: Path) -> None:
+    """Require every human-facing skill listing to agree with ``shared/skill-roster.json``."""
+    roster = load_roster(root / ROSTER_RELATIVE)
+    problems = roster_listing_problems(root, roster)
+    require(not problems, "skill listings disagree with the roster:\n  " + "\n  ".join(problems))
+    form = yaml.safe_load(read_text(root, SURFACE_FILES[Surface.ISSUE_FORM]))
+    options = next(item for item in form["body"] if item.get("id") == "route")["attributes"]["options"]
+    require(NOT_SURE in options, "the outcome-report route dropdown lost its 'not sure' option")
 
 
 def assert_release_surface(root: Path) -> None:
@@ -168,7 +293,8 @@ def main() -> int:
     try:
         assert_release_surface(args.root.resolve())
         assert_one_pitch(args.root.resolve())
-    except (AssertionError, OSError, KeyError, json.JSONDecodeError) as exc:
+        assert_roster_listings(args.root.resolve())
+    except (AssertionError, OSError, KeyError, json.JSONDecodeError, RosterError, yaml.YAMLError) as exc:
         print(f"release surface assertion failed: {exc}", file=sys.stderr)
         return 1
     print("release surface assertions passed")

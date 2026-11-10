@@ -26,3 +26,8 @@ dist/
 site/
 evals/ab/runs/
 evals/trigger-live/runs/
+# Redacted run artifacts written by scripts/publish_run.py are committed; the scratch runs above stay ignored.
+# No rule above ignores these folders, so the two lines below only document the intent;
+# `make eval-publish-run` is what refuses a published folder that was not packed and verified.
+!evals/ab/published/
+!evals/trigger-live/published/

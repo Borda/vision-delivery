@@ -28,6 +28,15 @@ Exit codes: 0 whenever a verdict line is printed and any requested evidence file
 NO VERDICT included; 2 when the input is unusable (malformed labels, predictions for unknown
 images, a missing or invalid target) and nothing is scored, or when the evidence file cannot be
 written. Only PASS sets `passes_acceptance` in the machine record.
+
+Optional freeze check: with `--frozen-ledger <ledger>`, the scorer reads both files' shape, then
+requires a successful `predictions_frozen` ledger row (written by `freeze_predictions.py`) holding
+the SHA-256 of both the prediction file and the gold file. A prediction file never frozen, or a gold
+file changed since the freeze, exits 2 before anything is scored. A matched freeze adds sentences to
+the verdict line and a `predictions_frozen` block to the record: who the freeze declares wrote the
+predictions, how the labels were entered, whether labels changed after an earlier freeze or after
+the prediction file was written, and whether the result counts as independent. A ledger that is not
+`.vision-delivery/ledger.jsonl` gets a warning. Without the option the scorer behaves as before.
 """
 
 from __future__ import annotations
@@ -44,6 +53,7 @@ from pathlib import Path
 from statistics import NormalDist
 from typing import Any
 
+from prediction_freeze import LEDGER_DIR, LEDGER_NAME, FreezeCheck, require_freeze
 from proof_chain import load_acceptance, sha256_file, write_json_exclusive
 
 COUNT_METRICS = ("count_mae", "exact_count_rate", "catch_rate", "over_count_rate")
@@ -563,6 +573,22 @@ def load_inputs(args: argparse.Namespace, field: str) -> tuple[dict[str, Any], d
     return gold, pred
 
 
+def check_freeze(ledger: Path, args: argparse.Namespace, gold: dict[str, Any]) -> FreezeCheck:
+    """Require a freeze of both input files in the ledger; warn when the ledger is not a project ledger.
+
+    Raises:
+        ValueError: When the ledger holds no freeze of this prediction file and gold file.
+    """
+    freeze = require_freeze(ledger, args.pred, args.gold, gold)
+    if not freeze.ledger_is_project_ledger:
+        print(
+            f"score-baseline-warning: {ledger} is not a project ledger ({LEDGER_DIR}/{LEDGER_NAME}); "
+            "the evidence records ledger_is_project_ledger: false",
+            file=sys.stderr,
+        )
+    return freeze
+
+
 def parse_args() -> argparse.Namespace:
     """Parse scorer inputs."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -574,6 +600,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--threshold", type=float)
     parser.add_argument("--acceptance", type=Path)
     parser.add_argument("--evidence-out", type=Path)
+    parser.add_argument(
+        "--frozen-ledger",
+        type=Path,
+        help="refuse unless this ledger froze the prediction file and the gold file before scoring",
+    )
     return parser.parse_args()
 
 
@@ -584,6 +615,7 @@ def main() -> int:
     try:
         target = resolve_target(args, allowed)
         gold, pred = load_inputs(args, field)
+        freeze = check_freeze(args.frozen_ledger, args, gold) if args.frozen_ledger is not None else None
     except (ValueError, KeyError, json.JSONDecodeError, OSError) as exc:
         print(f"score-baseline-error: {exc}", file=sys.stderr)
         return 2
@@ -592,8 +624,11 @@ def main() -> int:
     scored = score_target(args.task, target, tallies[target.metric], missing, len(gold))
     if args.task == "count" and target.metric == "catch_rate":
         scored = replace(scored, extra_counts=tallies["over_count_rate"].numerator)
-    print(format_line(target, scored))
+    line = format_line(target, scored)
+    print(line if freeze is None else f"{line} {freeze.plain_note()}")
     record = build_record(args, tallies, target, scored)
+    if freeze is not None:
+        record["predictions_frozen"] = freeze.evidence()
     print(json.dumps(record, sort_keys=True))
     if args.evidence_out is not None:
         try:

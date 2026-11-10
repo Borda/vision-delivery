@@ -14,7 +14,15 @@ from typing import Any
 
 MARKETPLACE = "sentinel-phase4-codex"
 PLUGIN = "sentinel"
-EXPECTED_SKILLS = 13
+
+
+def expected_roster(path: Path) -> list[str] | None:
+    """Return the skill names the installed roster file declares, or None when it is unreadable."""
+    try:
+        payload = json.loads((path / "shared" / "skill-roster.json").read_text(encoding="utf-8"))
+        return sorted(entry["name"] for entry in payload["skills"])
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
 
 
 def run_command(command: list[str], home: Path) -> subprocess.CompletedProcess[str]:
@@ -80,7 +88,7 @@ def verify_install(path: Path | None) -> dict[str, Any]:
     checks = {
         "name": manifest.get("name") == PLUGIN,
         "skills_path": manifest.get("skills") == "./codex-skills/",
-        "skill_count": len(roster) == EXPECTED_SKILLS,
+        "skill_roster": roster == expected_roster(path),
         "no_default_skills": not (path / "skills").exists(),
     }
     return {"ok": all(checks.values()), "checks": checks, "roster": roster}

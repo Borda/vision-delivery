@@ -1,0 +1,30 @@
+{
+  "should_fire": [
+    {
+      "prompt": "Draft an outcome report for the Sentinel maintainers."
+    },
+    {
+      "prompt": "I want to give feedback on how Sentinel went."
+    },
+    {
+      "prompt": "Help me fill in the outcome-report issue form."
+    },
+    {
+      "prompt": "Tell the project what worked and what got in the way."
+    }
+  ],
+  "should_not_fire": [
+    {
+      "prompt": "Write me a decision report for my manager."
+    },
+    {
+      "prompt": "Where does my project stand right now?"
+    },
+    {
+      "prompt": "Count the pallets in these frames."
+    },
+    {
+      "prompt": "File a bug report: the gate crashed."
+    }
+  ]
+}

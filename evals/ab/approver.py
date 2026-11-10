@@ -67,7 +67,7 @@ from typing import Any, TextIO
 #: Same tool-name shape as ``ROBOFLOW_TOOL`` in hooks/roboflow-ops.js.
 ROBOFLOW_TOOL_RE = re.compile(r"^mcp__(?:(?!__).)*roboflow(?:(?!__).)*__(.+)$", re.IGNORECASE)
 #: Hook matcher for the runner's settings file; same regex as hooks/claude-hooks.json.
-HOOK_MATCHER = "^mcp__((?!__).)*[Rr][Oo][Bb][Oo][Ff][Ll][Oo][Ww]((?!__).)*__.*$"
+HOOK_MATCHER = "^mcp__((?!__).)*[Rr][Oo][Bb][Oo][Ff][Ll][Oo][Ww]((?!__).)*__.+$"
 #: The gate policy the plugin ships; the approver reads tool classes from it, as the gate does.
 GATE_POLICY = Path(__file__).resolve().parents[2] / "hooks" / "gate-policy.json"
 #: Limits copied from hooks/gate.js: brief age, clock skew, cost-date age, and the largest call budget.

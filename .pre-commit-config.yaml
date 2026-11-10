@@ -97,6 +97,8 @@ repos:
       - id: codespell
         name: ✏️ codespell
         args: ["--write-changes"]
+        # published run artifacts are verified by digest; a spelling rewrite would break them
+        exclude: ^evals/(ab|trigger-live)/published/[^/]+/
 
   - repo: https://github.com/executablebooks/mdformat
     rev: 1.0.0

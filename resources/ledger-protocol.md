@@ -23,22 +23,30 @@ Every JSON Lines record contains:
 }
 ```
 
-| Field               | Contract                                                                   |
-| ------------------- | -------------------------------------------------------------------------- |
-| `ts`                | ISO 8601 UTC                                                               |
-| `session`           | Stable session slug                                                        |
-| `skill`             | Owning skill or `hook`                                                     |
-| `action`            | Canonical lowercase action                                                 |
-| `entity_id`         | Provider entity path when known; empty for local-only actions              |
-| `version`           | Installed plugin version                                                   |
-| `event_id`          | Idempotency key; identical real actions must reuse the same value          |
-| `status`            | `attempted`, `success`, `failed`, `timeout`, `cancelled`, or `unknown`     |
-| `source`            | `hook`, `skill`, or `import`                                               |
-| `acceptance_id`     | Frozen acceptance revision for proof-chain local actions                   |
-| `acceptance_sha256` | Digest binding for proof-chain local actions                               |
-| `artifact_sha256`   | Artifact-tree digest for artifact/delivery actions                         |
-| `report_sha256`     | Decision-report file digest for `decision_report_emitted`                  |
-| `notes`             | Non-secret evidence; include acceptance ID and measured values when useful |
+| Field                              | Contract                                                                                                                                            |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ts`                               | ISO 8601 UTC                                                                                                                                        |
+| `session`                          | Stable session slug                                                                                                                                 |
+| `skill`                            | Owning skill or `hook`                                                                                                                              |
+| `action`                           | Canonical lowercase action                                                                                                                          |
+| `entity_id`                        | Provider entity path when known; empty for local-only actions                                                                                       |
+| `version`                          | Installed plugin version                                                                                                                            |
+| `event_id`                         | Idempotency key; identical real actions must reuse the same value                                                                                   |
+| `status`                           | `attempted`, `success`, `failed`, `timeout`, `cancelled`, or `unknown`                                                                              |
+| `source`                           | `hook`, `skill`, or `import`                                                                                                                        |
+| `acceptance_id`                    | Frozen acceptance revision for proof-chain local actions                                                                                            |
+| `acceptance_sha256`                | Digest binding for proof-chain local actions                                                                                                        |
+| `artifact_sha256`                  | Artifact-tree digest for artifact/delivery actions                                                                                                  |
+| `report_sha256`                    | Decision-report file digest for `decision_report_emitted`                                                                                           |
+| `pred_sha256`                      | Frozen prediction-file digest for `predictions_frozen`                                                                                              |
+| `gold_sha256`                      | Gold label-file digest at the freeze, for `predictions_frozen`                                                                                      |
+| `label_set`                        | Gold label file relative to the ledger folder, for `predictions_frozen` and `labels_recorded`                                                       |
+| `label_digests`                    | Image name to the first 16 hex of SHA-256 over the image name, a NUL byte, and the JSON label value, for `predictions_frozen` and `labels_recorded` |
+| `label_entry`                      | `interactive-terminal` or `record-option` on `labels_recorded`; on `predictions_frozen` also `mixed` or `unrecorded`                                |
+| `labels_changed_after_freeze`      | Images whose label differs from an earlier freeze of the same image name, for `predictions_frozen`                                                  |
+| `labels_changed_after_predictions` | The labeling helper wrote the label file after the prediction file was written, or the file changed since, for `predictions_frozen`                 |
+| `predictor`                        | `isolated-subagent` or `same-session`, for `predictions_frozen`                                                                                     |
+| `notes`                            | Non-secret evidence; include acceptance ID and measured values when useful                                                                          |
 
 Unknown is never success. `attempted` and `unknown` prove only that work was requested or could not be classified. Reports must count successful training or deployment only when the canonical event has `status: success`.
 
@@ -46,11 +54,30 @@ Unknown is never success. `attempted` and `unknown` prove only that work was req
 
 - The trusted PostToolUse hook records every observed Roboflow MCP call as `action: roboflow_mcp_call`, preserving the runtime-provided operation name. Its `category` is a reporting label read from the generated gate policy (`hooks/gate-policy.json`); a tool the policy does not list is recorded as `unlisted`. The hook derives status from the host result and owns those raw call rows.
 - A successful `action_brief_emitted` row must name the exact provider operation in `operation` and carry a `brief` object with `scope`, `cost_amount`, `cost_unit`, `cost_source`, `cost_as_of`, `data_movement`, and `rollback`, plus `call_budget` for an operation the gate policy runs under a call budget. `ledger_append.py` rejects an incomplete brief, and the Claude Code gate ignores one. Never write a brief with a guessed cost: if no current sourced estimate exists, do not record the brief.
+- Write `ts` in UTC as `YYYY-MM-DDTHH:MM:SSZ`. The Claude Code gate ignores a row whose time Node's `Date.parse` cannot read and reads a time without an offset as the machine's local time; `ledger_report.py --status` reads `ts` the same way.
 - For an operation that runs under a call budget, the Claude Code gate appends `action: roboflow_mcp_call_reserved` (status `attempted`) before the call goes ahead. The row holds one unit of the brief's budget and names the brief in `brief_event_id`. It is not evidence that the call ran; only the `roboflow_mcp_call` row is. Skills never write or remove reservation rows.
 - Skills must not manually append hook-covered MCP actions. They may record a distinct completed local artifact or measurement produced after interpreting a call, but must not duplicate the raw upstream operation.
-- Skills own local actions that have no matching MCP call: `eval_definition`, `feasibility_checked`, `baseline_measured`, `artifact_verified`, `delivery_handoff_emitted`, `crossover_delivered`, and `decision_report_emitted`.
+- Skills own local actions that have no matching MCP call: `eval_definition`, `feasibility_checked`, `labels_recorded`, `predictions_frozen`, `baseline_measured`, `upstream_search_started` (the router hands the candidate search to an upstream search skill; written only after the target is on file and rung 0 is recorded), `artifact_verified`, `delivery_handoff_emitted`, `crossover_delivered`, and `decision_report_emitted`.
 - If hooks are untrusted or unavailable, do not fabricate a successful MCP event. State that MCP provenance is incomplete, direct the user to the host's hook trust/diagnostic flow, and retain tool-result evidence in the session output.
 - A local action is `success` only after its file, measurement, or report exists. Record a failed/timeout/cancelled result only when preserving that outcome helps diagnosis.
+
+## Prediction Freezes
+
+A successful `predictions_frozen` row freezes a rung 0 prediction file before it is scored (`baseline-ladder.md` rung 0). Write it through `resources/scripts/freeze_predictions.py`, which checks both label files and then calls `scripts/ledger_append.py`; never assemble the row by hand.
+
+- `ledger_append.py` requires `--pred`, `--gold`, and `--predictor` (`isolated-subagent`, or `same-session` when the host has no subagent tool) for a successful row. It computes `pred_sha256`, `gold_sha256`, `label_set` (the gold file's path relative to the ledger folder), and `label_digests` itself; caller-supplied digests are never accepted. The gold file must sit inside the project folder, the folder that holds the ledger's folder.
+- Inside the ledger lock it also computes `label_entry` (from this label file's `labels_recorded` rows: one kind, `mixed`, or `unrecorded` when there are none), `labels_changed_after_freeze`, and `labels_changed_after_predictions` (the latest `labels_recorded` row for this label file has a `ts` later than the prediction file's modification time, or its `gold_sha256` differs from the file now). Either check set refuses the row unless `--acknowledge-label-change` is passed; the row then carries the values. A label file that an earlier freeze recorded with other content is always refused.
+- Event ID: `manual:<session>:predictions_frozen:<first 12 hex of pred_sha256>-<first 12 hex of gold_sha256>`. The freeze helper derives it, so a retry on the same files reuses it and adds no row.
+- Readers count only `status: success` rows with a `ts` in the `YYYY-MM-DDTHH:MM:SSZ` form, a relative `label_set` that stays inside the project folder, and `label_digests`. `score_baseline.py --frozen-ledger` refuses unless one row holds both current digests, recomputes `labels_changed_after_freeze` from the label file and the freezes before that row, and reports the result as not independent when it or `labels_changed_after_predictions` is set; `label_gold.py` refuses any write to a label file that a row names.
+- The row needs no `--acceptance`, because explore mode has no acceptance file. In deliver mode the scorer's evidence binds the acceptance digest and both file digests, and the freeze row binds the same two file digests.
+- Limits: a freeze shows that the prediction file and the label file were fixed before this scoring run, and the scorer's line says whether labels changed after an earlier freeze or after the prediction file was written. It does not show that the labels are independent of the predictions. The helpers, the predictor, and the scorer run under one account on the user's machine, so a predictor that opens the label file is not detected. A ledger row written by hand is not detected. An earlier scoring run without the freeze leaves no trace. Renaming image files defeats the per-image label check, and file times can be changed. An agent can call `label_gold.py --record`, so labels entered that way are marked, not blocked, and a pseudo-terminal defeats the helper's terminal check. The isolated-subagent step has not yet been recorded in a live session.
+
+## Label Records
+
+`resources/scripts/label_gold.py` appends one successful `labels_recorded` row through `scripts/ledger_append.py` after every write of a gold label file; never write one by hand.
+
+- `ledger_append.py` requires `--gold` and `--label-entry` (`interactive-terminal` for answers typed at a terminal, `record-option` for labels recorded with `--record`). It computes `gold_sha256`, `label_set`, and `label_digests` from the file itself. The row carries counts in `notes` and never a label value.
+- A label file written by hand has no `labels_recorded` row; a later freeze records its `label_entry` as `unrecorded`, and the scorer says the label file was not written by the labeling helper.
 
 ## Safe Manual Writes
 

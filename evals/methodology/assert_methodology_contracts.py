@@ -14,16 +14,19 @@ ROOT = Path(__file__).resolve().parents[2]
 SKILL_ROOTS = (ROOT / "codex-skills", ROOT / "claude-skills")
 SKILLS = ROOT / "claude-skills"
 RESOURCES = ROOT / "resources"
-BUILD_SKILLS = (
-    "classify-or-flag",
-    "decompose-to-pipeline",
-    "detect-and-analyze",
-    "read-text",
-    "recognize-pose-or-gesture",
-    "segment-and-analyze",
-    "track-and-count",
+#: Skill kinds that build a capability; the roster decides which skills those are, so a new route
+#: falls under these contracts without anyone adding it here.
+BUILD_KINDS = ("flagship", "preview")
+BUILD_SKILLS = tuple(
+    sorted(
+        entry["name"]
+        for entry in json.loads((ROOT / "shared" / "skill-roster.json").read_text(encoding="utf-8"))["skills"]
+        if entry["kind"] in BUILD_KINDS
+    )
 )
-MODALITY_SKILLS = tuple(name for name in BUILD_SKILLS if name != "decompose-to-pipeline")
+#: The one build route that composes other routes and so has no single modality of its own.
+COMPOSITE_SKILL = "decompose-to-pipeline"
+MODALITY_SKILLS = tuple(name for name in BUILD_SKILLS if name != COMPOSITE_SKILL)
 
 
 def read(path: Path) -> str:
@@ -273,6 +276,28 @@ def assert_routing_and_delegation() -> None:
     require(classify, "per-person PPE", classify_path)
 
 
+def assert_upstream_search_inside_acceptance() -> None:
+    """Require an upstream candidate search to stay inside Sentinel's frozen acceptance."""
+    lookup_path = RESOURCES / "roboflow-platform-lookup.md"
+    solver_path = SKILLS / "solve-cv-task" / "SKILL.md"
+    for path in (lookup_path, solver_path):
+        text = read(path)
+        for phrase in (
+            "rung 0",
+            "the gold set is held out",
+            "are never gold",
+            "again on the held-out gold set",
+            "action brief",
+        ):
+            require(text, phrase, path)
+        reject(
+            text,
+            r"upstream(?:'s)? (?:own )?(?:scorecard|suite|answer key)[^.]*\b(?:is|becomes|serves as) (?:the )?"
+            r"(?:gold|acceptance)",
+            path,
+        )
+
+
 def assert_skill_surface_and_ledger() -> None:
     """Require only user workflows to be discoverable and ledger ownership to be unique."""
     internal_dir = SKILLS / "_shared"
@@ -322,6 +347,7 @@ def main() -> int:
         assert_baseline_matching_and_redaction,
         assert_cheapest_improvement_order,
         assert_routing_and_delegation,
+        assert_upstream_search_inside_acceptance,
         assert_skill_surface_and_ledger,
         assert_host_skill_rosters,
     )

@@ -4,5 +4,11 @@
       "- Claude Code: `claude plugin list --json`",
       "- Run `codex plugin list` to inspect the installed plugin."
     ]
+  ],
+  "report-outcome": [
+    [
+      "    --host claude-code \\",
+      "    --host codex \\"
+    ]
   ]
 }

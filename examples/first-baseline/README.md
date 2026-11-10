@@ -35,16 +35,23 @@ The per-object count metrics (`catch_rate`, `over_count_rate`, `count_mae`) need
 
 1. Put your representative images in a folder you are allowed to use: 10 or more for a yes/no flag, 20 or more with objects for a count. The images go to your host model, like any image you attach to a chat.
 
-2. Label them yourself, independently of any model: one line per image in `gold.jsonl`, `{"image": "<file>", "count": <n>}` or `{"image": "<file>", "flag": true|false}`.
+2. Label them yourself, independently of any model. The labeling helper asks for one label per image, saves each answer at once, and never suggests a label; stop with `q` and rerun to continue. From the repository root:
+
+   ```bash
+   python3 resources/scripts/label_gold.py \
+       --images /path/to/frames --labels /path/to/project/.vision-delivery/gold.jsonl --task count
+   ```
+
+   Run it in a terminal: it refuses piped input. Because the label file sits in the project's `.vision-delivery` folder, every write is recorded in that folder's `ledger.jsonl`, whatever folder you run the command from; for a label file elsewhere in the project, add `--ledger /path/to/project/.vision-delivery/ledger.jsonl`. After each answer it says whether the set is large enough for a verdict yet. You can also tell Sentinel each label in chat and it records them with the same helper's `--record` option; the scorer then says the labels were entered that way. Keep the label file outside the image folder. It holds one line per image, `{"image": "<file>", "count": <n>}` or `{"image": "<file>", "flag": true|false}`.
 
 3. Start a session and describe the job, for example:
 
    ```text
-   Count pallets in the images in ./frames. My counts are in ./frames/gold.jsonl.
+   Count pallets in the images in ./frames. My counts are in ./.vision-delivery/gold.jsonl.
    A missed pallet is worse than a double count. Explore mode, please.
    ```
 
-4. Sentinel locks the target (for example "per-image counts agree on at least 80% of labeled pallets") before looking at any result. It then looks at each image itself, writes `pred-rung0-<session>.jsonl`, and runs the same scorer.
+4. Sentinel locks the target (for example "per-image counts agree on at least 80% of labeled pallets") before looking at any result. A separate subagent that is never given your labels looks at each image and writes `pred-rung0-<session>.jsonl`. Sentinel freezes that file in the project ledger before it opens your labels, then runs the same scorer, which refuses predictions or labels that changed after the freeze. Limits: a freeze shows that the prediction file and the label file were fixed before this scoring run, and the scorer's line says whether labels changed after an earlier freeze or after the prediction file was written. It does not show that the labels are independent of the predictions. The helpers, the predictor, and the scorer run under one account on the user's machine, so a predictor that opens the label file is not detected. A ledger row written by hand is not detected. An earlier scoring run without the freeze leaves no trace. Renaming image files defeats the per-image label check, and file times can be changed. An agent can call `label_gold.py --record`, so labels entered that way are marked, not blocked, and a pseudo-terminal defeats the helper's terminal check. The isolated-subagent step has not yet been recorded in a live session.
 
 5. Read the verdict. The scorer compares the whole 95% interval with the target, not the point estimate.
 

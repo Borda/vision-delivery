@@ -7,7 +7,7 @@ Sentinel is a community-maintained open-source project. Support is best-effort; 
 - Use the [issue chooser](https://github.com/Borda/vision-delivery/issues/new/choose) for reproducible bugs and actionable suggestions.
 - Use a private [GitHub Security Advisory](https://github.com/Borda/vision-delivery/security/advisories/new) for suspected vulnerabilities. Do not file security findings publicly.
 
-External pull requests are temporarily limited while the project fortifies CI coverage and contribution rules. Do not post credentials, private media, customer data, faces, license plates, medical data, proprietary dataset samples, or logs you are not authorized to share. Reduce a report to a synthetic or redacted reproducer whenever possible.
+Pull requests are limited to the lanes in the [contributing guide](CONTRIBUTING.md). Do not post credentials, private media, customer data, faces, license plates, medical data, proprietary dataset samples, or logs you are not authorized to share. Reduce a report to a synthetic or redacted reproducer whenever possible.
 
 ## What to include
 

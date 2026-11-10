@@ -72,7 +72,7 @@ python scripts/cost_model.py --streams 5 --fps 10 --model-size medium --uptime 2
 
 Roboflow bills managed usage in credits. With `--managed-credits-mo`, the model prices that usage against the public plan anchors in the snapshot (Free, Core floor and ceiling, on-demand extra credits) and compares it with DIY. The result is tagged `basis: public-credit-plan`. It is an upper bound that excludes Enterprise scope (SLA, priority GPU, managed GPU cluster). Above 500 credits/month the model abstains, because pricing there is Enterprise-only. A dated `--managed-usd-mo` quote always takes precedence.
 
-The script uses the committed `scripts/PRICING_SNAPSHOT.json`. It probes source URL reachability but does not scrape live pricing pages into the result.
+The script uses the committed `scripts/PRICING_SNAPSHOT.json`. It opens no network connection by default. With `--check-sources` it fetches each source URL once and reports whether it still answers; it never scrapes live pricing pages into the result.
 
 ## Output Rules
 

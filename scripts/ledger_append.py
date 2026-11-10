@@ -11,6 +11,30 @@ Usage:
         --action artifact_verified --event-id manual:m1:artifact:1 \
         --status success --notes "acceptance_id=m1; digest=abc123"
 
+A successful ``predictions_frozen`` row freezes a rung 0 prediction file before scoring. The
+helper hashes the prediction file and the gold label file itself; run it through
+``resources/scripts/freeze_predictions.py``, which checks both files first:
+
+    python3 scripts/ledger_append.py \
+        --session m1 --skill detect-and-analyze --action predictions_frozen \
+        --event-id manual:m1:predictions_frozen:1 --status success \
+        --pred .vision-delivery/pred-rung0-m1.jsonl --gold .vision-delivery/gold-m1.jsonl \
+        --predictor isolated-subagent
+
+The gold label file must sit inside the project folder, the folder that holds the ledger's
+folder. The row records a short digest of every label (``label_digests``), how the labels
+were entered (``label_entry``), and two label-change checks computed from the ledger:
+``labels_changed_after_freeze`` (images whose label differs from the label an earlier freeze
+in this ledger recorded for the same image name) and
+``labels_changed_after_predictions`` (the labeling helper last wrote this label file after the
+prediction file was written, or the file changed since that write). A freeze with either check set
+is refused unless ``--acknowledge-label-change`` is passed; the row then carries the values. A
+freeze of a label file that an earlier freeze recorded with other content is always refused.
+
+A successful ``labels_recorded`` row is appended by ``resources/scripts/label_gold.py`` after each
+write. It records the gold file's digest, ``label_set``, ``label_digests`` and ``label_entry``
+(``interactive-terminal`` or ``record-option``), never a label value.
+
 A successful ``action_brief_emitted`` row is what the Claude Code PreToolUse gate reads
 before a paid or state-changing provider call. It must carry every structured field:
 
@@ -81,6 +105,21 @@ COST_MAX_AGE_DAYS = 90
 ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 OPERATION_NAME = re.compile(r"^[A-Za-z0-9_-]{1,200}$")
 BRIEF_TEXT_FIELDS = ("scope", "cost_unit", "cost_source", "data_movement", "rollback")
+PREDICTIONS_ACTION = "predictions_frozen"
+#: Who wrote a frozen prediction file; ``same-session`` records that independence was not enforced.
+PREDICTORS = ("isolated-subagent", "same-session")
+#: Ledger action the labeling helper appends after every write of a gold label file.
+LABELS_ACTION = "labels_recorded"
+#: How the labeling helper received the labels of one write.
+LABEL_ENTRIES = ("interactive-terminal", "record-option")
+#: Label entry of a freeze whose label file the labeling helper wrote in both ways.
+MIXED_ENTRY = "mixed"
+#: Label entry of a freeze whose label file has no ``labels_recorded`` row.
+UNRECORDED_ENTRY = "unrecorded"
+#: Hex characters kept from each per-image label digest.
+LABEL_DIGEST_HEX = 16
+LABEL_FIELDS = ("count", "flag")
+TS_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
 
 def _operation_class(operation: str) -> str:
@@ -179,6 +218,236 @@ def _brief_fields(args: argparse.Namespace) -> dict[str, Any]:
     if call_budget is not None:
         brief["call_budget"] = call_budget
     return brief
+
+
+def label_digest(image: str, value: Any) -> str:
+    """Return the short digest of one label: SHA-256 over the image name, a NUL byte, and the JSON value.
+
+    The reader in ``resources/scripts/prediction_freeze.py`` computes the same digest.
+
+    Examples:
+        >>> label_digest("a.jpg", 3), label_digest("a.jpg", True) == label_digest("a.jpg", 1)
+        ('c4b1dc71acee4c73', False)
+    """
+    text = f"{image}\0{json.dumps(value)}"
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:LABEL_DIGEST_HEX]
+
+
+def _label_row(raw: str, number: int) -> tuple[str, Any]:
+    """Return the image name and label value of one gold line, or refuse a line that is not a label."""
+    try:
+        row = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"--gold line {number} is not JSON: {exc}") from exc
+    fields = [name for name in LABEL_FIELDS if isinstance(row, dict) and name in row]
+    image = row.get("image") if isinstance(row, dict) else None
+    if not isinstance(image, str) or not image or len(fields) != 1:
+        raise ValueError(f"--gold line {number} needs a non-empty 'image' and exactly one of 'count' or 'flag'")
+    value = row[fields[0]]
+    if fields[0] == "flag":
+        valid = isinstance(value, bool)
+    else:
+        valid = isinstance(value, int) and not isinstance(value, bool) and value >= 0
+    if not valid:
+        raise ValueError(f"--gold line {number} has an invalid {fields[0]}")
+    return image, value
+
+
+def _label_digests(path: Path) -> dict[str, str]:
+    """Return every image's label digest in a gold label file; the caller cannot supply them.
+
+    Raises:
+        ValueError: When a line is not a label, an image repeats, or the file holds no label.
+    """
+    digests: dict[str, str] = {}
+    for number, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        if not raw.strip():
+            continue
+        image, value = _label_row(raw, number)
+        if image in digests:
+            raise ValueError(f"--gold line {number} repeats image {image!r}")
+        digests[image] = label_digest(image, value)
+    if not digests:
+        raise ValueError("--gold holds no labeled image")
+    return digests
+
+
+def _file_sha256(path: Path, name: str) -> str:
+    """Return the SHA-256 of a regular, non-symlink input file."""
+    if path.is_symlink() or not path.is_file():
+        raise ValueError(f"--{name} must be a regular non-symlink file")
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _ledger_dir(ledger: Path) -> Path:
+    """Return the real path of the folder that holds the ledger."""
+    return Path(os.path.realpath(_absolute_path(ledger).parent))
+
+
+def _label_set(ledger: Path, gold: Path) -> str:
+    """Return the gold file's path relative to the ledger folder; a file outside the project folder is refused.
+
+    The project folder is the parent of the ledger folder, so ``label_set`` may start with one ``../``.
+    """
+    ledger_dir = _ledger_dir(ledger)
+    located = os.path.realpath(gold)
+    try:
+        relative = Path(os.path.relpath(located, ledger_dir)).as_posix()
+        inside = Path(os.path.relpath(located, ledger_dir.parent)).as_posix()
+    except ValueError as exc:
+        raise ValueError(f"--gold must be on the same drive as the ledger: {exc}") from exc
+    if inside in (".", "..") or inside.startswith("../"):
+        raise ValueError(
+            f"--gold must sit inside the project folder {ledger_dir.parent}, the folder that holds the ledger folder "
+            f"(for example {ledger_dir.parent / 'labels' / 'gold.jsonl'})"
+        )
+    return relative
+
+
+def _gold_fields(args: argparse.Namespace) -> dict[str, Any]:
+    """Return the gold file's digest, ``label_set``, and per-image label digests, all computed here."""
+    return {
+        "gold_sha256": _file_sha256(args.gold, "gold"),
+        "label_set": _label_set(Path(args.ledger), args.gold),
+        "label_digests": _label_digests(args.gold),
+    }
+
+
+def _prediction_fields(args: argparse.Namespace) -> dict[str, Any]:
+    """Return the file facts a successful ``predictions_frozen`` or ``labels_recorded`` row records.
+
+    The helper hashes the files itself; caller-supplied digests are never accepted. ``label_set``
+    is the gold file's path relative to the ledger folder, so the label file can be recognised later
+    without recording an absolute path. Every other action returns no fields.
+
+    Args:
+        args: Parsed command-line arguments.
+
+    Returns:
+        For a freeze: ``pred_sha256``, ``gold_sha256``, ``label_set``, ``label_digests``, and
+        ``predictor``. For a labels row: the gold fields and ``label_entry``. Otherwise an empty mapping.
+
+    Raises:
+        ValueError: When an option is missing, a file is missing, a symbolic link, or not a label
+            file, or the gold file sits outside the ledger folder.
+
+    Examples:
+        >>> _prediction_fields(argparse.Namespace(status="failed", action=PREDICTIONS_ACTION))
+        {}
+    """
+    if args.status != "success" or args.action not in (PREDICTIONS_ACTION, LABELS_ACTION):
+        return {}
+    if args.action == LABELS_ACTION:
+        if args.gold is None or not args.label_entry:
+            raise ValueError(f"a successful {LABELS_ACTION} needs --gold and --label-entry")
+        return {**_gold_fields(args), "label_entry": args.label_entry}
+    if args.pred is None or args.gold is None or not args.predictor:
+        raise ValueError(f"a successful {PREDICTIONS_ACTION} needs --pred, --gold, and --predictor")
+    pred_sha256 = _file_sha256(args.pred, "pred")
+    return {"pred_sha256": pred_sha256, **_gold_fields(args), "predictor": args.predictor}
+
+
+def _row_time(row: dict[str, Any]) -> float | None:
+    """Return a row's ``ts`` as seconds since the epoch, or None when it is not in the helper's form."""
+    try:
+        return datetime.strptime(str(row.get("ts")), TS_FORMAT).replace(tzinfo=timezone.utc).timestamp()
+    except ValueError:
+        return None
+
+
+def _same_label_set(row: dict[str, Any], label_set: str, ledger_dir: Path) -> bool:
+    """Return whether a row's ``label_set`` names the same label file, compared by real path."""
+    named = row.get("label_set")
+    if not isinstance(named, str) or not named:
+        return False
+    return os.path.realpath(ledger_dir / named) == os.path.realpath(ledger_dir / label_set)
+
+
+def _changed_after_freeze(freezes: list[dict[str, Any]], digests: dict[str, str]) -> int:
+    """Return how many images now carry a label other than the one an earlier freeze recorded for that name."""
+    changed: set[str] = set()
+    for row in freezes:
+        recorded = row.get("label_digests")
+        if isinstance(recorded, dict):
+            changed.update(image for image, digest in digests.items() if recorded.get(image, digest) != digest)
+    return len(changed)
+
+
+def _changed_after_predictions(recorded: list[dict[str, Any]], gold_sha256: str, pred_mtime: float) -> bool:
+    """Return whether the labeling helper wrote this label file after the predictions, or the file changed since.
+
+    A labels row whose time cannot be read counts as later, because it cannot be ordered.
+    """
+    if not recorded:
+        return False
+    if recorded[-1].get("gold_sha256") != gold_sha256:
+        return True
+    times = [_row_time(row) for row in recorded]
+    return any(moment is None or moment > pred_mtime for moment in times)
+
+
+def _label_entry(recorded: list[dict[str, Any]]) -> str:
+    """Return how this label file's labels reached the helper, from its ``labels_recorded`` rows."""
+    entries = {row.get("label_entry") for row in recorded} & set(LABEL_ENTRIES)
+    if not entries:
+        return UNRECORDED_ENTRY
+    return str(entries.pop()) if len(entries) == 1 else MIXED_ENTRY
+
+
+def _refuse_changed_label_file(freezes: list[dict[str, Any]], fields: dict[str, Any], ledger_dir: Path) -> None:
+    """Refuse a freeze of a label file that an earlier freeze recorded with other content."""
+    for row in freezes:
+        if _same_label_set(row, fields["label_set"], ledger_dir) and row.get("gold_sha256") != fields["gold_sha256"]:
+            raise ValueError(
+                f"this gold label file changed after predictions for it were frozen at {row.get('ts')} "
+                f"(ledger event {row.get('event_id')}); start a new label file, run a fresh prediction on all "
+                "of its images, and freeze that"
+            )
+
+
+def _freeze_facts(records: list[dict[str, Any]], fields: dict[str, Any], args: argparse.Namespace) -> dict[str, Any]:
+    """Return a freeze's label entry and label-change checks, computed from the ledger it is appended to.
+
+    Raises:
+        ValueError: When the label file changed since an earlier freeze of it, or a label-change
+            check is set and ``--acknowledge-label-change`` was not passed.
+    """
+    ledger_dir = _ledger_dir(Path(args.ledger))
+    successes = [row for row in records if row.get("status") == "success"]
+    freezes = [row for row in successes if row.get("action") == PREDICTIONS_ACTION]
+    _refuse_changed_label_file(freezes, fields, ledger_dir)
+    recorded = [
+        row
+        for row in successes
+        if row.get("action") == LABELS_ACTION and _same_label_set(row, fields["label_set"], ledger_dir)
+    ]
+    changed = _changed_after_freeze(freezes, fields["label_digests"])
+    after_predictions = _changed_after_predictions(recorded, fields["gold_sha256"], args.pred.stat().st_mtime)
+    if (changed or after_predictions) and not args.acknowledge_label_change:
+        noun = "label differs" if changed == 1 else "labels differ"
+        reasons = [f"{changed} {noun} from an earlier prediction freeze in this ledger"] if changed else []
+        if after_predictions:
+            reasons.append(
+                "the labeling helper wrote this label file after the prediction file was written, "
+                "or the file changed since its last recorded write"
+            )
+        raise ValueError(
+            f"labels changed after predictions existed: {'; '.join(reasons)}. A score on these files is not an "
+            "independent measurement. Label a new set and run a fresh prediction on it, or pass "
+            "--acknowledge-label-change to record the freeze with these facts; the scorer then says so"
+        )
+    return {
+        "label_entry": _label_entry(recorded),
+        "labels_changed_after_freeze": changed,
+        "labels_changed_after_predictions": after_predictions,
+    }
+
+
+def _locked_fields(records: list[dict[str, Any]], record: dict[str, Any], args: argparse.Namespace) -> dict[str, Any]:
+    """Return the fields computed from the ledger under its lock: a successful freeze's label facts, else none."""
+    if args.status != "success" or args.action != PREDICTIONS_ACTION:
+        return {}
+    return _freeze_facts(records, record, args)
 
 
 def _absolute_path(path: Path) -> Path:
@@ -349,7 +618,8 @@ def _artifact_tree_digest(root: Path) -> str:
     return digest.hexdigest()
 
 
-def main() -> int:
+def _build_parser() -> argparse.ArgumentParser:
+    """Return the command-line parser for one ledger record."""
     p = argparse.ArgumentParser(description="Append a ledger record.")
     p.add_argument("--session", required=True)
     p.add_argument("--skill", required=True)
@@ -381,7 +651,21 @@ def main() -> int:
     p.add_argument("--report", type=Path)
     p.add_argument("--streams", type=int, default=None)
     p.add_argument("--decision", default=None)
+    p.add_argument("--pred", type=Path, help="predictions_frozen: the prediction file to freeze")
+    p.add_argument("--gold", type=Path, help="predictions_frozen: the gold label file it will be scored against")
+    p.add_argument("--predictor", choices=PREDICTORS, default="", help="predictions_frozen: who wrote the predictions")
+    p.add_argument(
+        "--acknowledge-label-change",
+        action="store_true",
+        help="predictions_frozen: record the freeze although labels changed after predictions existed",
+    )
+    p.add_argument("--label-entry", choices=LABEL_ENTRIES, default="", help="labels_recorded: how labels were entered")
     p.add_argument("--ledger", default=str(LEDGER))
+    return p
+
+
+def main() -> int:
+    p = _build_parser()
     args = p.parse_args()
 
     acceptance_id = ""
@@ -389,6 +673,7 @@ def main() -> int:
     artifact_sha256 = ""
     report_sha256 = ""
     brief: dict[str, Any] = {}
+    prediction_fields: dict[str, Any] = {}
     if args.status == "success" and args.action == BRIEF_ACTION and not args.operation.strip():
         p.error(f"--operation is required for successful {BRIEF_ACTION}")
     try:
@@ -408,6 +693,7 @@ def main() -> int:
             if args.report.is_symlink() or not args.report.is_file():
                 p.error("--report must be a regular non-symlink file")
             report_sha256 = hashlib.sha256(args.report.read_bytes()).hexdigest()
+        prediction_fields = _prediction_fields(args)
     except ValueError as exc:
         p.error(str(exc))
 
@@ -438,6 +724,7 @@ def main() -> int:
         record["streams"] = args.streams
     if args.decision is not None:
         record["decision"] = args.decision
+    record.update(prediction_fields)
 
     ledger_path = Path(args.ledger)
     if not args.event_id.strip():
@@ -447,7 +734,9 @@ def main() -> int:
         ledger_path = _prepare_ledger_path(ledger_path)
         with _ledger_lock(ledger_path):
             ledger_path = _prepare_ledger_path(ledger_path)
-            for existing in _read_records(ledger_path):
+            records = _read_records(ledger_path)
+            record.update(_locked_fields(records, record, args))
+            for existing in records:
                 if existing.get("event_id") != args.event_id:
                     continue
                 if _comparable_record(existing) == _comparable_record(record):

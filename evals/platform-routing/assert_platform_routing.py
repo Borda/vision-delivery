@@ -14,6 +14,7 @@ import sys
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).parent.parent.parent
 CASES = Path(__file__).with_name("cases.json")
@@ -243,6 +244,54 @@ def assert_roster_matches_upstream(roster: UpstreamRoster) -> None:
             "then update the delegation map"
         )
     print(f"Upstream roster matches the {len(upstream)} skills in {configured}.")
+    assert_facts_match_upstream(json.loads(read(ROSTER)), Path(configured).expanduser().parent)
+
+
+def _squeezed(text: str) -> str:
+    """Collapse runs of whitespace, so a quoted phrase may wrap across lines upstream."""
+    return " ".join(text.split())
+
+
+def assert_docs_match_recorded_facts(facts: Mapping[str, Any], docs: str, lookup: str, router: str) -> None:
+    """Every upstream fact the shipped text states must be one the committed snapshot records.
+
+    The install command, the upstream MCP server name, and each phrase quoted from upstream are checked
+    offline against ``upstream-skills.json``; ``assert_facts_match_upstream`` ties that file to a clone.
+    """
+    for key in ("marketplace", "plugin", "mcp_server_name", "mcp_server_url"):
+        if not isinstance(facts.get(key), str) or not facts[key]:
+            raise AssertionError(f"{ROSTER.name} needs the upstream `{key}`")
+    assert_contains(docs, f"claude plugin install {facts['plugin']}@{facts['marketplace']}", DOCS_SKILLS)
+    assert_contains(docs, f"named `{facts['mcp_server_name']}`", DOCS_SKILLS)
+    quoted = {entry["text"] for entry in facts.get("quoted_phrases", [])}
+    for match in re.finditer(r'\("([^"\n]{12,})"\)', lookup + "\n" + router):
+        if match.group(1) not in quoted:
+            raise AssertionError(
+                f"shipped text quotes upstream as {match.group(1)!r}; record it under `quoted_phrases` in "
+                f"{ROSTER.name} with the upstream file it comes from, or drop the quote"
+            )
+
+
+def assert_facts_match_upstream(facts: Mapping[str, Any], repository: Path) -> None:
+    """Compare the recorded marketplace, plugin, MCP server, and quoted phrases with an upstream clone."""
+    marketplace = json.loads(read(repository / ".claude-plugin" / "marketplace.json"))
+    plugins = {plugin.get("name") for plugin in marketplace.get("plugins", [])}
+    if marketplace.get("name") != facts["marketplace"] or facts["plugin"] not in plugins:
+        raise AssertionError(
+            f"{ROSTER.name} records {facts['plugin']}@{facts['marketplace']}; upstream marketplace is "
+            f"{marketplace.get('name')!r} with plugins {sorted(str(name) for name in plugins)}"
+        )
+    servers = json.loads(read(repository / ".mcp.json")).get("mcpServers", {})
+    recorded = servers.get(facts["mcp_server_name"])
+    if not isinstance(recorded, dict) or recorded.get("url") != facts["mcp_server_url"]:
+        raise AssertionError(
+            f"{ROSTER.name} records MCP server {facts['mcp_server_name']!r} at {facts['mcp_server_url']}; "
+            f"upstream .mcp.json declares {servers}"
+        )
+    for entry in facts.get("quoted_phrases", []):
+        if _squeezed(entry["text"]) not in _squeezed(read(repository / entry["file"])):
+            raise AssertionError(f"upstream {entry['file']} no longer contains the quoted phrase {entry['text']!r}")
+    print("Upstream marketplace, plugin, MCP server, and quoted phrases match the recorded facts.")
 
 
 def assert_upstream_freshness(lookup: str, cases: list[dict[str, str]]) -> None:
@@ -262,7 +311,75 @@ def assert_upstream_freshness(lookup: str, cases: list[dict[str, str]]) -> None:
                 f"routing case {case['need']!r} expects {case['mcp_resource']!r}; {LOOKUP} maps {mapped[skill]!r}"
             )
     assert_no_stale_upstream_references(roster)
+    assert_docs_match_recorded_facts(json.loads(read(ROSTER)), docs, lookup, read(CLAUDE_SOLVER))
     assert_roster_matches_upstream(roster)
+
+
+#: Canonical router copy; the Codex copy is generated from it by ``scripts/sync_codex_skills.py``.
+CLAUDE_SOLVER = ROOT / "claude-skills" / "solve-cv-task" / "SKILL.md"
+#: Upstream skill whose open-ended trigger overlaps Sentinel's router; Sentinel hands it the search.
+SEARCH_SKILL = "workflow-from-eval"
+#: Phrases the router must carry, in this order: lock and rung 0, the hand-off, the gate, the re-score.
+ROUTER_HANDOFF_STEPS = (
+    "locks the target and the independently labeled gold set first, then measures rung 0",
+    "Hand upstream the locked metric, the threshold, and the fact that the gold set is held out",
+    "still needs Sentinel's sourced action brief and host gate first",
+    "Score whatever upstream returns again on the held-out gold set",
+)
+ROUTER_HANDOFF_PHRASES = (
+    f"`{SEARCH_SKILL}`",
+    "it is not a second front door",
+    "Never start the upstream search before both",
+    "Never add gold images to upstream's suite",
+    "never replace Sentinel's acceptance",
+    "are never gold",
+    "When the upstream skill is not installed, the specialist route above stays unchanged",
+)
+LOOKUP_HANDOFF_PHRASES = (
+    "## Eval-driven search hand-off",
+    "When the skill is not installed, the platform action handshake and the delegation map above apply unchanged",
+    "No upstream search starts before both",
+    "Pass upstream the locked metric, the threshold, and the fact that the gold set is held out",
+    "Never add gold images to upstream's suite",
+    "never replace Sentinel's acceptance",
+    "are never gold",
+    "needs a sourced action brief and the host execution gate above first",
+    "scores whatever upstream returns again on the held-out gold set",
+    "Upstream's scorecard numbers are reported as diagnostic only",
+)
+
+
+def assert_in_order(text: str, steps: tuple[str, ...], path: Path) -> None:
+    """Require every step phrase in ``text`` and in the given order.
+
+    Examples:
+        >>> assert_in_order("lock, then search, then score", ("lock", "search", "score"), Path("x.md"))
+    """
+    positions = []
+    for step in steps:
+        assert_contains(text, step, path)
+        positions.append(text.index(step))
+    if positions != sorted(positions):
+        raise AssertionError(f"{path} lists the eval-driven search hand-off steps out of order: {steps}")
+
+
+def assert_eval_search_handoff(lookup: str, mapped: Mapping[str, str]) -> None:
+    """Keep the upstream eval-driven search inside Sentinel's frozen acceptance and spend gate.
+
+    The router hands the candidate search to the upstream skill only after the target, the gold set, and rung 0
+    exist; upstream's suite never supplies gold, every paid step stays gated, and the result is re-scored on the
+    held-out gold set before any pass. The Codex copy is checked by the parity eval after the sync script runs.
+    """
+    if SEARCH_SKILL not in mapped:
+        raise AssertionError(f"{LOOKUP} no longer maps {SEARCH_SKILL!r}; the search hand-off has no upstream skill")
+    for phrase in LOOKUP_HANDOFF_PHRASES:
+        assert_contains(lookup, phrase, LOOKUP)
+    if lookup.index("## Eval-driven search hand-off") < lookup.index("## Host execution gate"):
+        raise AssertionError(f"{LOOKUP} places the search hand-off before the host execution gate it relies on")
+    router = read(CLAUDE_SOLVER)
+    for phrase in ROUTER_HANDOFF_PHRASES:
+        assert_contains(router, phrase, CLAUDE_SOLVER)
+    assert_in_order(router, ROUTER_HANDOFF_STEPS, CLAUDE_SOLVER)
 
 
 STALE_COMMAND_PATTERNS = [
@@ -309,6 +426,7 @@ def main() -> None:
         assert_contains(lookup, phrase, LOOKUP)
 
     assert_upstream_freshness(lookup, cases)
+    assert_eval_search_handoff(lookup, lookup_map(lookup))
 
     for path, solver in solvers:
         assert_contains(solver, "roboflow-platform-lookup.md", path)
