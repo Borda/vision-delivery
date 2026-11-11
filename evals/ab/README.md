@@ -102,7 +102,7 @@ The A/B numbers already published, including the schema-v3 matrix in `docs/bench
 
 ## What this tier cannot show
 
-Real model quality (mocked metrics). Capability parity needs the one-off live B1 confirmation — run only after this tier shows a process delta. Mock drift vs the live surface is bounded by re-recording fixtures via the scheduled freshness smoke.
+Real model quality (mocked metrics). Capability parity needs the one-off live B1 confirmation — run only after this tier shows a process delta. Fixtures are re-recorded by hand; no scheduled workflow exists, and mock drift vs the live surface is checked only when someone re-records.
 
 ## Fixture hardening (smoke-5 lesson)
 

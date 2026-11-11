@@ -143,6 +143,8 @@ No live dual-install run is recorded, so these remain unverified:
 - whether the host merges or deduplicates two servers with the same URL, which one the agent calls, and whether one sign-in covers both;
 - how the official plugin's skills and Sentinel's skills route the same prompt in one live session.
 
+To close the routing item, the maintainer runs the paid six-prompt Claude Code check with `python3 evals/trigger-live/run_live.py --host claude --dual-cases --with-plugin-dir <path to a clone of the official Roboflow plugin> [--model sonnet|opus]`. No such run is recorded yet; the combined install stays "supported by design and checked offline, not live-verified" until one is packed with `python3 scripts/publish_run.py pack --suite trigger-live --run <results file> --set <set-id>`.
+
 Treat the combined install as supported by design and checked offline, not as live-verified.
 
 ## Agent rule
