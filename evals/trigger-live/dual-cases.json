@@ -1,0 +1,34 @@
+{
+  "cases": [
+    {
+      "expected_plugin": "sentinel",
+      "id": "sentinel-acceptance",
+      "prompt": "Before we build anything, help me define what number counts as success for catching damaged boxes on our packing line, and what it would cost us to be wrong."
+    },
+    {
+      "expected_plugin": "sentinel",
+      "id": "sentinel-spend",
+      "prompt": "Should we pay for a trained model, or is a free baseline good enough for counting pallets in my photos? Show me the evidence before spending anything."
+    },
+    {
+      "expected_plugin": "roboflow",
+      "id": "roboflow-train",
+      "prompt": "Train an object detection model on the labeled dataset already in my Roboflow project and show me how it performs."
+    },
+    {
+      "expected_plugin": "roboflow",
+      "id": "roboflow-batch",
+      "prompt": "Run my deployed Roboflow workflow over the 5,000 images in my cloud storage bucket."
+    },
+    {
+      "expected_plugin": "front-door",
+      "id": "front-door-factory",
+      "prompt": "Here is a factory video; detect assembly mistakes for me."
+    },
+    {
+      "expected_plugin": "front-door",
+      "id": "front-door-camera",
+      "prompt": "Use a factory camera to catch mistakes on the line."
+    }
+  ]
+}
