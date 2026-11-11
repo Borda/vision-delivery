@@ -322,7 +322,13 @@ def make_run(root: Path, rule: PersonaRule, mechanism: Mechanism) -> tuple[Path,
     """Synthetic run dir + workspace with one brief; return (config path, run dir, workspace)."""
     run_dir, workspace = root / "run", root / "run" / "workspace"
     (workspace / ".vision-delivery").mkdir(parents=True)
-    rows = [brief_row("trainings_create", "evt-7", 5)]
+    # The subprocess approver judges freshness against the real clock, so the brief is dated now; a fixed date goes
+    # stale (24 h brief age, 90 d price age) and flips the decision.
+    now = datetime.now(timezone.utc)
+    row = brief_row("trainings_create", "evt-7", 5)
+    row["ts"] = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+    row["brief"]["cost_as_of"] = now.date().isoformat()
+    rows = [row]
     (workspace / ".vision-delivery" / "ledger.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows))
     (run_dir / "current_turn.txt").write_text("3")
     config = approver.ApproverConfig(rule, mechanism, workspace, run_dir)
