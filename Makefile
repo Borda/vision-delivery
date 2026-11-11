@@ -1,4 +1,4 @@
-.PHONY: ci lint format lint-js typecheck docs-setup docs-build docs-serve eval-setup pre-commit-coverage eval eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-baseline eval-proof-chain eval-decision-report eval-docs-samples probe-codex probe-claude eval-trigger-live eval-e2e-self-test eval-ab-smoke eval-ab-metrics eval-ab-approver eval-upstream eval-labeling eval-adapter eval-recheck eval-publish-run eval-roster eval-outcome-report
+.PHONY: ci lint format lint-js typecheck docs-setup docs-build docs-serve eval-setup pre-commit-coverage eval eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-baseline eval-proof-chain eval-decision-report eval-docs-samples probe-codex probe-claude eval-trigger-live eval-e2e-self-test eval-ab-smoke eval-ab-metrics eval-ab-approver eval-upstream eval-labeling eval-adapter eval-recheck eval-publish-run eval-run-matrix eval-package-golden eval-roster eval-outcome-report
 
 ci: eval-setup lint format lint-js typecheck eval
 
@@ -35,7 +35,7 @@ eval-setup:
 pre-commit-coverage:
 	@echo "make ci runs the Ruff, Ruff format, ESLint, and mypy pre-commit hooks plus repository evals."
 
-eval: eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-baseline eval-labeling eval-adapter eval-recheck eval-proof-chain eval-decision-report eval-docs-samples eval-e2e-self-test eval-ab-metrics eval-ab-approver eval-publish-run eval-roster eval-outcome-report
+eval: eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-baseline eval-labeling eval-adapter eval-recheck eval-proof-chain eval-decision-report eval-docs-samples eval-e2e-self-test eval-ab-metrics eval-ab-approver eval-publish-run eval-run-matrix eval-package-golden eval-roster eval-outcome-report
 
 eval-version:
 	python scripts/check_versions.py
@@ -93,6 +93,12 @@ eval-ab-approver:  # deterministic simulated-approver + runner-argv checks — n
 
 eval-publish-run:  # deterministic publish-helper checks on synthetic runs — no live calls, no network
 	python evals/ab/assert_publish_run.py
+
+eval-run-matrix:  # A8 matrix driver: dry-run plan, execution guards, packing, fail-fast — no live calls, no network
+	python evals/ab/assert_run_matrix.py
+
+eval-package-golden:  # golden-run packer: licence gate, redaction, scorer reproduction, verify — offline, temp dirs
+	python scripts/assert_package_golden_run.py
 
 eval-cost-model:
 	python evals/cost-model/assert_cost_model.py
