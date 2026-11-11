@@ -96,6 +96,7 @@ Do not use Sentinel alone for medical, employment, law-enforcement, access-contr
 - Workflow: https://borda.github.io/vision-delivery/workflow/
 - Roboflow boundary: https://borda.github.io/vision-delivery/roboflow-skills/
 - Trust: https://borda.github.io/vision-delivery/trust/
+- Paid-action gate pattern: `docs/gate-pattern.md`
 - Benchmarks: https://borda.github.io/vision-delivery/benchmarks/
 - Support: https://github.com/Borda/vision-delivery/blob/main/.github/SUPPORT.md
 - Compatibility: https://borda.github.io/vision-delivery/compatibility/

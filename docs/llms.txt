@@ -47,6 +47,7 @@ No credential environment variable is required for plugin installation. The v0.5
 - [Workflow](https://borda.github.io/vision-delivery/workflow/)
 - [Roboflow skills integration](https://borda.github.io/vision-delivery/roboflow-skills/)
 - [Trust and safety](https://borda.github.io/vision-delivery/trust/)
+- Paid-action gate pattern: `docs/gate-pattern.md`
 - [Benchmarks](https://borda.github.io/vision-delivery/benchmarks/)
 - [Support policy](https://github.com/Borda/vision-delivery/blob/main/.github/SUPPORT.md)
 - [Compatibility](https://borda.github.io/vision-delivery/compatibility/)

@@ -61,6 +61,7 @@ nav:
   - Foundations & Evidence:
       - Support & Evidence: support-and-scope.md
       - Trust And Safety: trust.md
+      - Paid-Action Gate Pattern: gate-pattern.md
       - FAQ: faq.md
       - Compatibility: compatibility.md
       - Release Policy: release-policy.md

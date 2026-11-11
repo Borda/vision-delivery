@@ -18,7 +18,7 @@ import hashlib
 import json
 import math
 import sys
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
@@ -27,17 +27,11 @@ from typing import Any
 
 from proof_chain import SHA256_RE, load_acceptance, load_json, parse_utc, sha256_file
 from score_baseline import (
-    COUNT_METRICS,
-    FLAG_METRICS,
-    TEXT_METRICS,
-    Tally,
     Target,
     check_target,
-    count_metrics,
-    flag_metrics,
     load_labels,
+    metric_dispatch,
     score_target,
-    text_metrics,
 )
 from validate_delivery_handoff import validate_handoff
 
@@ -66,30 +60,6 @@ class Task(str, Enum):
     COUNT = "count"
     FLAG = "flag"
     TEXT = "text"
-
-    @property
-    def metrics(self) -> tuple[str, ...]:
-        """Return the metrics the scorer computes for this task.
-
-        Examples:
-            >>> Task.FLAG.metrics
-            ('catch_rate', 'false_alarm_rate', 'precision', 'accuracy')
-        """
-        return {Task.COUNT: COUNT_METRICS, Task.FLAG: FLAG_METRICS, Task.TEXT: TEXT_METRICS}[self]
-
-    def tallies(self, gold: dict[str, Any], pred: dict[str, Any]) -> dict[str, Tally]:
-        """Return the scorer's tallies of every metric for this task.
-
-        Examples:
-            >>> Task.FLAG.tallies({"a": True}, {"a": True})["accuracy"].numerator
-            1
-        """
-        tally: dict[Task, Callable[[dict[str, Any], dict[str, Any]], dict[str, Tally]]] = {
-            Task.COUNT: count_metrics,
-            Task.FLAG: flag_metrics,
-            Task.TEXT: text_metrics,
-        }
-        return tally[self](gold, pred)
 
 
 class Drift(str, Enum):
@@ -330,7 +300,8 @@ def rescore(task: Task, target: Target, files: ScoredFiles) -> dict[str, Any]:
         ...
         ValueError: metric 'accuracy' is not scored for task text
     """
-    if target.metric not in task.metrics:
+    allowed, tally = metric_dispatch(task.value)
+    if target.metric not in allowed:
         raise ValueError(f"metric {target.metric!r} is not scored for task {task.value}")
     check_target(target)
     gold = load_labels(files.gold, task.value)
@@ -339,7 +310,7 @@ def rescore(task: Task, target: Target, files: ScoredFiles) -> dict[str, Any]:
     if extra:
         raise ValueError(f"the prediction file names images missing from the label file: {extra[:5]}")
     missing = len(set(gold) - set(pred))
-    scored = score_target(task.value, target, task.tallies(gold, pred)[target.metric], missing, len(gold))
+    scored = score_target(task.value, target, tally(gold, pred)[target.metric], missing, len(gold))
     low, high = scored.interval if scored.interval is not None else (None, None)
     return {
         "metric": target.metric,

@@ -53,6 +53,7 @@ import json
 import math
 import random
 import sys
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timezone
 from enum import Enum
@@ -358,6 +359,37 @@ def text_metrics(gold: dict[str, str], pred: dict[str, str]) -> dict[str, Tally]
         ),
         "char_error_rate": _summed(parts),
     }
+
+
+def metric_dispatch(
+    task: str,
+) -> tuple[tuple[str, ...], Callable[[dict[str, Any], dict[str, Any]], dict[str, Tally]]]:
+    """Return a task's allowed metrics and the function that computes their tallies.
+
+    Args:
+        task: A scorer task: count, flag, or text.
+
+    Returns:
+        Metric names in scorer order and their tally function.
+
+    Raises:
+        KeyError: When the task is not supported.
+
+    Examples:
+        >>> names, tally = metric_dispatch("flag")
+        >>> names
+        ('catch_rate', 'false_alarm_rate', 'precision', 'accuracy')
+        >>> tally({"a": True}, {"a": True})["accuracy"].numerator
+        1
+        >>> [metric_dispatch(task)[1].__name__ for task in ("count", "flag", "text")]
+        ['count_metrics', 'flag_metrics', 'text_metrics']
+    """
+    dispatch: dict[str, tuple[tuple[str, ...], Callable[[dict[str, Any], dict[str, Any]], dict[str, Tally]]]] = {
+        "count": (COUNT_METRICS, count_metrics),
+        "flag": (FLAG_METRICS, flag_metrics),
+        "text": (TEXT_METRICS, text_metrics),
+    }
+    return dispatch[task]
 
 
 def wilson_interval(successes: int, trials: int, z: float = Z_SCORE) -> tuple[float, float]:
@@ -705,7 +737,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     """Score predictions, print a plain verdict, and optionally write evidence."""
     args = parse_args()
-    allowed = {"count": COUNT_METRICS, "flag": FLAG_METRICS, "text": TEXT_METRICS}[args.task]
+    allowed, tally = metric_dispatch(args.task)
     try:
         target = resolve_target(args, allowed)
         gold, pred = load_inputs(args, args.task)
@@ -713,12 +745,7 @@ def main() -> int:
     except (ValueError, KeyError, json.JSONDecodeError, OSError) as exc:
         print(f"score-baseline-error: {exc}", file=sys.stderr)
         return 2
-    if args.task == "count":
-        tallies = count_metrics(gold, pred)
-    elif args.task == "flag":
-        tallies = flag_metrics(gold, pred)
-    else:
-        tallies = text_metrics(gold, pred)
+    tallies = tally(gold, pred)
     missing = len(set(gold) - set(pred))
     scored = score_target(args.task, target, tallies[target.metric], missing, len(gold))
     if args.task == "count" and target.metric == "catch_rate":

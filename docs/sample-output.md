@@ -81,4 +81,4 @@ Per-image count agreement: 40 of 47 labeled objects (85.1%, 95% interval 70.3% t
 - A decision report from a real run.
 - A terminal recording.
 
-These need a live run on public, licensed images. They will be added here when one is recorded.
+These need a live run on public, licensed images. They will be added here when one is recorded. The maintainer's runbook for recording and packing such a run is `examples/golden-run/README.md` in the repository; the packer is `scripts/package_golden_run.py`.

@@ -767,38 +767,56 @@ def _build_parser() -> argparse.ArgumentParser:
     return p
 
 
-def main() -> int:
-    p = _build_parser()
-    args = p.parse_args()
+def _action_brief_fields(args: argparse.Namespace, p: argparse.ArgumentParser) -> dict[str, Any]:
+    """Validate a successful action brief before preparing any proof bindings."""
+    if args.status != "success" or args.action != BRIEF_ACTION:
+        return {}
+    if not args.operation.strip():
+        p.error(f"--operation is required for successful {BRIEF_ACTION}")
+    return _brief_fields(args)
 
+
+def _proof_binding_fields(args: argparse.Namespace, p: argparse.ArgumentParser) -> dict[str, Any]:
+    """Bind successful proof rows, and other proof rows whose files were supplied."""
     acceptance_id = ""
     acceptance_sha256 = ""
     artifact_sha256 = ""
-    report_sha256 = ""
-    brief: dict[str, Any] = {}
-    prediction_fields: dict[str, Any] = {}
-    if args.status == "success" and args.action == BRIEF_ACTION and not args.operation.strip():
-        p.error(f"--operation is required for successful {BRIEF_ACTION}")
+    # Bind failed rows too when files are supplied, so readers can identify their target and artifact.
+    if args.action in PROOF_ACTIONS and (args.status == "success" or args.acceptance is not None):
+        if args.acceptance is None:
+            p.error(f"--acceptance is required for successful {args.action}")
+        acceptance_id, acceptance_sha256 = _acceptance_binding(args.acceptance)
+    if args.action in ARTIFACT_ACTIONS and (args.status == "success" or args.artifact_dir is not None):
+        if args.artifact_dir is None:
+            p.error(f"--artifact-dir is required for successful {args.action}")
+        artifact_sha256 = _artifact_tree_digest(args.artifact_dir)
+    fields = {}
+    if acceptance_id:
+        fields["acceptance_id"] = acceptance_id
+        fields["acceptance_sha256"] = acceptance_sha256
+    if artifact_sha256:
+        fields["artifact_sha256"] = artifact_sha256
+    return fields
+
+
+def _report_digest(args: argparse.Namespace, p: argparse.ArgumentParser) -> str:
+    """Validate and hash the report required by a successful report row."""
+    if args.status != "success" or args.action != REPORT_ACTION:
+        return ""
+    if args.report is None:
+        p.error("--report is required for successful decision_report_emitted")
+    if args.report.is_symlink() or not args.report.is_file():
+        p.error("--report must be a regular non-symlink file")
+    return hashlib.sha256(args.report.read_bytes()).hexdigest()
+
+
+def _build_record(args: argparse.Namespace, p: argparse.ArgumentParser) -> dict[str, Any]:
+    """Validate fields in CLI order and assemble the row in its original key order."""
     try:
-        if args.status == "success" and args.action == BRIEF_ACTION:
-            brief = _brief_fields(args)
-        # A row that is not a success is bound too when the files are given, so a reader can tell
-        # which target and artifact a failed proof step belongs to.
-        if args.action in PROOF_ACTIONS and (args.status == "success" or args.acceptance is not None):
-            if args.acceptance is None:
-                p.error(f"--acceptance is required for successful {args.action}")
-            acceptance_id, acceptance_sha256 = _acceptance_binding(args.acceptance)
-        if args.action in ARTIFACT_ACTIONS and (args.status == "success" or args.artifact_dir is not None):
-            if args.artifact_dir is None:
-                p.error(f"--artifact-dir is required for successful {args.action}")
-            artifact_sha256 = _artifact_tree_digest(args.artifact_dir)
-        if args.status == "success" and args.action == REPORT_ACTION:
-            if args.report is None:
-                p.error("--report is required for successful decision_report_emitted")
-            if args.report.is_symlink() or not args.report.is_file():
-                p.error("--report must be a regular non-symlink file")
-            report_sha256 = hashlib.sha256(args.report.read_bytes()).hexdigest()
-        prediction_fields = _prediction_fields(args) | _recheck_fields(args, acceptance_sha256)
+        brief = _action_brief_fields(args, p)
+        proof_fields = _proof_binding_fields(args, p)
+        report_sha256 = _report_digest(args, p)
+        prediction_fields = _prediction_fields(args) | _recheck_fields(args, proof_fields.get("acceptance_sha256", ""))
     except ValueError as exc:
         p.error(str(exc))
 
@@ -814,11 +832,7 @@ def main() -> int:
         "event_id": args.event_id,
         "notes": args.notes,
     }
-    if acceptance_id:
-        record["acceptance_id"] = acceptance_id
-        record["acceptance_sha256"] = acceptance_sha256
-    if artifact_sha256:
-        record["artifact_sha256"] = artifact_sha256
+    record.update(proof_fields)
     if report_sha256:
         record["report_sha256"] = report_sha256
     if args.operation:
@@ -830,11 +844,11 @@ def main() -> int:
     if args.decision is not None:
         record["decision"] = args.decision
     record.update(prediction_fields)
+    return record
 
-    ledger_path = Path(args.ledger)
-    if not args.event_id.strip():
-        p.error("--event-id must not be empty")
 
+def _write_record(ledger_path: Path, record: dict[str, Any], args: argparse.Namespace) -> int:
+    """Append under the ledger lock, preserving idempotence and integrity error exits."""
     try:
         ledger_path = _prepare_ledger_path(ledger_path)
         with _ledger_lock(ledger_path):
@@ -857,6 +871,17 @@ def main() -> int:
         return 2
 
     return 0
+
+
+def main() -> int:
+    """Parse, prepare, and append one ledger row without changing CLI diagnostics."""
+    p = _build_parser()
+    args = p.parse_args()
+    record = _build_record(args, p)
+    ledger_path = Path(args.ledger)
+    if not args.event_id.strip():
+        p.error("--event-id must not be empty")
+    return _write_record(ledger_path, record, args)
 
 
 if __name__ == "__main__":
