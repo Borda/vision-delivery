@@ -1,16 +1,23 @@
 #!/usr/bin/env python3
-"""Score count or flag predictions against independent gold labels in plain language.
+"""Score count, flag, or text predictions against independent gold labels in plain language.
 
 Stdlib only, so a rung 0 baseline (see `resources/baseline-ladder.md`) can be measured
 before any account, install, or upload. Input files are JSON Lines with one object per
-image: `{"image": "<id>", "count": <int>}` or `{"image": "<id>", "flag": <bool>}`.
+image: `{"image": "<id>", "count": <int>}`, `{"image": "<id>", "flag": <bool>}`, or
+`{"image": "<id>", "text": "<string>"}`. Text values may be empty and contain at most 10,000
+code points. Strings are compared exactly, code point by code point: no trimming, case folding,
+or Unicode normalization. Any normalization policy must be applied to both files before scoring.
+Text runs whose summed len(gold) * len(prediction) exceeds MAX_TEXT_COMPARE_CELLS = 200_000_000
+are refused before scoring; split long documents into fields to stay within this comparison budget.
 
 The printed line names the target metric's numerator and denominator, its point estimate,
-and a 95% interval. Binomial rates (every flag metric and `exact_count_rate`) use the Wilson
+and a 95% interval. Binomial rates (every flag metric, `exact_count_rate`, and `exact_match_rate`) use the Wilson
 score interval. Count metrics built from per-image sums (`count_mae`, count `catch_rate`,
 `over_count_rate`) use a percentile bootstrap over images with a fixed seed and resample
 count, so the same files always print the same line; a resample whose denominator is zero
-is skipped.
+is skipped. Text `char_error_rate` uses the same image bootstrap: total unit-cost Levenshtein
+distance over code points divided by total gold length. Missing text predictions are empty for
+this distance and always non-matches for `exact_match_rate`, including when the gold is empty.
 
 Verdict rule, for comparator `gte` (`lte` mirrors it):
 
@@ -22,7 +29,7 @@ Verdict rule, for comparator `gte` (`lte` mirrors it):
   bootstrap metric needs MIN_BOOTSTRAP_UNITS images that carry its denominator, because a
   percentile bootstrap is too narrow on a handful of images. A bootstrap interval of zero width
   (every image gave the same result) also gets no verdict: resampling identical images cannot
-  show uncertainty, and `exact_count_rate` answers that case with a Wilson interval.
+  show uncertainty, and `exact_count_rate` (text: `exact_match_rate`) answers that case with a Wilson interval.
 
 Exit codes: 0 whenever a verdict line is printed and any requested evidence file is written,
 NO VERDICT included; 2 when the input is unusable (malformed labels, predictions for unknown
@@ -58,17 +65,20 @@ from proof_chain import load_acceptance, sha256_file, write_json_exclusive
 
 COUNT_METRICS = ("count_mae", "exact_count_rate", "catch_rate", "over_count_rate")
 FLAG_METRICS = ("catch_rate", "false_alarm_rate", "precision", "accuracy")
-RATE_METRICS = frozenset(COUNT_METRICS + FLAG_METRICS) - {"count_mae"}
+TEXT_METRICS = ("exact_match_rate", "char_error_rate")
+RATE_METRICS = frozenset(COUNT_METRICS + FLAG_METRICS + TEXT_METRICS) - {"count_mae"}
 #: Error metrics: a target on one of these is a maximum. Every other metric is a minimum.
-LOWER_IS_BETTER = frozenset({"count_mae", "over_count_rate", "false_alarm_rate"})
-#: Metrics with no upper limit: a count error, and extra counts per labeled object.
-UNBOUNDED_METRICS = frozenset({"count_mae", "over_count_rate"})
+LOWER_IS_BETTER = frozenset({"count_mae", "over_count_rate", "false_alarm_rate", "char_error_rate"})
+#: Metrics with no upper limit: count error, extra counts, and character edits per gold character.
+UNBOUNDED_METRICS = frozenset({"count_mae", "over_count_rate", "char_error_rate"})
 CONFIDENCE_LEVEL = 0.95
 Z_SCORE = NormalDist().inv_cdf(0.5 + CONFIDENCE_LEVEL / 2)
 #: Fewest independent units (real cases, images, ...) behind a metric before any verdict is given.
 MIN_DENOMINATOR = 5
 #: Fewest images behind a bootstrap metric; a percentile bootstrap under-covers on fewer.
 MIN_BOOTSTRAP_UNITS = 20
+MAX_TEXT_CODE_POINTS = 10_000
+MAX_TEXT_COMPARE_CELLS = 200_000_000
 BOOTSTRAP_RESAMPLES = 2000
 BOOTSTRAP_SEED = 2024
 INCONCLUSIVE_ADVICE = (
@@ -129,6 +139,14 @@ METRIC_TEXT = {
     ),
     ("count", "count_mae"): MetricText(
         "average count error per image", "total count error {num} over {den} {den_noun}", _IMAGES, _IMAGES
+    ),
+    ("text", "exact_match_rate"): MetricText("texts read exactly right", _OF, _IMAGES, _IMAGES),
+    ("text", "char_error_rate"): MetricText(
+        "character errors per labeled character",
+        "{num} {num_noun} over {den} {den_noun}",
+        ("labeled character", "labeled characters"),
+        ("image with labeled text", "images with labeled text"),
+        ("character error", "character errors"),
     ),
 }
 
@@ -205,7 +223,8 @@ def load_labels(path: Path, field: str) -> dict[str, Any]:
         >>> os.unlink(handle.name)
     """
     labels: dict[str, Any] = {}
-    for number, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+    for number, raw in enumerate(path.read_text(encoding="utf-8").split("\n"), 1):
+        raw = raw.removesuffix("\r")
         if not raw.strip():
             continue
         row = json.loads(raw)
@@ -221,7 +240,15 @@ def load_labels(path: Path, field: str) -> dict[str, Any]:
 
 
 def _checked_value(value: Any, field: str, where: str) -> Any:
-    """Validate one count (non-negative int) or flag (bool) value."""
+    """Validate count, flag, or text values; reject oversized text and lone surrogates."""
+    if field == "text":
+        if not isinstance(value, str):
+            raise ValueError(f"{where} text must be a string")
+        if len(value) > MAX_TEXT_CODE_POINTS:
+            raise ValueError(f"{where} text must be at most 10,000 code points")
+        if any("\ud800" <= character <= "\udfff" for character in value):
+            raise ValueError(f"{where} text must not hold a lone surrogate code point")
+        return value
     if field == "flag":
         if not isinstance(value, bool):
             raise ValueError(f"{where} flag must be true or false")
@@ -271,6 +298,65 @@ def flag_metrics(gold: dict[str, bool], pred: dict[str, bool]) -> dict[str, Tall
         "false_alarm_rate": Tally(false_alarms, len(gold) - positives),
         "precision": Tally(hits, hits + false_alarms),
         "accuracy": Tally(sum(flagged[image] == gold[image] for image in gold), len(gold)),
+    }
+
+
+def levenshtein(gold: str, pred: str) -> int:
+    """Return unit-cost insertions, deletions, and substitutions over code points.
+
+    Two-row dynamic programming stores only the shorter string's row. Runtime is
+    quadratic in string lengths, bounded here by the label loader's 10,000-code-point limit.
+
+    Args:
+        gold: Reference string, compared without normalization.
+        pred: Predicted string, compared without normalization.
+
+    Returns:
+        Minimum number of single-code-point edits.
+
+    Examples:
+        >>> levenshtein("kitten", "sitting"), levenshtein("", "é😀")
+        (3, 2)
+        >>> levenshtein("é", "e\u0301"), levenshtein("abc", "abc")
+        (2, 0)
+    """
+    if len(gold) < len(pred):
+        gold, pred = pred, gold
+    previous = list(range(len(pred) + 1))
+    for row, gold_char in enumerate(gold, 1):
+        current = [row]
+        for column, pred_char in enumerate(pred, 1):
+            current.append(min(current[-1] + 1, previous[column] + 1, previous[column - 1] + (gold_char != pred_char)))
+        previous = current
+    return previous[-1]
+
+
+def text_metrics(gold: dict[str, str], pred: dict[str, str]) -> dict[str, Tally]:
+    """Tally exact matches and character edits, retaining every image for bootstrap sampling.
+
+    Missing predictions count as non-matches and as empty strings for edit distance.
+    Empty gold contributes edits but no labeled characters or denominator units.
+
+    Args:
+        gold: Gold text keyed by image identity.
+        pred: Predictions keyed by image identity.
+
+    Returns:
+        Exact-match and character-error tallies.
+
+    Examples:
+        >>> tallies = text_metrics({"a": "ab", "b": ""}, {"a": "axb", "b": "x"})
+        >>> tallies["exact_match_rate"].numerator, tallies["char_error_rate"].parts
+        (0, ((1, 2), (1, 0)))
+        >>> text_metrics({"empty": ""}, {})["exact_match_rate"].numerator
+        0
+    """
+    parts = tuple((levenshtein(truth, pred.get(image, "")), len(truth)) for image, truth in gold.items())
+    return {
+        "exact_match_rate": Tally(
+            sum(image in pred and pred[image] == truth for image, truth in gold.items()), len(gold)
+        ),
+        "char_error_rate": _summed(parts),
     }
 
 
@@ -395,9 +481,10 @@ def score_target(task: str, target: Target, tally: Tally, missing: int, images: 
     if interval is None and tally.denominator:
         reasons += ("no resample produced a usable 95% interval",)
     elif interval is not None and tally.parts and interval[0] == interval[1]:
+        exact_metric = "exact_match_rate" if task == "text" else "exact_count_rate"
         reasons += (
             "every image gave the same result, so resampling them cannot show how much the number would vary"
-            " (score exact_count_rate for a verdict on this sample)",
+            f" (score {exact_metric} for a verdict on this sample)",
         )
     return Scored(text, tally, interval, decide(target, interval, reasons), reasons, missing, images)
 
@@ -525,7 +612,7 @@ def resolve_target(args: argparse.Namespace, allowed: tuple[str, ...]) -> Target
 def check_target(target: Target) -> None:
     """Reject a target that any result would meet, or that points the wrong way.
 
-    An error metric (`count_mae`, `over_count_rate`, `false_alarm_rate`) is a maximum (`lte`);
+    An error metric (`count_mae`, `over_count_rate`, `false_alarm_rate`, `char_error_rate`) is a maximum (`lte`);
     every other metric is a minimum (`gte`). A minimum of 0% and a maximum of 100% are met by
     every result, so they are refused.
 
@@ -564,12 +651,19 @@ def check_target(target: Target) -> None:
 
 
 def load_inputs(args: argparse.Namespace, field: str) -> tuple[dict[str, Any], dict[str, Any]]:
-    """Load gold and prediction labels and reject predictions for images the gold file lacks."""
+    """Load labels, reject unknown images, and bound the aggregate text comparison workload."""
     gold = load_labels(args.gold, field)
     pred = load_labels(args.pred, field)
     extra = sorted(set(pred) - set(gold))
     if extra:
         raise ValueError(f"predictions name images missing from gold: {extra[:5]}")
+    if field == "text":
+        cells = sum(len(value) * len(pred.get(image, "")) for image, value in gold.items())
+        if cells > MAX_TEXT_COMPARE_CELLS:
+            raise ValueError(
+                "text comparison exceeds MAX_TEXT_COMPARE_CELLS = "
+                f"{MAX_TEXT_COMPARE_CELLS:_}; split long documents into fields"
+            )
     return gold, pred
 
 
@@ -594,7 +688,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--gold", required=True, type=Path)
     parser.add_argument("--pred", required=True, type=Path)
-    parser.add_argument("--task", required=True, choices=("count", "flag"))
+    parser.add_argument("--task", required=True, choices=("count", "flag", "text"))
     parser.add_argument("--metric")
     parser.add_argument("--comparator", choices=("gte", "lte"))
     parser.add_argument("--threshold", type=float)
@@ -611,15 +705,20 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     """Score predictions, print a plain verdict, and optionally write evidence."""
     args = parse_args()
-    field, allowed = ("count", COUNT_METRICS) if args.task == "count" else ("flag", FLAG_METRICS)
+    allowed = {"count": COUNT_METRICS, "flag": FLAG_METRICS, "text": TEXT_METRICS}[args.task]
     try:
         target = resolve_target(args, allowed)
-        gold, pred = load_inputs(args, field)
+        gold, pred = load_inputs(args, args.task)
         freeze = check_freeze(args.frozen_ledger, args, gold) if args.frozen_ledger is not None else None
     except (ValueError, KeyError, json.JSONDecodeError, OSError) as exc:
         print(f"score-baseline-error: {exc}", file=sys.stderr)
         return 2
-    tallies = count_metrics(gold, pred) if field == "count" else flag_metrics(gold, pred)
+    if args.task == "count":
+        tallies = count_metrics(gold, pred)
+    elif args.task == "flag":
+        tallies = flag_metrics(gold, pred)
+    else:
+        tallies = text_metrics(gold, pred)
     missing = len(set(gold) - set(pred))
     scored = score_target(args.task, target, tallies[target.metric], missing, len(gold))
     if args.task == "count" and target.metric == "catch_rate":

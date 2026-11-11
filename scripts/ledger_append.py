@@ -63,6 +63,7 @@ import time
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import date, datetime, timedelta, timezone
+from enum import Enum
 from pathlib import Path
 from typing import Any
 
@@ -90,6 +91,7 @@ LOCK_TIMEOUT_SECONDS = 5.0
 LOCK_RETRY_SECONDS = 0.01
 PROOF_ACTIONS = {
     "baseline_measured",
+    "recheck_measured",
     "artifact_verified",
     "delivery_handoff_emitted",
     "crossover_delivered",
@@ -118,8 +120,33 @@ MIXED_ENTRY = "mixed"
 UNRECORDED_ENTRY = "unrecorded"
 #: Hex characters kept from each per-image label digest.
 LABEL_DIGEST_HEX = 16
-LABEL_FIELDS = ("count", "flag")
+LABEL_FIELDS = ("count", "flag", "text")
 TS_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+
+
+class RecheckDrift(str, Enum):
+    """The three measured outcomes accepted from recheck evidence."""
+
+    HOLDS = "holds"
+    DRIFTED = "drifted"
+    UNCERTAIN = "uncertain"
+
+
+class RecheckShift(str, Enum):
+    """Positions of a fresh interval relative to the baseline point estimate."""
+
+    WORSE = "worse"
+    BETTER = "better"
+    NO = "no"
+    UNKNOWN = "unknown"
+
+
+class RecheckFreeze(str, Enum):
+    """Whether the fresh predictions were frozen independently before scoring."""
+
+    INDEPENDENT = "independent"
+    NOT_INDEPENDENT = "not-independent"
+    NOT_FROZEN = "not-frozen"
 
 
 def _operation_class(operation: str) -> str:
@@ -233,6 +260,17 @@ def label_digest(image: str, value: Any) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()[:LABEL_DIGEST_HEX]
 
 
+def _valid_label_value(field: str, value: Any) -> bool:
+    """Check a label's type and text bounds without normalizing its value."""
+    if field == "flag":
+        return isinstance(value, bool)
+    if field == "text":
+        return (
+            isinstance(value, str) and len(value) <= 10_000 and not any("\ud800" <= char <= "\udfff" for char in value)
+        )
+    return isinstance(value, int) and not isinstance(value, bool) and value >= 0
+
+
 def _label_row(raw: str, number: int) -> tuple[str, Any]:
     """Return the image name and label value of one gold line, or refuse a line that is not a label."""
     try:
@@ -242,13 +280,11 @@ def _label_row(raw: str, number: int) -> tuple[str, Any]:
     fields = [name for name in LABEL_FIELDS if isinstance(row, dict) and name in row]
     image = row.get("image") if isinstance(row, dict) else None
     if not isinstance(image, str) or not image or len(fields) != 1:
-        raise ValueError(f"--gold line {number} needs a non-empty 'image' and exactly one of 'count' or 'flag'")
+        raise ValueError(
+            f"--gold line {number} needs a non-empty 'image' and exactly one of 'count', 'flag', or 'text'"
+        )
     value = row[fields[0]]
-    if fields[0] == "flag":
-        valid = isinstance(value, bool)
-    else:
-        valid = isinstance(value, int) and not isinstance(value, bool) and value >= 0
-    if not valid:
+    if not _valid_label_value(fields[0], value):
         raise ValueError(f"--gold line {number} has an invalid {fields[0]}")
     return image, value
 
@@ -260,7 +296,8 @@ def _label_digests(path: Path) -> dict[str, str]:
         ValueError: When a line is not a label, an image repeats, or the file holds no label.
     """
     digests: dict[str, str] = {}
-    for number, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+    for number, raw in enumerate(path.read_bytes().decode("utf-8").split("\n"), 1):
+        raw = raw.removesuffix("\r")
         if not raw.strip():
             continue
         image, value = _label_row(raw, number)
@@ -345,6 +382,71 @@ def _prediction_fields(args: argparse.Namespace) -> dict[str, Any]:
         raise ValueError(f"a successful {PREDICTIONS_ACTION} needs --pred, --gold, and --predictor")
     pred_sha256 = _file_sha256(args.pred, "pred")
     return {"pred_sha256": pred_sha256, **_gold_fields(args), "predictor": args.predictor}
+
+
+def _read_recheck_evidence(path: Path, acceptance_sha256: str) -> tuple[bytes, dict[str, Any]]:
+    """Read regular recheck evidence and verify its target against the selected acceptance."""
+    _reject_symlink_path(_absolute_path(path))
+    if not path.is_file():
+        raise ValueError("--evidence must be a regular non-symlink JSON file")
+    try:
+        raw = path.read_bytes()
+        evidence = json.loads(raw)
+    except (OSError, ValueError) as exc:
+        raise ValueError(f"cannot read recheck evidence: {exc}") from exc
+    recheck = evidence.get("recheck") if isinstance(evidence, dict) else None
+    target = evidence.get("target") if isinstance(evidence, dict) else None
+    if not isinstance(recheck, dict) or not isinstance(target, dict):
+        raise ValueError("--evidence needs recheck and target objects")
+    if target.get("acceptance_sha256") != acceptance_sha256:
+        raise ValueError("recheck evidence is bound to a different acceptance")
+    return raw, evidence
+
+
+def _recheck_timestamp(value: Any) -> str:
+    """Validate an evidence measurement's UTC timestamp while preserving its exact spelling."""
+    if not isinstance(value, str):
+        raise ValueError("recheck measured_at must be a UTC timestamp")
+    try:
+        moment = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ValueError("recheck measured_at must be a UTC timestamp") from exc
+    if moment.utcoffset() != timedelta(0):
+        raise ValueError("recheck measured_at must be a UTC timestamp")
+    return value
+
+
+def _recheck_fields(args: argparse.Namespace, acceptance_sha256: str) -> dict[str, Any]:
+    """Derive a recheck's structured facts only from evidence bound to this acceptance.
+
+    Args:
+        args: Parsed options, including the evidence path and action.
+        acceptance_sha256: Digest already computed from the acceptance artifact.
+
+    Returns:
+        Evidence digest, measured drift and shift, and the freeze state when recorded.
+
+    Raises:
+        ValueError: If evidence is missing, invalid, or bound to another acceptance.
+    """
+    if args.evidence is not None and args.action != "recheck_measured":
+        raise ValueError("--evidence is only valid for recheck_measured")
+    if args.status != "success" or args.action != "recheck_measured":
+        return {}
+    if args.evidence is None:
+        raise ValueError("a successful recheck_measured needs --evidence")
+    raw, evidence = _read_recheck_evidence(args.evidence, acceptance_sha256)
+    recheck = evidence["recheck"]
+    fields = {
+        "evidence_sha256": hashlib.sha256(raw).hexdigest(),
+        "drift": RecheckDrift(recheck.get("drift")).value,
+        "shifted": RecheckShift(recheck.get("shifted_from_baseline")).value,
+    }
+    if "predictions_frozen" in recheck:
+        fields["predictions_frozen"] = RecheckFreeze(recheck["predictions_frozen"]).value
+    if "measured_at" in evidence:
+        fields["evidence_measured_at"] = _recheck_timestamp(evidence["measured_at"])
+    return fields
 
 
 def _row_time(row: dict[str, Any]) -> float | None:
@@ -647,6 +749,7 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--rollback", default="", help="action brief: how to undo, or 'not reversible'")
     p.add_argument("--call-budget", type=int, default=None, help="action brief: calls covered (budget operations)")
     p.add_argument("--acceptance", type=Path)
+    p.add_argument("--evidence", type=Path, help="recheck_measured: evidence bound to the acceptance")
     p.add_argument("--artifact-dir", type=Path)
     p.add_argument("--report", type=Path)
     p.add_argument("--streams", type=int, default=None)
@@ -679,11 +782,13 @@ def main() -> int:
     try:
         if args.status == "success" and args.action == BRIEF_ACTION:
             brief = _brief_fields(args)
-        if args.status == "success" and args.action in PROOF_ACTIONS:
+        # A row that is not a success is bound too when the files are given, so a reader can tell
+        # which target and artifact a failed proof step belongs to.
+        if args.action in PROOF_ACTIONS and (args.status == "success" or args.acceptance is not None):
             if args.acceptance is None:
                 p.error(f"--acceptance is required for successful {args.action}")
             acceptance_id, acceptance_sha256 = _acceptance_binding(args.acceptance)
-        if args.status == "success" and args.action in ARTIFACT_ACTIONS:
+        if args.action in ARTIFACT_ACTIONS and (args.status == "success" or args.artifact_dir is not None):
             if args.artifact_dir is None:
                 p.error(f"--artifact-dir is required for successful {args.action}")
             artifact_sha256 = _artifact_tree_digest(args.artifact_dir)
@@ -693,7 +798,7 @@ def main() -> int:
             if args.report.is_symlink() or not args.report.is_file():
                 p.error("--report must be a regular non-symlink file")
             report_sha256 = hashlib.sha256(args.report.read_bytes()).hexdigest()
-        prediction_fields = _prediction_fields(args)
+        prediction_fields = _prediction_fields(args) | _recheck_fields(args, acceptance_sha256)
     except ValueError as exc:
         p.error(str(exc))
 

@@ -47,7 +47,7 @@ import hashlib
 import json
 import math
 import sys
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import date, datetime
 from enum import Enum
 from pathlib import Path
@@ -112,6 +112,43 @@ class CreditPlan(str, Enum):
     FREE = "free"
     CORE_FLOOR = "core-floor"
     CORE_CEILING = "core-ceiling"
+
+
+class WorkloadKind(str, Enum):
+    """Supported workload units, resolved once at the CLI boundary."""
+
+    STREAMS = "streams"
+    BATCH = "batch"
+
+
+@dataclass(frozen=True)
+class WorkloadEstimate:
+    """Resolved workload and aggregate capacity used by the cost calculation."""
+
+    kind: WorkloadKind
+    streams: int | None
+    images_per_day: int | None
+    n_instances: int
+    hours_per_mo: int
+    gpu_hours_per_mo: int
+    ops_hours_per_week: float
+    fps_per_stream: int | None
+    capacity_images_per_second: int
+
+
+@dataclass(frozen=True)
+class ErrorCostInputs:
+    """Validated loss and rate evidence, with an explicit daily decision volume."""
+
+    error_cost_usd: float
+    error_cost_source: str
+    error_cost_as_of: str
+    current_error_rate: float
+    model_error_rate: float
+    error_rates_source: str
+    model_error_rate_upper: float | None
+    decisions_per_day: int
+    decisions_source: str
 
 
 CREDIT_PLAN_LABELS: dict[CreditPlan, str] = {
@@ -674,6 +711,104 @@ def _decide(managed: ManagedSide, total_run_rate_mo: float, setup_one_time: floa
     return "managed", None, reason
 
 
+def _estimate_workload(args: argparse.Namespace) -> WorkloadEstimate:
+    """Resolve aggregate billed GPU hours without multiplying batch hours by instances."""
+    capacity = STREAMS_PER_INSTANCE[args.model_size] * BASELINE_FPS
+    kind = getattr(args, "workload_kind", WorkloadKind.STREAMS)
+    if kind == WorkloadKind.BATCH:
+        # Integer ceiling preserves the exact one-image boundary even at large volumes.
+        images_per_hour = capacity * 3600
+        hours_per_day = max(1, (args.images_per_day + images_per_hour - 1) // images_per_hour)
+        instances = (hours_per_day + 23) // 24
+        return WorkloadEstimate(
+            kind,
+            None,
+            args.images_per_day,
+            instances,
+            hours_per_day * 30,
+            hours_per_day * 30,
+            ops_hours_per_week(instances),
+            None,
+            capacity,
+        )
+    hours = hours_per_month(args.uptime)
+    instances = instances_needed(args.streams, args.model_size, args.fps)
+    return WorkloadEstimate(
+        kind,
+        args.streams,
+        None,
+        instances,
+        hours,
+        hours * instances,
+        ops_hours_per_week(args.streams),
+        args.fps,
+        capacity,
+    )
+
+
+def _workload_block(workload: WorkloadEstimate) -> dict[str, Any]:
+    """Serialize workload units without treating frames as business decisions."""
+    return {
+        "kind": workload.kind.value,
+        "streams": workload.streams,
+        "images_per_day": workload.images_per_day,
+        "images_per_month": workload.images_per_day * 30 if workload.images_per_day is not None else None,
+    }
+
+
+def _batch_capacity_fields(workload: WorkloadEstimate) -> dict[str, Any]:
+    """Expose batch capacity without changing the stream payload's existing shape."""
+    if workload.kind != WorkloadKind.BATCH:
+        return {}
+    return {
+        "hours_per_mo": workload.hours_per_mo,
+        "fps_per_stream": None,
+        "capacity_basis_images_per_second": workload.capacity_images_per_second,
+    }
+
+
+def _workload_cliff(
+    workload: WorkloadEstimate,
+    args: argparse.Namespace,
+    gpu_rate: float,
+) -> tuple[str, float]:
+    """Describe stream instance cliffs or batch hourly billing and daily capacity."""
+    if workload.kind == WorkloadKind.STREAMS:
+        return _scaling_cliff(args.streams, args.model_size, gpu_rate, workload.hours_per_mo, args.fps)
+    daily_capacity = workload.n_instances * 24 * 3600 * workload.capacity_images_per_second
+    incremental = round(gpu_rate * 30, 2)
+    note = (
+        f"Each extra billed GPU hour per day adds ~${incremental:,.2f}/mo; "
+        f"a further instance is needed above {daily_capacity} images/day because the work "
+        "no longer fits in 24 hours on the current instances."
+    )
+    return note, incremental
+
+
+def _compute_value(
+    inputs: ErrorCostInputs | None,
+    diy_run_rate: float,
+    managed_total: float | None,
+) -> dict[str, Any] | None:
+    """Compute error-cost value independently of the cost-only recommendation."""
+    if inputs is None:
+        return None
+    decisions_mo = inputs.decisions_per_day * 30
+    avoided = decisions_mo * (inputs.current_error_rate - inputs.model_error_rate)
+    value = avoided * inputs.error_cost_usd
+    low = None
+    if inputs.model_error_rate_upper is not None:
+        low = decisions_mo * (inputs.current_error_rate - inputs.model_error_rate_upper) * inputs.error_cost_usd
+    return asdict(inputs) | {
+        "decisions_per_month": decisions_mo,
+        "errors_avoided_mo": avoided,
+        "value_at_stake_usd_mo": value,
+        "value_at_stake_low_usd_mo": low,
+        "value_minus_diy_run_rate_usd_mo": value - diy_run_rate,
+        "value_minus_managed_usd_mo": value - managed_total if managed_total is not None else None,
+    }
+
+
 def compute(args: argparse.Namespace, snapshot: dict[str, Any]) -> dict[str, Any]:
     """Compute the full DIY-vs-managed comparison result.
 
@@ -709,8 +844,7 @@ def compute(args: argparse.Namespace, snapshot: dict[str, Any]) -> dict[str, Any
     as_of = snapshot["as_of"]
     tiers = load_credit_tiers(managed_src)
 
-    hours = hours_per_month(args.uptime)
-    n_instances = instances_needed(args.streams, args.model_size, args.fps)
+    workload = _estimate_workload(args)
     gpu_rate = _resolve_gpu_rate(args, gpu_src)
     engineer_hourly = (
         float(args.override_engineer) if args.override_engineer is not None else float(eng_src["hourly_usd"])
@@ -721,7 +855,8 @@ def compute(args: argparse.Namespace, snapshot: dict[str, Any]) -> dict[str, Any
         gpu_cost_mo = 0.0
         gpu_note = "existing hardware"
     else:
-        gpu_cost_mo = round(gpu_rate * hours * n_instances, 2)
+        multiplier = workload.n_instances if workload.kind == WorkloadKind.STREAMS else 1
+        gpu_cost_mo = round(gpu_rate * workload.hours_per_mo * multiplier, 2)
         gpu_note = None
 
     # 2. One-time engineer setup.
@@ -729,7 +864,7 @@ def compute(args: argparse.Namespace, snapshot: dict[str, Any]) -> dict[str, Any
     setup_one_time = round(setup_hours * engineer_hourly, 2)
 
     # 3. Ongoing ops/monitoring.
-    ops_hpw = ops_hours_per_week(args.streams)
+    ops_hpw = workload.ops_hours_per_week
     ops_mo = round(ops_hpw * WEEKS_PER_MONTH * engineer_hourly, 2)
 
     # 4. Drift monitoring + retraining budget.
@@ -738,7 +873,7 @@ def compute(args: argparse.Namespace, snapshot: dict[str, Any]) -> dict[str, Any
     total_run_rate_mo = round(gpu_cost_mo + ops_mo + drift_mo, 2)
 
     # 5. Scaling cliff note (reported, not summed).
-    cliff, cliff_incremental = _scaling_cliff(args.streams, args.model_size, gpu_rate, hours, args.fps)
+    cliff, cliff_incremental = _workload_cliff(workload, args, gpu_rate)
 
     # Managed side: user quote > public credit plan > abstain.
     managed = _resolve_managed(args, managed_src, as_of, tiers)
@@ -746,12 +881,14 @@ def compute(args: argparse.Namespace, snapshot: dict[str, Any]) -> dict[str, Any
 
     return {
         "as_of": as_of,
+        "workload": _workload_block(workload),
+        "value": _compute_value(getattr(args, "value_inputs", None), total_run_rate_mo, managed.total_mo),
         "recommendation": recommendation,
         "reason": reason,
         "diy": {
             "gpu_cost_mo": gpu_cost_mo,
             "gpu_note": gpu_note,
-            "n_instances": n_instances,
+            "n_instances": workload.n_instances,
             "setup_one_time": setup_one_time,
             "setup_hours": setup_hours,
             "ops_mo": ops_mo,
@@ -759,10 +896,11 @@ def compute(args: argparse.Namespace, snapshot: dict[str, Any]) -> dict[str, Any
             "drift_mo": drift_mo,
             "total_run_rate_mo": total_run_rate_mo,
             "gpu_rate_usd_hr": gpu_rate,
-            "hours_per_mo": hours,
+            "hours_per_mo": workload.hours_per_mo,
             "pricing_mode": _pricing_mode(args),
-            "fps_per_stream": args.fps,
+            "fps_per_stream": workload.fps_per_stream,
             "capacity_basis_fps": BASELINE_FPS,
+            **_batch_capacity_fields(workload),
         },
         "managed": {
             "total_mo": managed.total_mo,
@@ -808,6 +946,8 @@ def render_json(result: dict[str, Any]) -> str:
     )
     payload = {
         "proof": proof,
+        "workload": result["workload"],
+        "value": result["value"],
         "recommendation": result["recommendation"],
         "reason": result["reason"],
         "diy": {
@@ -831,6 +971,9 @@ def render_json(result: dict[str, Any]) -> str:
         "scaling_cliff_incremental_usd_mo": result["scaling_cliff_incremental_usd_mo"],
         "sources": result["sources"],
     }
+    if result["workload"]["kind"] == WorkloadKind.BATCH:
+        for key in ("hours_per_mo", "fps_per_stream", "capacity_basis_images_per_second"):
+            payload["diy"][key] = diy[key]
     return json.dumps(payload, indent=2, allow_nan=False)
 
 
@@ -845,11 +988,97 @@ def render_text(result: dict[str, Any], args: argparse.Namespace, stale_days: in
         if proof["status"] == "bound"
         else "Proof binding: unbound assumptions only; not decision-grade evidence"
     )
-    lines = [proof_line, ""]
+    lines = [f"Workload: {_workload_label(args)}", proof_line, ""]
     lines.extend(_render_diy_section(result, args, stale_days))
     lines.extend(_render_managed_section(result, args))
     lines.extend(_render_decision_section(result, args))
+    lines.extend(_render_value_section(result, args))
     return "\n".join(lines)
+
+
+def _workload_label(args: argparse.Namespace) -> str:
+    """Name batch images or stream count without implying a managed usage figure."""
+    if args.workload_kind == WorkloadKind.BATCH:
+        return f"{args.images_per_day} images/day (batch)"
+    return f"{args.streams} streams"
+
+
+def _render_value_section(result: dict[str, Any], args: argparse.Namespace) -> list[str]:
+    """Report optional error-cost value with its loss evidence on every dollar line."""
+    value = result["value"]
+    if value is None:
+        return [
+            "",
+            "Value at stake: not computed (supply --error-cost-usd, --current-error-rate, "
+            "--model-error-rate and their sources).",
+        ]
+    cite = (
+        f"[source: {value['error_cost_source']}, as_of: {value['error_cost_as_of']}] "
+        f"[rates source: {value['error_rates_source']}]"
+    )
+    lines = [
+        "",
+        "Value at stake:",
+        f"  Error cost: ~${value['error_cost_usd']:,.2f}/wrong decision  {cite}",
+        f"  Error rates: current process {value['current_error_rate']:g}, model {value['model_error_rate']:g} "
+        f"[source: {value['error_rates_source']}]",
+        f"  Decisions: {value['decisions_per_day']:,}/day; {value['decisions_per_month']:,}/month "
+        f"({value['decisions_source']})",
+        f"  Errors avoided: {value['errors_avoided_mo']:,.2f}/month",
+        f"  Monthly value: ~${value['value_at_stake_usd_mo']:,.2f}/mo  {cite}",
+    ]
+    if value["model_error_rate"] >= value["current_error_rate"]:
+        lines.append("  The model avoids no errors at the supplied rates.")
+    if value["value_at_stake_low_usd_mo"] is not None:
+        lines.append(
+            f"  Low bound (model rate 95% interval upper end {value['model_error_rate_upper']:g}): "
+            f"~${value['value_at_stake_low_usd_mo']:,.2f}/mo  {cite}"
+        )
+    lines.extend(_render_value_net_lines(result, args, cite))
+    return lines
+
+
+def _cost_cite(result: dict[str, Any], args: argparse.Namespace, component: str) -> str:
+    """Cite a GPU or engineering rate, dating user overrides to this run.
+
+    Args:
+        result: Computed costs and snapshot provenance.
+        args: Parsed CLI inputs controlling cost overrides.
+        component: Either ``gpu`` or ``engineer``.
+
+    Returns:
+        A source-and-date citation for the snapshot rate or user override.
+    """
+    source = result["sources"][f"{component}_source_url"]
+    as_of = result["sources"][f"{component}_as_of"]
+    override = args.override_gpu_spot if component == "gpu" else args.override_engineer
+    if override is not None:
+        source, as_of = "user override", date.today().isoformat()
+    label = "GPU" if component == "gpu" else "engineer"
+    return f"[source: {label} {source}, as_of: {as_of}]"
+
+
+def _render_value_net_lines(result: dict[str, Any], args: argparse.Namespace, value_cite: str) -> list[str]:
+    """Attach the cost provenance to each value-minus-cost dollar line."""
+    value = result["value"]
+    src = result["sources"]
+    gpu_cite = (
+        f"[source: GPU existing hardware, as_of: {date.today().isoformat()}]"
+        if args.existing_gpu
+        else _cost_cite(result, args, "gpu")
+    )
+    diy_cite = f"{gpu_cite} {_cost_cite(result, args, 'engineer')} [source: drift estimate, as_of: {result['as_of']}]"
+    lines = [
+        f"  Value minus DIY run-rate: ~${value['value_minus_diy_run_rate_usd_mo']:,.2f}/mo  {value_cite}  {diy_cite}"
+    ]
+    if value["value_minus_managed_usd_mo"] is None:
+        lines.append("  Value minus managed: not computed (no comparable managed figure).")
+    else:
+        lines.append(
+            f"  Value minus managed: ~${value['value_minus_managed_usd_mo']:,.2f}/mo  {value_cite}  "
+            f"[source: {src['managed_source_url']}, as_of: {src['managed_as_of']}]"
+        )
+    return lines
 
 
 def _render_diy_section(result: dict[str, Any], args: argparse.Namespace, stale_days: int | None) -> list[str]:
@@ -873,7 +1102,10 @@ def _render_diy_section(result: dict[str, Any], args: argparse.Namespace, stale_
         staleness = f" — WARNING: snapshot is {stale_days} days old, re-confirm prices"
     lines.append(f"Back-of-envelope (as of {as_of} — re-confirm if >30 days old){staleness}:")
     lines.append("")
-    lines.append(f"Self-host ({args.streams} streams, {args.fps} FPS each, {args.uptime}):")
+    if args.workload_kind == WorkloadKind.BATCH:
+        lines.append(f"Self-host ({_workload_label(args)}, {diy['hours_per_mo']} billed GPU hours/month):")
+    else:
+        lines.append(f"Self-host ({args.streams} streams, {args.fps} FPS each, {args.uptime}):")
 
     gpu_label = (
         "existing hardware, $0" if diy["gpu_note"] else f"{diy['n_instances']}x g4dn.xlarge, {diy['pricing_mode']}"
@@ -924,7 +1156,7 @@ def _render_managed_section(result: dict[str, Any], args: argparse.Namespace) ->
         lines = _render_credit_plan_lines(managed, args)
     elif managed["total_mo"] is None:
         cite = f"[source: {managed['source']}, as_of: {src['managed_as_of']}]"
-        lines = [f"Roboflow managed ({args.streams} streams): no comparable figure"]
+        lines = [f"Roboflow managed ({_workload_label(args)}): no comparable figure"]
         if credit_plan is not None:
             lines.append(f"  Credits not priceable: {credit_plan['reason']}  {cite}  {_credits_cite(credit_plan)}")
         lines.append(
@@ -935,7 +1167,7 @@ def _render_managed_section(result: dict[str, Any], args: argparse.Namespace) ->
         )
     else:
         lines = [
-            f"Roboflow managed ({args.streams} streams):".ljust(42)
+            f"Roboflow managed ({_workload_label(args)}):".ljust(42)
             + f"~${managed['total_mo']:,.0f}/mo  "
             + f"[source: {managed['source']}, as_of: {src['managed_as_of']}]",
             "  Note: No public per-stream price. Figure above is a user-provided enterprise quote.",
@@ -979,7 +1211,7 @@ def _render_credit_plan_lines(managed: dict[str, Any], args: argparse.Namespace)
             f" = ${plan['extra_usd_mo']:,.0f}"
         )
     return [
-        f"Roboflow managed ({args.streams} streams, public credit plan): ".ljust(42)
+        f"Roboflow managed ({_workload_label(args)}, public credit plan): ".ljust(42)
         + f"~${managed['total_mo']:,.0f}/mo  {cite}",
         f"{breakdown}  {cite}",
         f"  Credits/mo: {plan['credits_mo']:g} (user-supplied, not inferred from FPS)  {_credits_cite(plan)}",
@@ -1006,9 +1238,13 @@ def _render_decision_section(result: dict[str, Any], args: argparse.Namespace) -
     if result["recommendation"] == "insufficient-data":
         lines.append("Crossover: not computable without a real managed figure.")
     elif result["recommendation"] == "diy":
+        context = (
+            _workload_label(args)
+            if args.workload_kind == WorkloadKind.BATCH
+            else f"{args.streams} streams {args.uptime}"
+        )
         lines.append(
-            f"Crossover: At {args.streams} streams {args.uptime} with a "
-            f"${managed['total_mo']:,.0f}/mo managed figure, {result['reason']}."
+            f"Crossover: At {context} with a ${managed['total_mo']:,.0f}/mo managed figure, {result['reason']}."
         )
     else:
         lines.append(f"Crossover: {result['reason']}.")
@@ -1021,12 +1257,11 @@ def _render_decision_section(result: dict[str, Any], args: argparse.Namespace) -
         alt = "Managed" if rec_label == "DIY" else "DIY"
         lines.append(f'Recommendation: {rec_label}  <- (or "{alt}" if the other is cheaper)')
     lines.append("")
-    lines.append(f"Scaling cliff: {result['scaling_cliff']}")
-    lines.append(
-        "Capacity assumption: committed streams-per-instance estimates are calibrated "
-        f"at {BASELINE_FPS} FPS and scale linearly with requested FPS; benchmark the "
-        "selected runtime before purchase."
-    )
+    if args.workload_kind == WorkloadKind.BATCH:
+        lines.append(f"Batch scaling: {result['scaling_cliff']}  {_cost_cite(result, args, 'gpu')}")
+    else:
+        lines.append(f"Scaling cliff: {result['scaling_cliff']}")
+    lines.append(_capacity_assumption(result))
     lines.append("")
     lines.append("Sources:")
     lines.append(f"  GPU rate:  {src['gpu_source_url']} (as_of: {src['gpu_as_of']})")
@@ -1043,27 +1278,71 @@ def _render_decision_section(result: dict[str, Any], args: argparse.Namespace) -
     return lines
 
 
+def _capacity_assumption(result: dict[str, Any]) -> str:
+    """State the capacity calibration and the billing rule for the chosen workload."""
+    if result["workload"]["kind"] == WorkloadKind.BATCH:
+        return (
+            f"Capacity assumption: one instance processes {result['diy']['capacity_basis_images_per_second']} "
+            f"images/second (committed streams per instance x {BASELINE_FPS} baseline FPS), "
+            "with aggregate GPU time rounded up to whole hours daily (minimum one hour); "
+            "ops hours use the stream-count table with the instance count; "
+            "benchmark the selected runtime before purchase."
+        )
+    return (
+        "Capacity assumption: committed streams-per-instance estimates are calibrated "
+        f"at {BASELINE_FPS} FPS and scale linearly with requested FPS; benchmark the "
+        "selected runtime before purchase."
+    )
+
+
 # --------------------------------------------------------------------------- #
 # CLI.
 # --------------------------------------------------------------------------- #
+def _add_workload_arguments(parser: argparse.ArgumentParser) -> None:
+    """Declare mutually exclusive workload units, resolving defaults during validation."""
+    parser.add_argument("--streams", type=int, help="Number of camera streams; choose this or --images-per-day.")
+    parser.add_argument("--images-per-day", type=int, help="Batch images per day; choose this or --streams.")
+    parser.add_argument("--fps", type=int, default=None, help="Stream FPS (default: 10); invalid for batch.")
+    parser.add_argument(
+        "--uptime",
+        choices=["24x7", "business"],
+        default=None,
+        help="Stream uptime (default: 24x7; business = ~176h/mo); invalid for batch.",
+    )
+
+
+def _add_value_arguments(parser: argparse.ArgumentParser) -> None:
+    """Declare optional error-cost evidence and an independent decision volume."""
+    parser.add_argument("--error-cost-usd", type=float, help="Cost in USD of one wrong decision (>= 0).")
+    parser.add_argument("--error-cost-source", help="Text or URL supporting the error cost.")
+    parser.add_argument("--error-cost-as-of", help="Non-future ISO date of the error cost.")
+    parser.add_argument(
+        "--current-error-rate",
+        type=float,
+        help="Error rate of the process in place today, before the model (fraction, 0 to 1).",
+    )
+    parser.add_argument("--model-error-rate", type=float, help="Model wrong decisions as a fraction (0 to 1).")
+    parser.add_argument("--error-rates-source", help="Evidence supporting both error rates.")
+    parser.add_argument("--model-error-rate-upper", type=float, help="Upper end of the model rate's 95%% interval.")
+    parser.add_argument(
+        "--decisions-per-day",
+        type=int,
+        help="Daily business decisions; defaults to batch images/day, required with stream error-cost evidence.",
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     """Construct the argument parser."""
     p = argparse.ArgumentParser(
         description="DIY self-hosting vs Roboflow managed cost crossover estimator.",
     )
-    p.add_argument("--streams", type=int, required=True, help="Number of camera streams.")
-    p.add_argument("--fps", type=int, default=10, help="Frames per second per stream.")
+    _add_workload_arguments(p)
+    _add_value_arguments(p)
     p.add_argument(
         "--model-size",
         choices=["nano", "medium", "large"],
         default="medium",
         help="Model size class.",
-    )
-    p.add_argument(
-        "--uptime",
-        choices=["24x7", "business"],
-        default="24x7",
-        help="Uptime profile (business = ~176h/mo).",
     )
     p.add_argument(
         "--region",
@@ -1147,10 +1426,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 def _validate(args: argparse.Namespace) -> None:
     """Validate CLI inputs at the boundary."""
-    if args.streams < 1:
-        raise CostModelError("--streams must be >= 1")
-    if args.fps < 1:
-        raise CostModelError("--fps must be >= 1")
+    _validate_workload(args)
+    args.value_inputs = _validate_value_inputs(args)
     for name, val in (
         ("--managed-usd-mo", args.managed_usd_mo),
         ("--managed-credits-mo", args.managed_credits_mo),
@@ -1165,6 +1442,85 @@ def _validate(args: argparse.Namespace) -> None:
             raise CostModelError(f"{name} must be >= 0")
     _validate_managed_quote(args)
     _validate_credit_inputs(args)
+
+
+def _validate_workload(args: argparse.Namespace) -> None:
+    """Choose one workload kind and reject stream settings on batch inputs."""
+    if (args.streams is None) == (args.images_per_day is None):
+        raise CostModelError("supply exactly one of --streams and --images-per-day")
+    args.workload_kind = WorkloadKind("streams" if args.streams is not None else "batch")
+    for flag, value in (("--streams", args.streams), ("--images-per-day", args.images_per_day)):
+        if value is not None and value < 1:
+            raise CostModelError(f"{flag} must be >= 1")
+    if args.workload_kind == WorkloadKind.BATCH:
+        for flag, value in (("--fps", args.fps), ("--uptime", args.uptime)):
+            if value is not None:
+                raise CostModelError(f"{flag} does not apply with --images-per-day")
+        return
+    args.fps = BASELINE_FPS if args.fps is None else args.fps
+    args.uptime = "24x7" if args.uptime is None else args.uptime
+    if args.fps < 1:
+        raise CostModelError("--fps must be >= 1")
+
+
+def _require_numeric_range(value: float, flag: str, minimum: float, maximum: float | None = None) -> None:
+    """Reject non-finite values before checking an inclusive numeric range."""
+    if not math.isfinite(value):
+        raise CostModelError(f"{flag} must be finite")
+    if value < minimum:
+        raise CostModelError(f"{flag} must be >= {minimum:g}")
+    if maximum is not None and value > maximum:
+        raise CostModelError(f"{flag} must be <= {maximum:g}")
+
+
+def _validate_value_inputs(args: argparse.Namespace) -> ErrorCostInputs | None:
+    """Require complete error-cost provenance and resolve daily decisions explicitly."""
+    names = (
+        "error_cost_usd",
+        "error_cost_source",
+        "error_cost_as_of",
+        "current_error_rate",
+        "model_error_rate",
+        "error_rates_source",
+    )
+    missing = ["--" + name.replace("_", "-") for name in names if getattr(args, name) is None]
+    if args.decisions_per_day is not None and args.decisions_per_day < 1:
+        raise CostModelError("--decisions-per-day must be >= 1")
+    extras = args.model_error_rate_upper is not None or args.decisions_per_day is not None
+    if len(missing) == len(names) and not extras:
+        return None
+    if missing:
+        raise CostModelError("error-cost value requires " + ", ".join(missing))
+    _validate_error_evidence(args)
+    decisions = args.decisions_per_day
+    if decisions is None:
+        decisions = args.images_per_day
+    if decisions is None:
+        raise CostModelError("error-cost value in stream mode requires --decisions-per-day")
+    return ErrorCostInputs(
+        args.error_cost_usd,
+        args.error_cost_source,
+        args.error_cost_as_of,
+        args.current_error_rate,
+        args.model_error_rate,
+        args.error_rates_source,
+        args.model_error_rate_upper,
+        decisions,
+        "decisions-per-day option" if args.decisions_per_day is not None else "images-per-day, one decision per image",
+    )
+
+
+def _validate_error_evidence(args: argparse.Namespace) -> None:
+    """Check dated loss provenance and bounded error rates, including the optional interval."""
+    for name in ("error_cost_source", "error_rates_source"):
+        if not getattr(args, name).strip():
+            raise CostModelError(f"--{name.replace('_', '-')} must be non-empty text")
+    _require_past_iso_date(args.error_cost_as_of, "--error-cost-as-of")
+    _require_numeric_range(args.error_cost_usd, "--error-cost-usd", 0)
+    _require_numeric_range(args.current_error_rate, "--current-error-rate", 0, 1)
+    _require_numeric_range(args.model_error_rate, "--model-error-rate", 0, 1)
+    if args.model_error_rate_upper is not None:
+        _require_numeric_range(args.model_error_rate_upper, "--model-error-rate-upper", args.model_error_rate, 1)
 
 
 def _load_acceptance_binding(path: Path | None) -> dict[str, str]:
@@ -1231,17 +1587,21 @@ def _validate_acceptance_fields(data: dict[str, Any]) -> str:
         raise CostModelError("--acceptance threshold must be finite numeric")
     if data["comparator"] not in {"gte", "lte"}:
         raise CostModelError("--acceptance comparator must be gte or lte")
-    dataset_digest = data["dataset_sha256"]
+    _validate_dataset_digest(data["dataset_sha256"])
+    for field in ("metric", "unit", "model_or_pipeline", "confirmed_by"):
+        if not isinstance(data[field], str) or not data[field].strip():
+            raise CostModelError(f"--acceptance {field} must be non-empty text")
+    return acceptance_id
+
+
+def _validate_dataset_digest(dataset_digest: Any) -> None:
+    """Require the acceptance dataset binding to be a lowercase SHA-256 digest."""
     if (
         not isinstance(dataset_digest, str)
         or len(dataset_digest) != 64
         or any(character not in "0123456789abcdef" for character in dataset_digest)
     ):
         raise CostModelError("--acceptance dataset_sha256 must be lowercase SHA-256")
-    for field in ("metric", "unit", "model_or_pipeline", "confirmed_by"):
-        if not isinstance(data[field], str) or not data[field].strip():
-            raise CostModelError(f"--acceptance {field} must be non-empty text")
-    return acceptance_id
 
 
 def _validate_managed_quote(args: argparse.Namespace) -> None:

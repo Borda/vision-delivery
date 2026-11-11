@@ -78,6 +78,8 @@ A self-test without the applicable live/offline path leaves the artifact a `scaf
 
 Run `../../resources/scripts/validate_delivery_handoff.py` against the completed handoff and project root. Do not emit `artifact_verified` or `delivery_handoff_emitted` until both the artifact smoke helper and handoff validator pass.
 
+To learn whether the whole delivery passes its checks, run `../../resources/scripts/check_delivery.py --project-root <project-root>` and report its whole plain line as printed, limits and caveats included: `DELIVERY CHECKS PASSED for acceptance <acceptance_id>.` followed by `Every record agrees with the frozen target and with the artifact on disk; it is not shown that the scored predictions came from this artifact, and nothing is signed.`, or `DELIVERY CHECKS FAILED: <step>: <reason>`. Never shorten a passed line to "proven" or drop its limits. It reads files only: it never runs artifact code and never performs an `--execute-reviewed` step. It scores the baseline's label and prediction files again, so keep them and the scorer evidence `.vision-delivery/baseline-<acceptance revision>.json` in `.vision-delivery/`. `../../resources/threat-model.md` states which step defends against what.
+
 ## Step 4 — Operational handoff
 
 Define the smallest safe operating loop:
@@ -90,6 +92,8 @@ Define the smallest safe operating loop:
 - retraining or active-learning entry condition, delegated upstream when platform-specific.
 
 Do not claim ongoing monitoring exists because a plan was written. Mark each capability `verified`, `external`, or `not-configured`.
+
+The drift check is runnable. When the user returns with fresh images the baseline did not use, the person labels them (`../../resources/scripts/label_gold.py`, a new label file), the delivered artifact predicts on them, and `../../resources/scripts/recheck.py` scores that sample against the same frozen acceptance and the baseline evidence file, writes a new evidence file, and records a `recheck_measured` ledger row (`../../resources/ledger-protocol.md`, Rechecks). Pass the original baseline evidence, never an earlier recheck's evidence file; the helper needs a passing scorer record for this acceptance. Freeze the fresh predictions first (`../../resources/scripts/freeze_predictions.py`) and pass `--frozen-ledger`, and pass `--baseline-gold <baseline label file>` when that file is not in the ledger's folder, so the helper can refuse images the baseline used. Report its two plain lines as printed, every sentence: `HOLDS`, `DRIFTED`, or `UNCERTAIN`, where the fresh interval lies relative to the baseline value, and any note that overlap was not checked or that the predictions were not frozen. `UNCERTAIN` is not a pass: label more fresh images. Never recheck on the baseline's own labels; the helper refuses that label file, and, when it can read the baseline labels, the same labels in another file.
 
 ## Step 5 — Emit the delivery handoff
 
@@ -160,5 +164,6 @@ Follow `../../resources/ledger-protocol.md`. After the artifact checks pass, man
 - Hosted data movement is required → emit a sourced action brief and stop; conversational consent does not authorize Sentinel to send data.
 - Provider action is required → emit a sourced action brief and stop; conversational consent does not authorize Sentinel execution.
 - Live/offline smoke not run → do not call delivery complete.
+- `check_delivery.py` prints `DELIVERY CHECKS FAILED` → do not say the delivery checks passed; name the step it reports.
 
 \</stop_rules>

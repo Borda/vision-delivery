@@ -221,7 +221,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("name", help="skill directory name, lowercase words joined by hyphens")
     parser.add_argument("--kind", required=True, choices=[kind.value for kind in SkillKind])
     parser.add_argument("--use", required=True, help="one-line use, as the roster and docs/llms.txt show it")
-    parser.add_argument("--scorer", choices=[task.value for task in ScorerTask], help="flagship routes only")
+    parser.add_argument(
+        "--scorer",
+        choices=[task.value for task in ScorerTask],
+        help="required for a flagship route, optional for a preview route",
+    )
     parser.add_argument(
         "--surface",
         action="append",

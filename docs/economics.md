@@ -68,7 +68,20 @@ python scripts/cost_model.py --streams 5 --fps 10 --model-size medium --uptime 2
 # Roboflow credit use known (from the user or current Roboflow guidance):
 python scripts/cost_model.py --streams 5 --fps 10 --model-size medium --uptime 24x7 --region us-east-1 \
     --managed-credits-mo 120 --credits-source "Roboflow usage page, workspace X" --credits-as-of 2026-10-01
+
+# A batch of images per day instead of always-on streams:
+python scripts/cost_model.py --images-per-day 20000 --model-size medium --region us-east-1
+
+# Value at stake, from your own numbers (cost of one wrong decision, both error rates, their sources):
+python scripts/cost_model.py --images-per-day 20000 --model-size medium --region us-east-1 \
+    --error-cost-usd 40 --error-cost-source "returns ledger, Q3" --error-cost-as-of 2026-10-01 \
+    --current-error-rate 0.08 --model-error-rate 0.03 --model-error-rate-upper 0.05 \
+    --error-rates-source "current: QA audit log, Q3; model: scorer evidence file, 400 labeled images"
 ```
+
+`--images-per-day` prices a batch workload: GPU time is billed in whole hours per day from the same screening capacity table, and `--fps` and `--uptime` do not apply. Exactly one of `--streams` and `--images-per-day` is given.
+
+The value options are optional and never change the cost recommendation. The model multiplies decisions per month by the gap between the two error rates and by the cost of one wrong decision, and prints the result against each cost option. `--current-error-rate` is how often the process in place today is wrong, from your own records; `--model-error-rate` is the model's measured error rate (1 minus a success rate such as accuracy), and `--model-error-rate-upper` is the upper end of its 95% interval. The error cost and both rates are yours and carry your source and date; the model invents none of them. In batch mode it counts one decision per image unless you pass `--decisions-per-day`, and the output says which it used. In stream mode, `--decisions-per-day` is required. Without these options the output says "Value at stake: not computed".
 
 Roboflow bills managed usage in credits. With `--managed-credits-mo`, the model prices that usage against the public plan anchors in the snapshot (Free, Core floor and ceiling, on-demand extra credits) and compares it with DIY. The result is tagged `basis: public-credit-plan`. It is an upper bound that excludes Enterprise scope (SLA, priority GPU, managed GPU cluster). Above 500 credits/month the model abstains, because pricing there is Enterprise-only. A dated `--managed-usd-mo` quote always takes precedence.
 

@@ -191,7 +191,7 @@ def freeze(args: argparse.Namespace) -> dict[str, Any]:
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     """Parse freeze inputs."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--task", required=True, choices=("count", "flag"))
+    parser.add_argument("--task", required=True, choices=("count", "flag", "text"))
     parser.add_argument("--gold", required=True, type=Path, help="gold label file the predictions will be scored on")
     parser.add_argument("--pred", required=True, type=Path, help="prediction file to freeze")
     parser.add_argument(

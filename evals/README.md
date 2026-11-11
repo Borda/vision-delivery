@@ -16,15 +16,17 @@ make eval
 | `make eval-doctor`           | `check-sentinel-setup` doctor: healthy pass + host-mismatch rejection   | ~5 s  |
 | `make eval-trigger`          | Skill SKILL.md descriptions declare correct TRIGGER/SKIP surface        | ~1 s  |
 | `make eval-entrypoints`      | Entry-point adapters stay consistent across hosts                       | ~1 s  |
-| `make eval-cost-model`       | Cost model math, provenance, and numeric-boundary guards                | ~2 s  |
+| `make eval-cost-model`       | Cost model math, batch workload, value at stake, provenance guards      | ~2 s  |
 | `make eval-platform-routing` | Roboflow platform lookups stay thin, source-backed, and fallback-only   | ~1 s  |
 | `make eval-hooks`            | `cta.js` ledger hook + `gate.js` PreToolUse paid-action gate            | ~1 s  |
-| `make eval-baseline`         | Rung 0 baseline scorer: count/flag metrics, frozen-target verdicts      | ~1 s  |
+| `make eval-baseline`         | Rung 0 baseline scorer: count, flag, and text metrics, verdicts         | ~3 s  |
 | `make eval-labeling`         | Gold-labeling helper, prediction freeze, `--frozen-ledger` refusal      | ~5 s  |
+| `make eval-adapter`          | Detections-to-counts adapter: policy, refusals, scorer round trip       | ~3 s  |
+| `make eval-recheck`          | Recheck against the frozen acceptance: drift status, refusals, ledger   | ~5 s  |
 | `make eval-ab-metrics`       | A/B analyzer metric v5 (trap resistance) on synthetic run fixtures      | ~2 s  |
 | `make eval-ledger`           | Ledger append dedup/conflict + report metrics                           | ~1 s  |
 | `make eval-methodology`      | FDE methodology contracts (acceptance, thresholds, routing, surface)    | ~1 s  |
-| `make eval-artifacts`        | Artifact contract: smoke helper, secret rejection, handoff matrix       | ~5 s  |
+| `make eval-artifacts`        | Artifact contract, handoff matrix, and the one delivery-check command   | ~7 s  |
 | `make eval-decision-report`  | Decision-report contract (options, source format, schema version)       | ~1 s  |
 | `make eval-roster`           | One skill roster: schema, route scaffold in a temp root, listing drift  | ~5 s  |
 | `make eval-outcome-report`   | Outcome-report draft: form agreement, redaction, never writes or posts  | ~5 s  |

@@ -348,11 +348,11 @@ def _write_eval_files(vision: Path, metric: str) -> None:
 
 
 def _scorer_metric_names() -> set[str]:
-    """Read the scorer's count and flag metric tuples from its source, without importing it."""
+    """Read the scorer's count, flag, and text metric tuples from its source, without importing it."""
     names: set[str] = set()
     for node in ast.parse(SCORER.read_text(encoding="utf-8")).body:
         targets = [item.id for item in getattr(node, "targets", []) if isinstance(item, ast.Name)]
-        if isinstance(node, ast.Assign) and {"COUNT_METRICS", "FLAG_METRICS"} & set(targets):
+        if isinstance(node, ast.Assign) and {"COUNT_METRICS", "FLAG_METRICS", "TEXT_METRICS"} & set(targets):
             names.update(ast.literal_eval(node.value))
     return names
 

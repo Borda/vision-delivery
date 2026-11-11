@@ -19,16 +19,16 @@ Exit criterion: a Markdown file the user can hand to their manager. Every materi
 
 Read these sources before writing. Do not ask for information the codebase already has.
 
-| Section                     | Source                                                                                                                                          |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| PoC result + eval data (§4) | Packaged `scripts/baseline_map.py` output, or `.vision-delivery/ledger.jsonl` for session history; current Roboflow evidence delegated upstream |
-| Frozen proof identity       | Acceptance, baseline, handoff, ledger, and economics artifacts validated together with `../../resources/scripts/validate_proof_chain.py`        |
-| Economics + crossover (§6)  | Absolute packaged `scripts/cost_model.py --streams <N> ...` output — run with the user's inputs; never hardcode figures                         |
-| Options analysis (§5)       | User-stated constraints + cost_model.py DIY vs managed outputs                                                                                  |
-| Sensitivity (§6)            | Re-run `cost_model.py` with `--streams` / `--uptime` inputs at ±20%; report delta                                                               |
-| Eval threshold + model name | `.vision-delivery/eval-<session-id>.md` if present, else ask one targeted question                                                              |
+| Section                     | Source                                                                                                                                                                                                                                                                             |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PoC result + eval data (§4) | Scorer evidence from `../../resources/scripts/score_baseline.py --acceptance ... --evidence-out` (the proof chain accepts only a baseline with a verdict and a 95% interval), or `.vision-delivery/ledger.jsonl` for session history; current Roboflow evidence delegated upstream |
+| Frozen proof identity       | Acceptance, baseline, handoff, ledger, and economics artifacts validated together with `../../resources/scripts/validate_proof_chain.py`                                                                                                                                           |
+| Economics + crossover (§6)  | Absolute packaged `scripts/cost_model.py --streams <N> ...` output — run with the user's inputs; never hardcode figures                                                                                                                                                            |
+| Options analysis (§5)       | User-stated constraints + cost_model.py DIY vs managed outputs                                                                                                                                                                                                                     |
+| Sensitivity (§6)            | Re-run `cost_model.py` with `--streams` / `--uptime` (or `--images-per-day` for a batch workload) at ±20%; report delta                                                                                                                                                            |
+| Eval threshold + model name | `.vision-delivery/eval-<session-id>.md` if present, else ask one targeted question                                                                                                                                                                                                 |
 
-Resolve the plugin root from this loaded `skills/decision-report/SKILL.md`, then run `<plugin-root>/scripts/cost_model.py` by absolute path with `--acceptance <frozen-acceptance.json>`. Never assume the user's project contains the helper. Use its output verbatim for all economic figures — no paraphrasing, no rounding beyond what the script reports. Before writing, run `<plugin-root>/resources/scripts/validate_proof_chain.py` without `--report` to obtain the terminal `chain_id`. A decision-grade report must reject `proof.status: unbound`, a failed/mismatched baseline, an invalid handoff, missing proof ledger actions, or a ledger/cost record that names a different digest. Rough unbound economics may be reported only as assumptions and cannot end in `go`.
+Resolve the plugin root from this loaded `skills/decision-report/SKILL.md`, then run `<plugin-root>/scripts/cost_model.py` by absolute path with `--acceptance <frozen-acceptance.json>`. Never assume the user's project contains the helper. Use its output verbatim for all economic figures — no paraphrasing, no rounding beyond what the script reports. Before writing, run `<plugin-root>/resources/scripts/validate_proof_chain.py` without `--report` to obtain the terminal `chain_id`. The validator scores the baseline's label and prediction files again; when they are not in `<project-root>/.vision-delivery/`, add `--gold <label file> --pred <prediction file>`. It also refuses a chain whose latest recheck drifted or whose proof step later failed. A decision-grade report must reject `proof.status: unbound`, a failed/mismatched baseline, an invalid handoff, missing proof ledger actions, or a ledger/cost record that names a different digest. Rough unbound economics may be reported only as assumptions and cannot end in `go`.
 
 </inputs>
 
@@ -66,6 +66,8 @@ Honest pros/cons for each. Do not favour managed — the report must be able to 
 
 Every material line must carry `[source: <URL>, as_of: <YYYY-MM-DD>]`. Lines without provenance are report failures.
 
+For a batch workload run `cost_model.py` with `--images-per-day <N>` in place of `--streams <N>`; its output then names images per day and billed GPU hours where the structure below names streams and uptime.
+
 Structure (copy from `cost_model.py` output — do not rewrite):
 
 ```
@@ -91,7 +93,7 @@ Sensitivities (±20% on each live-fetched rate — re-run cost_model.py to gener
 
 **7. Risk analysis** Top risks by likelihood × impact. Mitigations. Residual risk after mitigation.
 
-**8. Cost of inaction** Financial, operational, and reputational cost of not deploying. Value left on the table per month/quarter. Opportunity cost.
+**8. Cost of inaction** Financial, operational, and reputational cost of not deploying. Value left on the table per month/quarter. Opportunity cost. Take the monthly value from the "Value at stake" section of the `cost_model.py` output, copied with its sources and dates. It exists only when the user supplied the cost of one wrong decision and both error rates. When the tool prints "Value at stake: not computed", write that the value was not computed and which inputs are missing; never estimate it by hand.
 
 **9. Recommendation and next steps** State the recommendation plainly — one sentence. Execution path: who does what by when. What decision rights are needed. What is being approved.
 

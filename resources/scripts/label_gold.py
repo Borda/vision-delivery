@@ -1,18 +1,24 @@
 #!/usr/bin/env python3
-"""Record gold count or flag labels that a person enters, one image at a time.
+"""Record gold count, flag, or text labels that a person enters, one image at a time.
 
 Stdlib only. The person looks at each image and types its label: this helper never proposes a
 label and never reads a model output. It writes the JSON Lines gold file `score_baseline.py`
 reads, one line per image sorted by image name: `{"image": "<file>", "count": <n>}` or
-`{"image": "<file>", "flag": true|false}`. The image name is the file name inside the image folder.
+`{"image": "<file>", "flag": true|false}` or `{"image": "<file>", "text": "<string>"}`. The image
+name is the file name inside the image folder. Text is kept verbatim, including spaces and empty
+strings, with at most `MAX_TEXT_CODE_POINTS` code points as defined by the scorer.
 
 Modes:
 
 - interactive (default): walks the image folder and asks for one label per unlabeled image. Each
   answer is saved at once, so stopping and rerunning continues where it stopped. It refuses to run
   when standard input is not a terminal, because piped answers do not come from a person typing.
+  Text commands are `:skip`, `:quit`, and `:empty`; every other nonempty answer is a verbatim label.
+  An empty answer keeps an existing label, or asks again when there is none.
 - `--record IMAGE=VALUE`: records a label the person gave, for an agent transcribing labels from
   a chat without writing JSON by hand. Repeat the option to record several labels in one write.
+  For text, exactly one `=` split must name an image; the value may contain `=` or be empty.
+  Ambiguous image names require interactive mode. Counts and flags use the last `=`.
   These labels are marked as entered through `--record`, and the scorer says so; an agent can call
   this option, so the mark discloses the route but does not block it.
 - `--status`: prints how many images are labeled and whether that is enough for a verdict.
@@ -76,11 +82,15 @@ from proof_chain import sha256_file
 from score_baseline import (
     COUNT_METRICS,
     FLAG_METRICS,
+    MAX_TEXT_CODE_POINTS,
     METRIC_TEXT,
+    MIN_BOOTSTRAP_UNITS,
     MIN_DENOMINATOR,
+    TEXT_METRICS,
     count_metrics,
     flag_metrics,
     load_labels,
+    text_metrics,
 )
 
 IMAGE_SUFFIXES = frozenset({".bmp", ".gif", ".jpeg", ".jpg", ".png", ".tif", ".tiff", ".webp"})
@@ -94,10 +104,11 @@ EXIT_INTERRUPTED = 130
 
 
 class Task(str, Enum):
-    """Label kind: a non-negative count or a yes/no flag per image."""
+    """Label kind: a non-negative count, a yes/no flag, or verbatim text (including empty strings) per image."""
 
     COUNT = "count"
     FLAG = "flag"
+    TEXT = "text"
 
 
 class Mode(str, Enum):
@@ -203,8 +214,8 @@ def list_images(folder: Path) -> tuple[str, ...]:
     return tuple(sorted(names))
 
 
-def parse_value(task: Task, raw: str) -> int | bool:
-    """Parse one label a person typed: a whole number for a count, yes or no for a flag.
+def parse_value(task: Task, raw: str) -> int | bool | str:
+    """Parse a count or flag, or validate text without changing any code point.
 
     Raises:
         LabelError: When the text is not a valid label for the task.
@@ -212,6 +223,8 @@ def parse_value(task: Task, raw: str) -> int | bool:
     Examples:
         >>> parse_value(Task.COUNT, " 3 "), parse_value(Task.FLAG, "Y"), parse_value(Task.FLAG, "false")
         (3, True, False)
+        >>> parse_value(Task.TEXT, " q = "), parse_value(Task.TEXT, "")
+        (' q = ', '')
         >>> for bad in ("-1", "1.5", "three", ""):
         ...     try:
         ...         parse_value(Task.COUNT, bad)
@@ -222,6 +235,12 @@ def parse_value(task: Task, raw: str) -> int | bool:
         refused 'three'
         refused ''
     """
+    if task == Task.TEXT:
+        if any(0xD800 <= ord(character) <= 0xDFFF for character in raw):
+            raise LabelError("text must not hold a lone surrogate code point")
+        if len(raw) > MAX_TEXT_CODE_POINTS:
+            raise LabelError(f"text must be at most {MAX_TEXT_CODE_POINTS:,} code points")
+        return raw
     text = raw.strip()
     if task == Task.COUNT:
         if not COUNT_TEXT.fullmatch(text):
@@ -235,7 +254,7 @@ def parse_value(task: Task, raw: str) -> int | bool:
     raise LabelError(f"a flag must be yes or no (also y/n, true/false, 1/0): got {raw!r}")
 
 
-def parse_record(raw: str, task: Task) -> tuple[str, int | bool]:
+def parse_record(raw: str, task: Task) -> tuple[str, int | bool | str]:
     """Split one `IMAGE=VALUE` argument; the last `=` separates the value.
 
     Raises:
@@ -280,6 +299,37 @@ def resolve_image(labels: LabelSet, name: str) -> str:
     )
 
 
+def parse_text_record(raw: str, labels: LabelSet) -> tuple[str, str]:
+    """Split text at the unique `=` whose left side resolves to an image in the label set.
+
+    Raises:
+        LabelError: When no split or multiple splits name an image, or the text value is invalid.
+
+    Examples:
+        >>> ls = LabelSet(Path("frames"), Path("gold.jsonl"), Task.TEXT, Path("ledger.jsonl"), ("a=b.jpg",))
+        >>> parse_text_record("a=b.jpg= x=y ", ls), parse_text_record("a=b.jpg=", ls)
+        (('a=b.jpg', ' x=y '), ('a=b.jpg', ''))
+    """
+    matches: list[tuple[str, int]] = []
+    for index, character in enumerate(raw):
+        if character != "=":
+            continue
+        try:
+            image = resolve_image(labels, raw[:index])
+        except (ValueError, OSError):
+            # Later splits may include label text that is invalid or too long as a filesystem path.
+            continue
+        matches.append((image, index))
+    if not matches:
+        raise LabelError(f"--record: no '=' split names an image directly in {labels.folder}; use IMAGE=VALUE")
+    if len(matches) > 1:
+        raise LabelError(f"--record: {len(matches)} image names match; use interactive mode for those images")
+    image, index = matches[0]
+    value = raw[index + 1 :]
+    parse_value(Task.TEXT, value)
+    return image, value
+
+
 def read_labels(path: Path, task: Task) -> dict[str, Any]:
     """Return the labels already in a label file; a missing or empty file holds none.
 
@@ -317,9 +367,11 @@ def render_labels(task: Task, labels: Mapping[str, Any]) -> str:
         {"image": "a.jpg", "count": 2}
         {"image": "b.jpg", "count": 0}
     """
-    return "".join(
+    rendered = "".join(
         json.dumps({"image": image, task.value: labels[image]}, ensure_ascii=False) + "\n" for image in sorted(labels)
     )
+    # Keep Unicode text readable while protecting JSONL consumers that split Unicode line separators.
+    return rendered.replace("\u2028", "\\u2028").replace("\u2029", "\\u2029").replace("\u0085", "\\u0085")
 
 
 def write_labels(path: Path, task: Task, labels: Mapping[str, Any]) -> None:
@@ -437,6 +489,8 @@ def merge_labels(
         elif merged[image] == value:
             notes.append(f"{image}: already {show(value)}; unchanged.")
         elif not relabel:
+            if task == Task.TEXT:
+                raise LabelError(f"{image} already has text; pass --relabel to change it")
             raise LabelError(
                 f"{image} already has {task.value} {show(merged[image])}; pass --relabel to change it to {show(value)}"
             )
@@ -451,7 +505,7 @@ def commit(
 ) -> tuple[dict[str, Any], list[str]]:
     """Under the lock: refuse a frozen set, re-read the file, merge the changes, write, and record the write.
 
-    When the ledger row cannot be written, the label file is put back as it was before this write.
+    Any failure during publication, read-back, or ledger recording restores the prior label file bytes.
     """
     labels.labels_path.parent.mkdir(parents=True, exist_ok=True)
     with label_lock(labels.labels_path):
@@ -460,12 +514,13 @@ def commit(
         merged, notes = merge_labels(labels.task, current, changes, relabel)
         if merged != current:
             before = labels.labels_path.read_bytes() if labels.labels_path.exists() else None
-            write_labels(labels.labels_path, labels.task, merged)
             try:
+                write_labels(labels.labels_path, labels.task, merged)
                 record_write(labels, entry, current, merged)
-            except ValueError:
+            except BaseException:
+                # Roll back interrupts as well as validation and I/O failures after publication.
                 if before is None:
-                    labels.labels_path.unlink()
+                    labels.labels_path.unlink(missing_ok=True)
                 else:
                     replace_file(labels.labels_path, before)
                 raise
@@ -485,12 +540,17 @@ def metric_floors(task: Task, labels: Mapping[str, Any]) -> list[MetricFloor]:
     metrics: tuple[str, ...]
     if task == Task.COUNT:
         tallies, metrics = count_metrics(gold, gold), COUNT_METRICS
+    elif task == Task.TEXT:
+        # Floors use only gold denominators; empty predictions avoid quadratic string comparisons.
+        tallies, metrics = text_metrics(gold, {}), TEXT_METRICS
     else:
         tallies, metrics = flag_metrics(gold, gold), tuple(name for name in FLAG_METRICS if name != "precision")
     floors: list[MetricFloor] = []
     for metric in metrics:
         text, tally = METRIC_TEXT[(task.value, metric)], tallies[metric]
-        floors.append(MetricFloor(metric, text.label, tally.units, tally.units_needed, text.unit_noun))
+        # An empty text tally has no bootstrap parts yet, but still needs the bootstrap image floor.
+        needed = MIN_BOOTSTRAP_UNITS if task == Task.TEXT and metric == "char_error_rate" else tally.units_needed
+        floors.append(MetricFloor(metric, text.label, tally.units, needed, text.unit_noun))
     return floors
 
 
@@ -512,6 +572,12 @@ def headline(task: Task, labels: Mapping[str, Any], unlabeled: int) -> str:
     if task == Task.COUNT:
         with_objects = sum(1 for value in labels.values() if value > 0)
         text = f"{_plural(total, 'image', 'images')} labeled, {with_objects} of them with objects"
+    elif task == Task.TEXT:
+        with_text = sum(1 for value in labels.values() if value != "")
+        text = (
+            f"{_plural(total, 'image', 'images')} labeled: {_plural(with_text, 'image', 'images')} with text "
+            f"and {_plural(total - with_text, 'image', 'images')} with an empty label"
+        )
     else:
         real = sum(1 for value in labels.values() if value)
         text = (
@@ -602,7 +668,7 @@ def run_record(labels: LabelSet, records: list[str], relabel: bool, say: Callabl
     """Record the labels given as `IMAGE=VALUE` arguments in one atomic write."""
     changes: dict[str, Any] = {}
     for raw in records:
-        name, value = parse_record(raw, labels.task)
+        name, value = parse_text_record(raw, labels) if labels.task == Task.TEXT else parse_record(raw, labels.task)
         image = resolve_image(labels, name)
         if image in changes and changes[image] != value:
             raise LabelError(f"{image} is given twice with different values")
@@ -644,10 +710,46 @@ def run_list(labels: LabelSet, say: Callable[[str], None]) -> int:
     return 0
 
 
+def ask_text_label(ask: Callable[[str], str], say: Callable[[str], None], head: str, current: Any) -> str | Answer:
+    """Ask for verbatim text, reserving exact colon commands and keeping existing labels on Enter.
+
+    Examples:
+        >>> ask_text_label(lambda prompt: " q ", print, "image", None)
+        ' q '
+        >>> ask_text_label(lambda prompt: ":empty", print, "image", None)
+        ''
+        >>> ask_text_label(lambda prompt: "", print, "image", "") is Answer.SKIP
+        True
+    """
+    keep = f", Enter keeps {show(current)}" if current is not None else ""
+    prompt = f"{head}\n  text{keep}, :skip = skip, :quit = stop, :empty = empty label: "
+    while True:
+        try:
+            raw = ask(prompt)
+        except EOFError:
+            return Answer.STOP
+        if raw == ":quit":
+            return Answer.STOP
+        if raw == ":skip" or (raw == "" and current is not None):
+            return Answer.SKIP
+        if raw == ":empty":
+            return ""
+        if raw == "":
+            say("  Enter text, or use :empty to record an empty label.")
+            continue
+        try:
+            parse_value(Task.TEXT, raw)
+            return raw
+        except LabelError as exc:
+            say(f"  {exc}")
+
+
 def ask_label(
     ask: Callable[[str], str], say: Callable[[str], None], task: Task, head: str, current: Any
-) -> int | bool | Answer:
+) -> int | bool | str | Answer:
     """Ask for one label until the answer is valid, a skip, or a stop; end of input stops."""
+    if task == Task.TEXT:
+        return ask_text_label(ask, say, head, current)
     hint = "count (a whole number)" if task == Task.COUNT else "flag (y = real case, n = clean)"
     keep = f", Enter keeps {show(current)}" if current is not None else ""
     prompt = f"{head}\n  {hint}{keep}, s = skip, q = stop: "
@@ -677,6 +779,8 @@ def run_interactive(labels: LabelSet, relabel: bool, ask: Callable[[str], str], 
         report(labels, current, say)
         return 0
     what = "how many objects it shows" if labels.task == Task.COUNT else "y if it is a real case, n if it is clean"
+    if labels.task == Task.TEXT:
+        what = "its text verbatim (:skip = skip, :quit = stop, :empty = empty label)"
     say(
         f"{_plural(len(queue), 'image', 'images')} to label from {labels.folder} into {labels.labels_path}. "
         f"Open each image, look at it, and type {what}. Nothing is suggested: every label is yours. "

@@ -2,7 +2,7 @@
 
 Every generated delivery artifact must identify what it actually is, keep secrets out of source, and prove its execution contract before it is called complete.
 
-Every executable claim is bound to a frozen acceptance artifact. Create a new acceptance revision before measurement with `resources/scripts/freeze_acceptance.py`; declare `--comparator gte` for minimum metrics such as recall/mAP or `--comparator lte` for maximum metrics such as latency/MAE. Never edit or replace an existing revision. Carry its `acceptance_id` and `acceptance_sha256` through smoke evidence, live/offline evidence, handoff, ledger, economics, and the terminal decision report.
+Every executable claim is bound to a frozen acceptance artifact. Create a new acceptance revision before measurement with `resources/scripts/freeze_acceptance.py`; declare `--comparator gte` for minimum metrics such as recall/mAP or `--comparator lte` for maximum metrics such as latency/MAE. Never edit or replace an existing revision. Carry its `acceptance_id` and `acceptance_sha256` through smoke evidence, live/offline evidence, handoff, ledger, economics, and the terminal decision report. When the baseline comes from `score_baseline.py`, freeze `--dataset-sha256` as the SHA-256 of the gold label file: the proof chain compares it with the scorer's `gold_sha256`, and it accepts only a baseline whose verdict is `pass` with a 95% interval bound that clears the threshold. It accepts only scorer evidence, and it scores the label and prediction files again.
 
 ## Artifact Kinds
 
@@ -88,8 +88,17 @@ Before claiming completion:
        --project-root /absolute/path/to/project
    ```
 
+7. Answer one question, whether the delivery checks pass, with the read-only entry command. It runs every check above in order and stops at the first failure. It verifies the recorded outcomes of the human-run `--execute-reviewed` steps and never repeats them or runs artifact code. It scores the label and prediction files again with the scorer's own functions. When every check passes, it prints `DELIVERY CHECKS PASSED for acceptance <acceptance_id>.` followed, on the same line, by the limits: `Every record agrees with the frozen target and with the artifact on disk; it is not shown that the scored predictions came from this artifact, and nothing is signed.` Caveats, such as an uncertain recheck or a later acceptance revision, follow on the same line. When a check fails, it prints `DELIVERY CHECKS FAILED: <step>: <reason>`. Then it prints one JSON record with `status` (`passed` or `failed`), `not_shown`, and `caveats`. Exit 0 means the checks passed, 1 a check failed, and 2 unusable input:
+
+   ```bash
+   python /absolute/plugin/root/resources/scripts/check_delivery.py \
+       --project-root /absolute/path/to/project
+   ```
+
+   Write the deliver-mode scorer evidence as `.vision-delivery/baseline-<acceptance revision>.json` with `score_baseline.py --acceptance <file> --evidence-out`, and keep its label and prediction files in `.vision-delivery/`. Without options the command reads `.vision-delivery/`: one `delivery-handoff-*.json`, the acceptance file the handoff names, the one `baseline-*.json` and the one `economics-*.json` (the `cost_model.py --acceptance <file> --json` output) bound to that acceptance, `ledger.jsonl`, and the label and prediction files whose SHA-256 the baseline names. Explore-mode evidence with an inline target is ignored. A relative option path starts at `--project-root`; a path outside the project root is refused. Pass `--handoff`, `--acceptance`, `--baseline`, `--economics`, `--ledger`, `--gold`, `--pred`, or `--report` when a name differs or several files match; with `--acceptance`, only handoffs bound to it count. A scaffold never passes the delivery checks.
+
 The artifact helper injects a Python network guard and strips credential-shaped environment variables after explicit review. A self-test that attempts Python DNS or socket access fails. This is not an operating-system sandbox. Generated code retains host-user filesystem and subprocess privileges, so Sentinel must never add `--execute-reviewed` on the user's behalf or describe it as isolation. Use an organizational OS sandbox/container when generated code is not trusted after review.
 
-The handoff validator consumes helper-produced local evidence rather than trusting `"passed"` strings. It rejects an altered acceptance record, an artifact changed after verification, future/predating evidence, command or output-oracle mismatch, or mismatched artifact/model/kind fields. Evidence is still unsigned same-user local consistency evidence: a same-user adversary can forge it. Do not describe it as provenance, authorization, a provider receipt, or cryptographic identity proof.
+The handoff validator consumes helper-produced local evidence rather than trusting `"passed"` strings. It rejects an altered acceptance record, an artifact changed after verification, future/predating evidence, command or output-oracle mismatch, or mismatched artifact/model/kind fields. Evidence is still unsigned same-user local consistency evidence: a same-user adversary can forge it. Do not describe it as provenance, authorization, a provider receipt, or cryptographic identity proof. `threat-model.md` names the threats this chain defends against, the ones it does not, and which step defends against what.
 
 If the self-test passes but the live-path smoke cannot run, retain `artifact_kind: scaffold` and list the missing external check. If the live path fails, do not report the artifact as delivered.

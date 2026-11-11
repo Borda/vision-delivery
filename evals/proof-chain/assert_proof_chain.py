@@ -98,6 +98,16 @@ def main() -> int:
         root = Path(directory).resolve()
         artifact = root / "artifact"
         shutil.copytree(ARTIFACT_FIXTURE, artifact)
+        state = root / ".vision-delivery"
+        state.mkdir()
+        labels = "".join(
+            json.dumps({"image": f"img_{index:02d}.jpg", "flag": index % 3 == 0}) + "\n" for index in range(40)
+        )
+        # One wrong prediction keeps a pass (39 of 40) and gives the two files different digests.
+        predictions = labels.replace('"img_01.jpg", "flag": false', '"img_01.jpg", "flag": true')
+        gold, pred = state / "gold.jsonl", state / "pred.jsonl"
+        gold.write_text(labels, encoding="utf-8", newline="\n")
+        pred.write_text(predictions, encoding="utf-8", newline="\n")
         frozen_at = datetime.now(timezone.utc) - timedelta(minutes=1)
         acceptance = root / "acceptance.json"
         acceptance.write_text(
@@ -106,11 +116,11 @@ def main() -> int:
                     "schema_version": "1",
                     "acceptance_id": "artifact-fixture/v1",
                     "frozen_at": frozen_at.isoformat().replace("+00:00", "Z"),
-                    "metric": "mAP@50",
+                    "metric": "accuracy",
                     "comparator": "gte",
-                    "threshold": 0.5,
+                    "threshold": 0.8,
                     "unit": "fraction",
-                    "dataset_sha256": "a" * 64,
+                    "dataset_sha256": hashlib.sha256(gold.read_bytes()).hexdigest(),
                     "model_or_pipeline": MODEL_ID,
                     "confirmed_by": "fixture owner",
                 },
@@ -238,20 +248,14 @@ def main() -> int:
         )
 
         baseline = root / "baseline.json"
-        baseline_record = {
-            "model": MODEL_ID,
-            "measured_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-            "metric": "mAP@50",
-            "comparator": "gte",
-            "threshold": 0.5,
-            "observed_value": 0.6,
-            "map50": 0.6,
-            "acceptance_id": "artifact-fixture/v1",
-            "acceptance_sha256": acceptance_digest,
-            "dataset_sha256": "a" * 64,
-            "passes_acceptance": True,
-        }
-        baseline.write_text(json.dumps(baseline_record), encoding="utf-8")
+        scored = run(
+            [sys.executable, str(SCRIPTS / "score_baseline.py"), "--gold", str(gold), "--pred", str(pred)]
+            + ["--task", "flag", "--acceptance", str(acceptance), "--evidence-out", str(baseline)],
+            cwd=root,
+        )
+        if scored.returncode != 0:
+            raise AssertionError(f"score baseline failed: {scored.stderr}")
+        baseline_record = json.loads(baseline.read_text(encoding="utf-8"))
 
         economics = root / "economics.json"
         cost = run(
@@ -340,35 +344,33 @@ def main() -> int:
         if tampered_report.returncode == 0 or "report digest" not in tampered_report.stderr:
             raise AssertionError("changed decision report retained a passing receipt")
 
-        baseline_record["map50"] = 0.4
-        baseline_record["observed_value"] = 0.4
-        baseline_record["passes_acceptance"] = False
-        baseline.write_text(json.dumps(baseline_record), encoding="utf-8")
-        rejected = run(validator, cwd=root)
-        if rejected.returncode == 0 or "does not pass" not in rejected.stderr:
-            raise AssertionError(f"failed baseline entered a passing chain: {rejected}")
-        baseline_record["map50"] = 0.6
-        baseline_record["observed_value"] = 0.6
-        baseline_record["passes_acceptance"] = True
-        baseline_record["measured_at"] = "2999-01-01T00:00:00Z"
-        baseline.write_text(json.dumps(baseline_record), encoding="utf-8")
-        future = run(validator, cwd=root)
-        if future.returncode == 0 or "future" not in future.stderr:
-            raise AssertionError("future-dated baseline entered a passing chain")
-
-        baseline_record["measured_at"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-        for scored, reason in (
+        explicit = ["--gold", str(gold), "--pred", str(pred)]
+        require_pass(run([*validator, *explicit], cwd=root), "explicit scored files")
+        for changed, reason in (
+            ({"observed_value": 0.4, "passes_acceptance": False}, "does not pass"),
+            ({"measured_at": "2999-01-01T00:00:00Z"}, "future"),
             ({"verdict": "inconclusive", "interval_lower": 0.45, "interval_upper": 0.7}, "only pass counts"),
             ({"verdict": "no-verdict", "interval_lower": None, "interval_upper": None}, "only pass counts"),
             ({"verdict": "pass", "interval_lower": 0.45, "interval_upper": 0.7}, "does not clear"),
+            ({"numerator": 40}, "numerator does not match a re-score"),
+            ({"interval_lower": 0.85}, "interval_lower does not match a re-score"),
+            ({"task": "text"}, "is not scored for task text"),
+            ({"model": MODEL_ID, "target": None}, "must be scorer evidence"),
         ):
-            baseline.write_text(json.dumps({**baseline_record, **scored}), encoding="utf-8")
-            unproven = run(validator, cwd=root)
-            if unproven.returncode == 0 or reason not in unproven.stderr:
-                raise AssertionError(f"non-pass interval verdict entered a passing chain: {scored} {unproven.stderr}")
-        cleared = {"verdict": "pass", "interval_lower": 0.55, "interval_upper": 0.66}
-        baseline.write_text(json.dumps({**baseline_record, **cleared}), encoding="utf-8")
-        require_pass(run(validator, cwd=root), "interval-scored pass baseline")
+            baseline.write_text(json.dumps({**baseline_record, **changed}), encoding="utf-8")
+            refused = run(validator, cwd=root)
+            if refused.returncode == 0 or reason not in refused.stderr:
+                raise AssertionError(f"self-declared baseline entered a passing chain: {changed} {refused.stderr}")
+        baseline.write_text(json.dumps(baseline_record), encoding="utf-8")
+        pred.write_text(labels, encoding="utf-8", newline="\n")
+        moved = run(validator, cwd=root)
+        if moved.returncode == 0 or "pass --gold" not in moved.stderr:
+            raise AssertionError(f"baseline passed without its scored prediction file: {moved.stderr}")
+        wrong = run([*validator, *explicit], cwd=root)
+        if wrong.returncode == 0 or "does not have the baseline pred_sha256" not in wrong.stderr:
+            raise AssertionError(f"explicit prediction file with another digest passed: {wrong.stderr}")
+        pred.write_text(predictions, encoding="utf-8", newline="\n")
+        require_pass(run(validator, cwd=root), "scorer evidence re-scored from its files")
 
     print("proof-chain assertions passed")
     return 0

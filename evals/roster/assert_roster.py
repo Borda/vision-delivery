@@ -88,7 +88,8 @@ def schema_negatives() -> dict[str, dict[str, Any]]:
         "unknown kind": _document(_entry("a-b", kind="wizard")),
         "unknown surface": _document(_entry("a-b", surfaces=("blog",))),
         "flagship without a scorer": _document(_entry("a-b", kind="flagship")),
-        "non-flagship with a scorer": _document(_entry("a-b", kind="preview", scorer="count")),
+        "utility skill with a scorer": _document(_entry("a-b", kind="utility", scorer="count")),
+        "guided skill with a scorer": _document(_entry("a-b", kind="guided", scorer="text")),
         "bad name: capitals and underscore": _document(_entry("Bad_Name")),
         "bad name: double hyphen": _document(_entry("a--b")),
         "bad name: leading hyphen": _document(_entry("-ab")),
@@ -203,7 +204,7 @@ REFUSALS: dict[str, tuple[str, ...]] = {
     "bad name": ("Bad_Name", "--kind", "preview", "--use", "x"),
     "unknown kind": (NEW_NAME, "--kind", "wizard", "--use", "x"),
     "flagship without a scorer": (NEW_NAME, "--kind", "flagship", "--use", "x"),
-    "scorer on a preview route": (NEW_NAME, "--kind", "preview", "--scorer", "count", "--use", "x"),
+    "scorer on a utility skill": (NEW_NAME, "--kind", "utility", "--scorer", "count", "--use", "x"),
     "blank use": (NEW_NAME, "--kind", "preview", "--use", " "),
 }
 

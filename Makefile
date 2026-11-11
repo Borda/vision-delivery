@@ -1,4 +1,4 @@
-.PHONY: ci lint format lint-js typecheck docs-setup docs-build docs-serve eval-setup pre-commit-coverage eval eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-baseline eval-proof-chain eval-decision-report eval-docs-samples probe-codex probe-claude eval-trigger-live eval-e2e-self-test eval-ab-smoke eval-ab-metrics eval-ab-approver eval-upstream eval-labeling eval-publish-run eval-roster eval-outcome-report
+.PHONY: ci lint format lint-js typecheck docs-setup docs-build docs-serve eval-setup pre-commit-coverage eval eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-baseline eval-proof-chain eval-decision-report eval-docs-samples probe-codex probe-claude eval-trigger-live eval-e2e-self-test eval-ab-smoke eval-ab-metrics eval-ab-approver eval-upstream eval-labeling eval-adapter eval-recheck eval-publish-run eval-roster eval-outcome-report
 
 ci: eval-setup lint format lint-js typecheck eval
 
@@ -35,7 +35,7 @@ eval-setup:
 pre-commit-coverage:
 	@echo "make ci runs the Ruff, Ruff format, ESLint, and mypy pre-commit hooks plus repository evals."
 
-eval: eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-baseline eval-labeling eval-proof-chain eval-decision-report eval-docs-samples eval-e2e-self-test eval-ab-metrics eval-ab-approver eval-publish-run eval-roster eval-outcome-report
+eval: eval-version eval-install eval-package eval-release eval-doctor eval-trigger eval-entrypoints eval-parity eval-cost-model eval-platform-routing eval-hooks eval-ledger eval-methodology eval-artifacts eval-baseline eval-labeling eval-adapter eval-recheck eval-proof-chain eval-decision-report eval-docs-samples eval-e2e-self-test eval-ab-metrics eval-ab-approver eval-publish-run eval-roster eval-outcome-report
 
 eval-version:
 	python scripts/check_versions.py
@@ -118,6 +118,7 @@ eval-methodology:
 
 eval-artifacts:
 	python evals/artifacts/assert_artifact_contracts.py
+	python evals/artifacts/assert_delivery_check.py
 
 eval-baseline:
 	python evals/baseline/assert_score_baseline.py
@@ -130,6 +131,12 @@ eval-outcome-report:  # outcome-report draft: form agreement, redaction defaults
 
 eval-labeling:  # gold-labeling helper, prediction freeze, and the scorer's frozen-ledger refusal — offline, temp dirs
 	python evals/labeling/assert_labeling.py
+
+eval-adapter:  # detections-to-counts adapter: class, confidence, and region policy; refusals; scorer round trip — offline
+	python evals/adapter/assert_detections_adapter.py
+
+eval-recheck:  # recheck of a fresh labeled sample against the frozen acceptance: drift status, refusals, ledger row — offline
+	python evals/recheck/assert_recheck.py
 
 eval-proof-chain:
 	python evals/proof-chain/assert_proof_chain.py

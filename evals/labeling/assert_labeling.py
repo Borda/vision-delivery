@@ -10,9 +10,11 @@ elsewhere those cases are skipped with a printed line.
 
 from __future__ import annotations
 
+import contextlib
 import doctest
 import hashlib
 import importlib.util
+import io
 import json
 import os
 import select
@@ -24,6 +26,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPTS = ROOT / "resources" / "scripts"
@@ -624,6 +627,319 @@ def assert_hand_written_rows(tmp: Path) -> None:
         assert "Not frozen" in project.label("--status").stdout, row
 
 
+def _assert_text_write(project: Project, image: str, value: str, *, relabel: bool = False) -> None:
+    """Check one text write, its exact scorer round-trip, and its value-free ledger receipt."""
+    count = len(project.ledger_rows("labels_recorded"))
+    result = project.label("--record", f"{image}={value}", *(("--relabel",) if relabel else ()))
+    assert result.returncode == 0, result.stderr
+    labels = score_baseline.load_labels(project.gold, "text")
+    assert labels[Path(image).name] == value, labels
+    rows = project.ledger_rows("labels_recorded")
+    assert len(rows) == count + 1, rows
+    row = rows[-1]
+    assert row["label_entry"] == "record-option" and row["status"] == "success", row
+    assert row["gold_sha256"] == hashlib.sha256(project.gold.read_bytes()).hexdigest(), row
+    assert row["label_digests"] == {
+        name: prediction_freeze.label_digest(name, label) for name, label in labels.items()
+    }, row
+    assert '"text"' not in json.dumps(row) and '"value"' not in json.dumps(row), row
+
+
+def assert_text_record_mode(tmp: Path) -> None:
+    """Text records preserve equals signs, whitespace, Unicode, empty strings, and the maximum length.
+
+    Examples:
+        Run through ``main()`` to exercise real helper subprocesses in a temporary project.
+    """
+    project = make_project(tmp, "text-record", 7, task="text")
+    _assert_text_write(project, "frame_01.jpg", "total=a=b==")
+    _assert_text_write(project, str(project.frames / "frame_02.jpg"), "  padded label  ")
+    _assert_text_write(project, "frame_03.jpg", "Příliš žluťoučký 🐈 e\u0301")
+    _assert_text_write(project, "frame_04.jpg", "")
+    _assert_text_write(project, "frame_05.jpg", "🐈" * 10_000)
+    (project.frames / "name=part.jpg").write_bytes(b"placeholder")
+    _assert_text_write(project, "name=part.jpg", "x=y")
+    same = project.label("--record", "frame_04.jpg=")
+    assert same.returncode == 0 and "unchanged" in same.stdout, same.stderr
+    assert len(project.ledger_rows("labels_recorded")) == 6
+
+
+def assert_text_record_refusals(tmp: Path) -> None:
+    """Invalid or changed text records leave the entire gold file and ledger unchanged.
+
+    Examples:
+        Run through ``main()`` to verify refusal and nearby allowed relabeling.
+    """
+    project = make_project(tmp, "text-refused", 2, task="text")
+    _assert_text_write(project, "frame_01.jpg", "original secret label")
+    before, ledger = project.gold.read_bytes(), project.ledger.read_bytes()
+    oversized = project.label("--record", "frame_02.jpg=" + "x" * 10_001)
+    assert oversized.returncode == 2 and "10,000" in oversized.stderr, oversized.stderr
+    assert project.gold.read_bytes() == before and project.ledger.read_bytes() == ledger
+    unknown = project.label("--record", "missing.jpg=private unresolved label")
+    assert unknown.returncode == 2 and "label-gold-error" in unknown.stderr, unknown.stderr
+    assert "private unresolved label" not in unknown.stderr + unknown.stdout
+    assert str(project.frames) in unknown.stderr and "no '=' split names an image" in unknown.stderr
+    assert project.gold.read_bytes() == before and project.ledger.read_bytes() == ledger
+    changed = project.label("--record", "frame_01.jpg=changed secret label")
+    assert changed.returncode == 2 and "--relabel" in changed.stderr, changed.stderr
+    assert "secret label" not in changed.stderr + changed.stdout
+    assert project.gold.read_bytes() == before and project.ledger.read_bytes() == ledger
+    batch = project.label("--record", "frame_02.jpg=valid", "--record", "missing.jpg=bad")
+    assert batch.returncode == 2 and project.gold.read_bytes() == before
+    assert project.ledger.read_bytes() == ledger
+    _assert_text_write(project, "frame_01.jpg", "changed secret label", relabel=True)
+    status, listed = project.label("--status"), project.label("--list-images")
+    assert status.returncode == listed.returncode == 0, (status.stderr, listed.stderr)
+    assert "secret label" not in status.stdout + listed.stdout
+    assert listed.stdout.splitlines() == [str(project.frames / "frame_01.jpg")]
+
+
+def _assert_text_separator(tmp: Path, separator: str, name: str) -> None:
+    """Keep Unicode line separators in text values and escape them in the gold file."""
+    project = make_project(tmp, name, 1, task="text")
+    value = f"café{separator}receipt"
+    _assert_text_write(project, "frame_01.jpg", value)
+    written = project.gold.read_text(encoding="utf-8")
+    assert separator not in written and f"\\u{ord(separator):04x}" in written, repr(written)
+    assert "café" in written
+    status = project.label("--status")
+    assert status.returncode == 0, status.stderr
+    assert (
+        prediction_freeze.label_digest("frame_01.jpg", value)
+        == hashlib.sha256(("frame_01.jpg\0" + json.dumps(value)).encode("utf-8")).hexdigest()[
+            : prediction_freeze.LABEL_DIGEST_HEX
+        ]
+    )
+    pred = project.root / "pred.jsonl"
+    pred.write_bytes(
+        (json.dumps({"image": "frame_01.jpg", "text": value}, ensure_ascii=False) + "\r\n").encode("utf-8")
+    )
+    frozen = project.freeze(pred, "--predictor", "isolated-subagent")
+    assert frozen.returncode == 0, frozen.stderr
+    rows = project.ledger_rows()
+    rows[-1]["notes"] = value
+    project.ledger.write_bytes("".join(json.dumps(row, ensure_ascii=False) + "\r\n" for row in rows).encode("utf-8"))
+    freezes = prediction_freeze.read_freezes(project.ledger)
+    assert len(freezes) == 1 and freezes[0].gold_sha256 == hashlib.sha256(project.gold.read_bytes()).hexdigest()
+
+
+def assert_text_ambiguous_record(tmp: Path) -> None:
+    """Refuse multiple image-name splits without labeling either image.
+
+    Examples:
+        Run through ``main()`` to check ambiguous input and its nearby unique split.
+    """
+    project = make_project(tmp, "text-ambiguous", 1, task="text")
+    (project.frames / "frame_01.jpg=other.jpg").write_bytes(b"placeholder")
+    result = project.label("--record", "frame_01.jpg=other.jpg=private value")
+    assert result.returncode == 2 and "2 image names match" in result.stderr, result.stderr
+    assert "interactive mode" in result.stderr and "private value" not in result.stdout + result.stderr
+    assert not project.gold.exists() and not project.ledger.exists()
+    _assert_text_write(project, "frame_01.jpg", "one=split")
+    assert "frame_01.jpg=other.jpg" not in score_baseline.load_labels(project.gold, "text")
+
+
+def _assert_text_prefix_errors(tmp: Path) -> None:
+    """Treat label prefixes that cannot be filesystem paths as nonmatching splits."""
+    project = make_project(tmp, "text-prefix-errors", 1, task="text")
+    value = "private receipt " * 30 + "=total"
+    _assert_text_write(project, "frame_01.jpg", value)
+    unresolved = project.label("--record", f"missing.jpg={value}")
+    assert unresolved.returncode == 2 and "no '=' split names an image" in unresolved.stderr, unresolved.stderr
+    assert "private receipt" not in unresolved.stderr + unresolved.stdout
+    labels = label_gold.LabelSet(project.frames, project.gold, label_gold.Task.TEXT, project.ledger, ("frame_01.jpg",))
+    assert label_gold.parse_text_record("frame_01.jpg=receipt\0part=total", labels) == (
+        "frame_01.jpg",
+        "receipt\0part=total",
+    )
+
+
+def assert_text_write_rollback(tmp: Path) -> None:
+    """Restore text gold bytes, or remove a new file, when the ledger helper refuses.
+
+    Examples:
+        Run through ``main()`` to exercise the same failure hook as count labels.
+    """
+    project = make_project(tmp, "text-rollback", 2, task="text")
+    failing = project.root / "failing_helper.py"
+    failing.write_text("import sys\nprint('helper refused', file=sys.stderr)\nsys.exit(2)\n", encoding="utf-8")
+    first = project.label("--record", "frame_01.jpg=café\u2028receipt", "--ledger-helper", str(failing))
+    assert first.returncode == 2 and "helper refused" in first.stderr, first.stderr
+    assert not project.gold.exists() and not project.ledger.exists()
+    _assert_text_write(project, "frame_01.jpg", "café\u2028receipt")
+    before, ledger = project.gold.read_bytes(), project.ledger.read_bytes()
+    second = project.label("--record", "frame_02.jpg=new receipt", "--ledger-helper", str(failing))
+    assert second.returncode == 2 and "helper refused" in second.stderr, second.stderr
+    assert project.gold.read_bytes() == before and project.ledger.read_bytes() == ledger
+
+
+def _assert_readback_rollback(tmp: Path, exists: bool) -> None:
+    """Restore the prior file even when the published file fails its scorer read-back."""
+    project = make_project(tmp, f"text-readback-{exists}", 2, task="text")
+    before: bytes | None = None
+    if exists:
+        _assert_text_write(project, "frame_01.jpg", "old receipt")
+        before = project.gold.read_bytes().replace(b"\n", b"\r\n")
+        project.gold.write_bytes(before)
+    ledger = project.ledger.read_bytes() if exists else None
+    errors = io.StringIO()
+    responses: list[object] = ([{"frame_01.jpg": "old receipt"}] if exists else []) + [OSError("read-back refused")]
+    with (
+        patch.object(label_gold, "load_labels", side_effect=responses, autospec=True),
+        contextlib.redirect_stderr(errors),
+    ):
+        status = label_gold.main([*project.common(), "--record", "frame_02.jpg=new receipt"], say=lambda text: None)
+    assert status == 2 and "read-back refused" in errors.getvalue(), errors.getvalue()
+    assert (project.gold.read_bytes() if project.gold.exists() else None) == before
+    assert (project.ledger.read_bytes() if project.ledger.exists() else None) == ledger
+
+
+def assert_text_surrogate_refused(tmp: Path) -> None:
+    """Reject a lone surrogate before writing text or echoing its value.
+
+    Examples:
+        Run through ``main()`` with in-process arguments, since OS argv cannot encode a surrogate.
+    """
+    project = make_project(tmp, "text-surrogate", 2, task="text")
+    _assert_text_write(project, "frame_01.jpg", "original receipt")
+    before, ledger = project.gold.read_bytes(), project.ledger.read_bytes()
+    errors, output = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stderr(errors), contextlib.redirect_stdout(output):
+        status = label_gold.main([*project.common(), "--record", "frame_02.jpg=private\ud800value"])
+    assert status == 2 and "text must not hold a lone surrogate code point" in errors.getvalue()
+    assert "private" not in errors.getvalue() + output.getvalue()
+    assert project.gold.read_bytes() == before and project.ledger.read_bytes() == ledger
+
+
+def assert_text_interactive(tmp: Path) -> None:
+    """Text terminals save s/q verbatim and reserve only exact colon commands; piped answers are refused.
+
+    Examples:
+        Run through ``main()``; terminal cases use the existing POSIX pseudo-terminal harness.
+    """
+    project = make_project(tmp, "text-interactive", 7, task="text")
+    piped = project.label(stdin="s\nq\n:quit\n")
+    assert piped.returncode == 2 and "standard input is not a terminal" in piped.stderr, piped.stderr
+    assert not project.gold.exists() and not project.ledger_rows()
+    if not HAS_PTY:
+        print("skipped: interactive text labeling through a pseudo-terminal needs a POSIX host")
+        return
+    code, output = project.label_tty(answers="\ns\nq\n:skip\n:empty\n  spaced  \n :quit \n:quit\n")
+    assert code == 0, output
+    expected = {
+        "frame_01.jpg": "s",
+        "frame_02.jpg": "q",
+        "frame_04.jpg": "",
+        "frame_05.jpg": "  spaced  ",
+        "frame_06.jpg": " :quit ",
+    }
+    assert score_baseline.load_labels(project.gold, "text") == expected
+    assert ":skip" in output and ":quit" in output and ":empty" in output, output
+    assert 'text "  spaced  " recorded.' in output and 'text "" recorded.' in output, output
+    rows = project.ledger_rows("labels_recorded")
+    assert len(rows) == 5 and all(row["label_entry"] == "interactive-terminal" for row in rows), rows
+    assert [row["label_digests"] for row in rows] == [
+        {image: prediction_freeze.label_digest(image, value) for image, value in list(expected.items())[:size]}
+        for size in range(1, 6)
+    ]
+    assert all('"text"' not in json.dumps(row) and '"value"' not in json.dumps(row) for row in rows)
+    before = project.gold.read_bytes()
+    code, kept = project.label_tty("--relabel", answers="\n:skip\n:skip\n\n:quit\n")
+    assert code == 0 and 'Enter keeps "s"' in kept and 'Enter keeps ""' in kept, kept
+    assert project.gold.read_bytes() == before and len(project.ledger_rows("labels_recorded")) == 5
+
+
+def _assert_text_floor(size: int, exact_ready: bool, char_ready: bool) -> None:
+    """Check each scorer-derived text metric floor and its printed readiness."""
+    labels = {f"i{index}": "label" for index in range(size)}
+    floors = label_gold.metric_floors(label_gold.Task.TEXT, labels)
+    assert [(floor.metric, floor.units, floor.needed, floor.ready) for floor in floors] == [
+        ("exact_match_rate", size, score_baseline.MIN_DENOMINATOR, exact_ready),
+        ("char_error_rate", size, score_baseline.MIN_BOOTSTRAP_UNITS, char_ready),
+    ]
+    lines = label_gold.sample_floor(label_gold.Task.TEXT, labels)
+    exact_prefix = "Large enough" if exact_ready else "Too small"
+    char_prefix = "Large enough" if char_ready else "Too small"
+    assert lines[1].startswith(exact_prefix) and "(exact_match_rate)" in lines[1], lines
+    assert lines[2].startswith(char_prefix) and "(char_error_rate)" in lines[2], lines
+
+
+def assert_text_sample_floor(tmp: Path) -> None:
+    """Text readiness counts all labels for exact matches and only nonempty labels for character errors.
+
+    Examples:
+        Run through ``main()`` to check both metric tallies and the status CLI.
+    """
+    _assert_text_floor(0, False, False)
+    _assert_text_floor(4, False, False)
+    _assert_text_floor(5, True, False)
+    _assert_text_floor(19, True, False)
+    _assert_text_floor(20, True, True)
+    labels = {f"i{index}": "" if index == 19 else "label" for index in range(20)}
+    floors = label_gold.metric_floors(label_gold.Task.TEXT, labels)
+    assert [(floor.metric, floor.units, floor.ready) for floor in floors] == [
+        ("exact_match_rate", 20, True),
+        ("char_error_rate", 19, False),
+    ]
+    lines = label_gold.sample_floor(label_gold.Task.TEXT, labels)
+    assert "19 images with text" in lines[0] and "1 image with an empty label" in lines[0], lines
+    assert lines[2].startswith("Too small") and "19 images with labeled text, 20 needed" in lines[2], lines
+    project = make_project(tmp, "text-floor", 2, task="text")
+    done = project.label("--record", "frame_01.jpg=", "--record", "frame_02.jpg=private floor label")
+    assert done.returncode == 0, done.stderr
+    status = project.label("--status")
+    assert status.returncode == 0 and "1 image with text" in status.stdout, status.stderr
+    assert "1 image with an empty label" in status.stdout and "private floor label" not in status.stdout
+
+
+def assert_text_scored_after_freeze(tmp: Path) -> None:
+    """The text label/list/predict/freeze/score flow records label provenance and freezes later writes.
+
+    Examples:
+        Run through ``main()`` to exercise the shipped scorer with ``--frozen-ledger``.
+    """
+    project = make_project(tmp, "text-flow", 6, task="text")
+    records = [f"frame_{index:02d}.jpg=flow text {index}" for index in range(1, 6)]
+    arguments = [arg for record in records for arg in ("--record", record)]
+    labeled = project.label(*arguments)
+    assert labeled.returncode == 0, labeled.stderr
+    listed = project.label("--list-images")
+    assert listed.returncode == 0 and "flow text" not in listed.stdout, listed.stderr
+    assert [Path(path).name for path in listed.stdout.splitlines()] == [
+        f"frame_{index:02d}.jpg" for index in range(1, 6)
+    ]
+    labels = score_baseline.load_labels(project.gold, "text")
+    pred = write_pred(project.root / "pred.jsonl", labels, field="text")
+    frozen = project.freeze(pred, "--predictor", "isolated-subagent")
+    assert frozen.returncode == 0, frozen.stderr
+    scored = run(
+        SCORER,
+        "--task",
+        "text",
+        "--gold",
+        str(project.gold),
+        "--pred",
+        str(pred),
+        "--metric",
+        "exact_match_rate",
+        "--comparator",
+        "gte",
+        "--threshold",
+        "0.5",
+        "--frozen-ledger",
+        str(project.ledger),
+    )
+    assert scored.returncode == 0, scored.stderr
+    _, block = scored_record(scored)
+    assert block["label_entry"] == "record-option" and block["independent"] is True, block
+    before, ledger = project.gold.read_bytes(), project.ledger.read_bytes()
+    refused = project.label("--record", "frame_06.jpg=later")
+    assert refused.returncode == 2 and "frozen" in refused.stderr, refused.stderr
+    assert project.gold.read_bytes() == before and project.ledger.read_bytes() == ledger
+    assert project.label("--status").returncode == project.label("--list-images").returncode == 0
+
+
 def load_ledger_append() -> ModuleType:
     """Load the ledger helper module without running it."""
     spec = importlib.util.spec_from_file_location("sentinel_ledger_append", APPEND)
@@ -670,6 +986,20 @@ def main() -> int:
         assert_default_ledger(tmp)
         assert_scored_after_freeze(tmp)
         assert_hand_written_rows(tmp)
+        assert_text_record_mode(tmp)
+        assert_text_record_refusals(tmp)
+        _assert_text_separator(tmp, "\u2028", "text-line-separator")
+        _assert_text_separator(tmp, "\u2029", "text-paragraph-separator")
+        _assert_text_separator(tmp, "\u0085", "text-next-line")
+        assert_text_ambiguous_record(tmp)
+        _assert_text_prefix_errors(tmp)
+        assert_text_write_rollback(tmp)
+        _assert_readback_rollback(tmp, False)
+        _assert_readback_rollback(tmp, True)
+        assert_text_surrogate_refused(tmp)
+        assert_text_interactive(tmp)
+        assert_text_sample_floor(tmp)
+        assert_text_scored_after_freeze(tmp)
     print("labeling and prediction-freeze assertions passed")
     return 0
 

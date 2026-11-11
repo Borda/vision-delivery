@@ -44,16 +44,23 @@ Every price gets a source and `as_of` date. A user-supplied quote keeps its own 
 
 Resolve the helper from the absolute plugin root, not the user's working directory:
 
-```bash
+```text
 python /absolute/plugin/root/scripts/cost_model.py \
-    --streams <N> --fps <FPS> --model-size <nano|medium|large> \
-    --uptime <24x7|business> --region us-east-1 \
+    (--streams <N> [--fps <FPS>] [--uptime <24x7|business>] | --images-per-day <N>) \
+    --model-size <nano|medium|large> --region us-east-1 \
     [--existing-gpu] [--on-demand] \
     [--managed-usd-mo <quote> --managed-quote-as-of <YYYY-MM-DD>] \
     [--managed-credits-mo <credits> --credits-source <source> --credits-as-of <YYYY-MM-DD>] \
     [--override-gpu-spot <usd-hour>] [--override-engineer <usd-hour>] \
+    [--error-cost-usd <usd> --error-cost-source <source> --error-cost-as-of <YYYY-MM-DD> \
+     --current-error-rate <0-1> --model-error-rate <0-1> --error-rates-source <source> \
+     [--model-error-rate-upper <0-1>] [--decisions-per-day <N>]] \
     [--acceptance /absolute/project/.vision-delivery/acceptance-<revision>.json]
 ```
+
+Choose the workload the user has. `--streams` is for always-on cameras. `--images-per-day` is for a batch of images, such as photos checked once a day; `--fps` and `--uptime` do not apply to it. Batch capacity uses the same screening table (images per second per instance), with GPU time billed in whole hours per day.
+
+Value at stake is optional and needs the user's own numbers: the cost of one wrong decision with its source and date, the error rate of the process in place today (`--current-error-rate`: how often the people or the system doing the job now get it wrong, from the user's own records, never from Sentinel's baseline evidence), and the model's measured error rate with the evidence it comes from (for example the scorer's evidence file). Both are error rates, the share of wrong decisions: when the scorer reports a success rate such as accuracy or `exact_match_rate`, the error rate is 1 minus that value, and `--model-error-rate-upper` is 1 minus the lower end of its 95% interval. Pass that upper end to get a low bound. In stream mode also pass `--decisions-per-day`; never derive decisions from frames. In batch mode the tool counts one decision per image unless `--decisions-per-day` says otherwise, and its output states which it used. Never invent an error cost or an error rate: without them the tool prints "Value at stake: not computed", and the report says the same. The value never changes the cost recommendation.
 
 The committed capacity table is a screening assumption calibrated at 10 FPS and scaled linearly by requested FPS. It is not a hardware benchmark. Re-run with measured throughput before a purchase or binding recommendation. A decision-grade run requires `proof.status: bound` and the same `acceptance_sha256` used by the baseline, handoff, and ledger.
 
@@ -64,6 +71,8 @@ Roboflow prices managed usage in credits, so most users have no per-month quote.
 Vary workload/FPS, compute rate, engineering rate, monitoring effort, failure-review volume, quote scope, and growth. Show the crossover and whether the recommendation changes under plausible high/low cases. Flag old snapshots and validate quote currency/scope separately.
 
 ## 5. Emit the decision
+
+For a delivery that will be checked with `../../resources/scripts/check_delivery.py`, also save the estimator's `--acceptance <file> --json` output as `.vision-delivery/economics-<session>.json`; the checker reads the one economics file bound to the acceptance.
 
 Write `.vision-delivery/economics-<session>.md` with assumptions, sources/dates, one-time and recurring tables, sensitivity, excluded costs, recommended path, and re-evaluation trigger. Use `go`, `revise`, or `insufficient-data`; do not force a binary answer.
 

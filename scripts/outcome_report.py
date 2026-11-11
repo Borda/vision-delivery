@@ -78,7 +78,17 @@ MIN_IDENTIFIER_LENGTH = 2
 MAX_NOTES = 10
 #: Metric names the scorer (``resources/scripts/score_baseline.py``) defines; any other metric text may be free text.
 SCORER_METRICS = frozenset(
-    {"accuracy", "catch_rate", "count_mae", "exact_count_rate", "false_alarm_rate", "over_count_rate", "precision"}
+    {
+        "accuracy",
+        "catch_rate",
+        "char_error_rate",
+        "count_mae",
+        "exact_count_rate",
+        "exact_match_rate",
+        "false_alarm_rate",
+        "over_count_rate",
+        "precision",
+    }
 )
 PLAIN_WORDS = "recorded in plain words"
 #: Placeholders for identifiers held back from path scrubbing: private-use characters, never word characters.

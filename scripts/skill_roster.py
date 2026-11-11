@@ -63,6 +63,7 @@ class ScorerTask(str, Enum):
 
     COUNT = "count"
     FLAG = "flag"
+    TEXT = "text"
 
 
 #: Repository file that holds each human-facing listing.
@@ -279,9 +280,11 @@ def parse_entry(item: object) -> RosterEntry:
         raise RosterError(f"{name}: use must be one line of 1 to {MAX_USE_LENGTH} characters")
     kind = _closed(SkillKind, item["kind"], "kind", name)
     scorer = None if item["scorer"] is None else _closed(ScorerTask, item["scorer"], "scorer", name)
-    # A flagship route is defined by having a Sentinel scorer; no other kind has one yet.
-    if (kind == SkillKind.FLAGSHIP) != (scorer is not None):
-        raise RosterError(f"{name}: a flagship route names its scorer task, and only a flagship route has one")
+    # A flagship route always has a Sentinel scorer; a preview route may have one; no other kind does.
+    if kind == SkillKind.FLAGSHIP and scorer is None:
+        raise RosterError(f"{name}: a flagship route names its scorer task")
+    if scorer is not None and kind not in (SkillKind.FLAGSHIP, SkillKind.PREVIEW):
+        raise RosterError(f"{name}: only a flagship or preview route names a scorer task")
     return RosterEntry(name=name, kind=kind, use=use, scorer=scorer, surfaces=_surfaces(item["surfaces"], name))
 
 

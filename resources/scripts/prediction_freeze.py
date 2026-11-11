@@ -374,9 +374,9 @@ def read_freezes(ledger: Path) -> list[PredictionFreeze]:
     if ledger.is_symlink() or not ledger.is_file():
         raise ValueError(f"ledger must be a regular non-symlink file: {ledger}")
     freezes: list[PredictionFreeze] = []
-    for line in ledger.read_text(encoding="utf-8").splitlines():
+    for line in ledger.read_text(encoding="utf-8").split("\n"):
         try:
-            row = json.loads(line)
+            row = json.loads(line.removesuffix("\r"))
         except json.JSONDecodeError:
             continue
         freeze = parse_freeze(row)

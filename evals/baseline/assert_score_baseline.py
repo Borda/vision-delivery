@@ -3,12 +3,14 @@
 
 from __future__ import annotations
 
+import argparse
 import doctest
 import json
 import os
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 from typing import Any
 
@@ -358,14 +360,14 @@ def assert_rejections(tmp: Path) -> None:
     assert taken.read_text(encoding="utf-8") == "{}\n"
 
 
-def freeze_pred(gold: Path, pred: Path, ledger: Path, predictor: str) -> None:
-    """Freeze one flag prediction file through the public helper."""
+def freeze_pred(gold: Path, pred: Path, ledger: Path, predictor: str, task: str = "flag") -> None:
+    """Freeze one prediction file through the public helper."""
     frozen = subprocess.run(
         [
             sys.executable,
             str(SCRIPTS / "freeze_predictions.py"),
             "--task",
-            "flag",
+            task,
             "--gold",
             str(gold),
             "--pred",
@@ -478,6 +480,275 @@ def assert_frozen_ledger(tmp: Path) -> None:
         assert run(*files, *target, "--frozen-ledger", str(link)).returncode == 2
 
 
+def _text_rows(values: list[str]) -> list[dict[str, Any]]:
+    """Give text fixtures stable image names."""
+    return [{"image": f"text{index}", "text": value} for index, value in enumerate(values)]
+
+
+def _assert_legacy_lines(tmp: Path) -> None:
+    """Preserve exact count and flag lines captured before text support."""
+    gold = flag_rows(40, 10)
+    line, _ = score(tmp, "legacy-flag", gold, caught_rows(gold, 34), ("flag", "catch_rate", "gte", "0.8"))
+    assert line == (
+        "Real cases caught: 34 of 40 real cases (85%, 95% interval 71% to 93%); target >= 80%: INCONCLUSIVE. "
+        "The 95% interval includes the target: label more images to settle it, or treat the result as not yet proven. "
+        "Missing predictions: 0."
+    ), line
+    counts = [{"image": str(index), "count": 2} for index in range(24)]
+    line, _ = score(tmp, "legacy-count", counts, counts, ("count", "count_mae", "lte", "0.5"))
+    assert line == (
+        "Average count error per image: total count error 0 over 24 images (0.00, 95% interval 0.00 to 0.00); "
+        "target <= 0.50: NO VERDICT. No verdict because every image gave the same result, so resampling them "
+        "cannot show how much the number would vary (score exact_count_rate for a verdict on this sample). "
+        "Missing predictions: 0."
+    ), line
+
+
+def _assert_text_exactness(tmp: Path) -> None:
+    """One character, case, whitespace, and Unicode normalization differences are non-matches."""
+    gold = _text_rows(["serial", "abc", "Case", "space", "é", "", "\n", "😀"])
+    pred = _text_rows(["serial", "abx", "case", "space ", "e\u0301", "", "\n", "😀"])
+    line, record = score(tmp, "text-exact", gold, pred, ("text", "exact_match_rate", "gte", "0.5"))
+    assert (record["numerator"], record["denominator"], record["observed_value"]) == (4, 8, 0.5), record
+    assert record["interval_method"] == "wilson" and "Texts read exactly right: 4 of 8 images" in line, line
+
+
+def _assert_text_errors(tmp: Path) -> None:
+    """Insertion, deletion, substitution, empty gold, and Unicode have hand-computed code-point counts."""
+    gold = _text_rows(["ab", "abc", "cat", "", "é😀", "e\u0301", ""])
+    pred = _text_rows(["axb", "ac", "cut", "xy", "é", "é", ""])
+    line, record = score(tmp, "text-errors", gold, pred, ("text", "char_error_rate", "lte", "0.5"))
+    # Distances 1+1+1+2+1+2+0=8; gold lengths 2+3+3+0+2+2+0=12, independent of UTF-8 byte lengths.
+    assert (record["numerator"], record["denominator"]) == (8, 12), record
+    assert record["observed_value"] == 8 / 12 and record["interval_method"] == "bootstrap-percentile", record
+    assert "Character errors per labeled character: 8 character errors over 12 labeled characters (67%" in line
+    tallies = score_baseline.text_metrics({"a": "ab", "b": "", "c": "é😀"}, {"a": "axb", "b": "xy", "c": "é"})
+    assert tallies["char_error_rate"].parts == ((1, 2), (2, 0), (1, 2)), tallies
+    line, record = score(
+        tmp, "text-no-characters", _text_rows([""]), _text_rows(["abc"]), ("text", "char_error_rate", "lte", "2")
+    )
+    assert (record["numerator"], record["denominator"], record["observed_value"]) == (3, 0, None), record
+    assert record["verdict"] == "no-verdict" and "there are no labeled characters to measure" in line, line
+    line, record = score(
+        tmp, "text-insertions", _text_rows(["a"]), _text_rows(["aaa"]), ("text", "char_error_rate", "lte", "2")
+    )
+    assert (record["numerator"], record["denominator"], record["observed_value"]) == (2, 1, 2.0), record
+    assert "2 character errors over 1 labeled character (200%" in line and "target <= 200%" in line, line
+
+
+def _assert_text_missing(tmp: Path) -> None:
+    """A missing prediction is a non-match even for empty gold and is empty for edit distance."""
+    gold = _text_rows(["ok"] * 20 + ["abc", ""])
+    pred = gold[:20]
+    line, record = score(tmp, "text-missing-exact", gold, pred, ("text", "exact_match_rate", "gte", "0.5"))
+    assert (record["numerator"], record["denominator"], record["missing_predictions"]) == (20, 22, 2), record
+    assert record["verdict"] == "no-verdict" and "2 of 22 gold images have no prediction" in line, line
+    line, record = score(tmp, "text-missing-cer", gold, pred, ("text", "char_error_rate", "lte", "0.5"))
+    assert (record["numerator"], record["denominator"], record["missing_predictions"]) == (3, 43, 2), record
+    assert record["verdict"] == "no-verdict" and "2 of 22 gold images have no prediction" in line, line
+    assert "fewer than" not in line and "Missing predictions: 2." in line, line
+
+
+def _assert_text_rejections(tmp: Path) -> None:
+    """Invalid text values and target directions or thresholds score nothing and write no evidence."""
+    valid = write_jsonl(tmp / "text-valid.jsonl", _text_rows(["a"]))
+    cases = (
+        ("char_error_rate", "gte", "0.1", "a"),
+        ("exact_match_rate", "lte", "0.9", "a"),
+        ("exact_match_rate", "gte", "0", "a"),
+        ("exact_match_rate", "gte", "1.1", "a"),
+        ("char_error_rate", "lte", "-0.1", "a"),
+        ("exact_match_rate", "gte", "0.5", 1),
+        ("exact_match_rate", "gte", "0.5", True),
+        ("exact_match_rate", "gte", "0.5", None),
+        ("exact_match_rate", "gte", "0.5", ["a"]),
+        ("exact_match_rate", "gte", "0.5", "😀" * 10001),
+    )
+    for index, (metric, comparator, threshold, value) in enumerate(cases):
+        bad = write_jsonl(tmp / f"text-bad-{index}.jsonl", [{"image": "text0", "text": value}])
+        evidence = tmp / f"text-rejected-{index}.json"
+        target = ("--task", "text", "--metric", metric, "--comparator", comparator, "--threshold", threshold)
+        for gold, pred in ((valid, bad), (bad, valid)):
+            res = run("--gold", str(gold), "--pred", str(pred), *target, "--evidence-out", str(evidence))
+            assert res.returncode == 2 and res.stdout == "" and "score-baseline-error:" in res.stderr, res
+            assert not evidence.exists(), evidence
+    boundary = _text_rows(["😀" * 10000])
+    _, record = score(tmp, "text-boundary", boundary, _text_rows([""]), ("text", "char_error_rate", "lte", "0"))
+    assert (record["numerator"], record["denominator"]) == (10000, 10000), record
+
+
+def _assert_text_bootstrap(tmp: Path) -> None:
+    """CER counts labeled-text units, refuses zero width, and reuses its seed for the same files."""
+    gold = _text_rows(["abc"] * 19 + [""] * 5)
+    pred = _text_rows(["abc"] * 18 + ["ac"] + ["x"] * 5)
+    line, record = score(tmp, "text-few", gold, pred, ("text", "char_error_rate", "lte", "0.5"))
+    assert record["verdict"] == "no-verdict" and "only 19 images with labeled text, fewer than the 20 needed" in line
+    same = _text_rows(["abc"] * 20)
+    line, record = score(tmp, "text-zero-width", same, same, ("text", "char_error_rate", "lte", "0"))
+    assert record["verdict"] == "no-verdict" and record["interval_lower"] == record["interval_upper"] == 0, record
+    assert "(score exact_match_rate for a verdict on this sample)" in line and "exact_count_rate" not in line, line
+    gold = _text_rows(["abc"] * 20 + [""])
+    pred = _text_rows(["abc"] * 10 + ["ac"] * 10 + ["xyz"])
+    target = ("text", "char_error_rate", "lte", "0.5")
+    first, record = score(tmp, "text-seeded", gold, pred, target)
+    second, again = score(tmp, "text-seeded", gold, pred, target)
+    assert first == second and record["bootstrap"] == {"resamples": 2000, "seed": 2024}, first
+    assert (record["numerator"], record["denominator"]) == (13, 60), record
+    assert record["verdict"] == "pass" and record["interval_lower"] < record["interval_upper"], record
+    assert (record["interval_lower"], record["interval_upper"]) == (again["interval_lower"], again["interval_upper"])
+
+
+def _assert_text_raw_separators(tmp: Path) -> None:
+    """Raw Unicode separators inside JSON strings remain part of both input values."""
+    for index, separator in enumerate(("\u2028", "\u2029", "\u0085")):
+        value = f"north{separator}south"
+        rows = _text_rows([value])
+        gold = tmp / f"raw-gold-{index}.jsonl"
+        pred = tmp / f"raw-pred-{index}.jsonl"
+        content = json.dumps(rows[0], ensure_ascii=False) + "\r\n"
+        gold.write_bytes(content.encode("utf-8"))
+        pred.write_bytes(content.encode("utf-8"))
+        assert score_baseline.load_labels(gold, "text") == {"text0": value}
+        assert score_baseline.load_labels(pred, "text") == {"text0": value}
+        result = run(
+            "--gold",
+            str(gold),
+            "--pred",
+            str(pred),
+            "--task",
+            "text",
+            "--metric",
+            "exact_match_rate",
+            "--comparator",
+            "gte",
+            "--threshold",
+            "0.5",
+        )
+        assert result.returncode == 0, result.stderr
+        record = json.loads(result.stdout.splitlines()[-1])
+        assert (record["numerator"], record["denominator"]) == (1, 1), record
+
+
+def _assert_text_surrogates(tmp: Path) -> None:
+    """Either surrogate range is refused in gold or prediction without writing evidence."""
+    valid = write_jsonl(tmp / "surrogate-valid.jsonl", _text_rows(["north"]))
+    for index, value in enumerate(("\ud800", "\udfff")):
+        invalid = write_jsonl(tmp / f"surrogate-{index}.jsonl", _text_rows([value]))
+        for gold, pred in ((valid, invalid), (invalid, valid)):
+            evidence = tmp / f"surrogate-evidence-{index}.json"
+            result = run(
+                "--gold",
+                str(gold),
+                "--pred",
+                str(pred),
+                "--task",
+                "text",
+                "--metric",
+                "exact_match_rate",
+                "--comparator",
+                "gte",
+                "--threshold",
+                "0.5",
+                "--evidence-out",
+                str(evidence),
+            )
+            assert result.returncode == 2 and result.stdout == "", result
+            assert "text must not hold a lone surrogate code point" in result.stderr, result.stderr
+            assert not evidence.exists(), evidence
+
+
+def _assert_text_comparison_budget(tmp: Path) -> None:
+    """Reject the aggregate comparison workload before calculating even the first distance."""
+    gold = write_jsonl(tmp / "budget-gold.jsonl", _text_rows(["x" * 10000] * 3))
+    pred = write_jsonl(tmp / "budget-pred.jsonl", _text_rows(["y" * 10000] * 3))
+    evidence = tmp / "budget-evidence.json"
+    started = time.monotonic()
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(SCORER),
+            "--gold",
+            str(gold),
+            "--pred",
+            str(pred),
+            "--task",
+            "text",
+            "--metric",
+            "exact_match_rate",
+            "--comparator",
+            "gte",
+            "--threshold",
+            "0.5",
+            "--evidence-out",
+            str(evidence),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=5,
+    )
+    assert time.monotonic() - started < 5, "comparison budget refusal took at least five seconds"
+    assert result.returncode == 2 and result.stdout == "", result
+    assert "200_000_000" in result.stderr and "split long documents into fields" in result.stderr, result.stderr
+    assert not evidence.exists(), evidence
+    assert score_baseline.MAX_TEXT_COMPARE_CELLS == 200_000_000
+    # Loading exactly two 10,000-by-10,000 pairs checks the inclusive boundary without running them.
+    write_jsonl(pred, _text_rows(["y" * 10000] * 2))
+    loaded_gold, loaded_pred = score_baseline.load_inputs(argparse.Namespace(gold=gold, pred=pred), "text")
+    assert len(loaded_gold) == 3 and len(loaded_pred) == 2
+
+
+def _assert_text_wilson(tmp: Path) -> None:
+    """Text Wilson verdicts match independent closed-form bounds at an 80% target."""
+    gold = _text_rows(["abc"] * 40)
+    # Closed form with z=1.959963984540054: 39/40, 20/40, and 34/40 respectively.
+    for matches, expected, bounds in (
+        (39, "pass", (0.87119, 0.99557)),
+        (20, "below-target", (0.35199, 0.64801)),
+        (34, "inconclusive", WILSON_34_OF_40),
+    ):
+        pred = _text_rows(["abc"] * matches + ["abx"] * (40 - matches))
+        line, record = score(tmp, f"text-wilson-{matches}", gold, pred, ("text", "exact_match_rate", "gte", "0.8"))
+        assert record["verdict"] == expected and record["passes_acceptance"] == (expected == "pass"), line
+        assert (record["numerator"], record["denominator"]) == (matches, 40), record
+        assert abs(record["interval_lower"] - bounds[0]) < 1e-4, record
+        assert abs(record["interval_upper"] - bounds[1]) < 1e-4, record
+
+
+def _assert_text_freeze(tmp: Path) -> None:
+    """Freeze and score text through the real ledger writer, then refuse edited gold."""
+    base = (tmp / "text-frozen" / ".vision-delivery").resolve()
+    base.mkdir(parents=True)
+    ledger = base / "ledger.jsonl"
+    gold = write_jsonl(base / "gold.jsonl", _text_rows(["serial-é😀", ""] * 20))
+    pred = write_jsonl(base / "pred.jsonl", _text_rows(["serial-é😀", ""] * 20))
+    freeze_pred(gold, pred, ledger, "isolated-subagent", task="text")
+    args = (
+        "--gold",
+        str(gold),
+        "--pred",
+        str(pred),
+        "--task",
+        "text",
+        "--metric",
+        "exact_match_rate",
+        "--comparator",
+        "gte",
+        "--threshold",
+        "0.8",
+        "--frozen-ledger",
+        str(ledger),
+    )
+    frozen = run(*args)
+    assert frozen.returncode == 0, frozen.stderr
+    record = json.loads(frozen.stdout.splitlines()[-1])
+    assert record["predictions_frozen"]["independent"] is True and record["verdict"] == "pass", record
+    write_jsonl(gold, _text_rows(["changed", ""] * 20))
+    changed = run(*args)
+    assert changed.returncode == 2 and changed.stdout == "", changed
+    assert "gold labels changed after these predictions were frozen" in changed.stderr, changed.stderr
+
+
 def main() -> int:
     """Run doctests and CLI cases."""
     failures, _ = doctest.testmod(score_baseline)
@@ -493,6 +764,17 @@ def main() -> int:
         assert_flag_deliver(tmp)
         assert_rejections(tmp)
         assert_frozen_ledger(tmp)
+        _assert_legacy_lines(tmp)
+        _assert_text_exactness(tmp)
+        _assert_text_errors(tmp)
+        _assert_text_missing(tmp)
+        _assert_text_rejections(tmp)
+        _assert_text_raw_separators(tmp)
+        _assert_text_surrogates(tmp)
+        _assert_text_comparison_budget(tmp)
+        _assert_text_bootstrap(tmp)
+        _assert_text_wilson(tmp)
+        _assert_text_freeze(tmp)
     print("baseline scorer assertions passed")
     return 0
 

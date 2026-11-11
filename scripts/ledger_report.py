@@ -634,6 +634,8 @@ class ProjectStatus:
     briefs: tuple[BriefStatus, ...]
     next_action: str
     warnings: tuple[str, ...]
+    #: Drift status and time of the latest recheck against the frozen acceptance; empty when none ran.
+    recheck: str = ""
 
     def open_briefs(self) -> tuple[BriefStatus, ...]:
         """Return the briefs the next call of their operation can still use.
@@ -656,6 +658,8 @@ class ProjectStatus:
         payload = json.loads(json.dumps(asdict(self), default=_json_default))
         payload["step_number"] = self.step.number
         payload["step_title"] = STEP_TITLES[self.step]
+        if not self.recheck:
+            payload.pop("recheck")
         for brief, raw in zip(self.briefs, payload["briefs"], strict=True):
             raw["remaining"] = brief.remaining
         return payload
@@ -1121,6 +1125,8 @@ def _acceptance(path: Path, data: dict[str, Any], digest: str) -> TargetInfo | N
 
 def _evidence(path: Path, data: dict[str, Any]) -> Measurement | None:
     """Return the result held in a scorer evidence file, or ``None`` when the file is not one."""
+    if isinstance(data.get("recheck"), dict):
+        return None
     verdicts = {member.value for member in Verdict} - {Verdict.UNKNOWN.value}
     target = data.get("target")
     if data.get("schema_version") != "1" or data.get("verdict") not in verdicts or not isinstance(target, dict):
@@ -1463,6 +1469,108 @@ def _upstream_search_warnings(records: list[dict[str, Any]], target_locked: bool
     return warnings
 
 
+#: Ledger action `resources/scripts/recheck.py` records for a fresh sample scored against the frozen acceptance.
+RECHECK_ACTION = "recheck_measured"
+_RECHECK_WARNINGS = {
+    "drifted": (
+        "The latest recheck scored below the locked target: the delivered capability has drifted. "
+        "Find the cause before relying on it."
+    ),
+    "uncertain": "The latest recheck could not settle the target: label more fresh images and recheck.",
+}
+
+
+class RecheckDrift(str, Enum):
+    """Validated ledger drift states, including unreadable legacy or hand-written rows."""
+
+    HOLDS = "holds"
+    DRIFTED = "drifted"
+    UNCERTAIN = "uncertain"
+    UNREADABLE = "unreadable"
+
+
+class RecheckFreeze(str, Enum):
+    """Whether the helper's fresh predictions were frozen independently."""
+
+    INDEPENDENT = "independent"
+    NOT_INDEPENDENT = "not-independent"
+    NOT_FROZEN = "not-frozen"
+
+
+@dataclass(frozen=True)
+class RecheckInfo:
+    """The latest recheck's measured state and target identity, retained from structured fields."""
+
+    drift: RecheckDrift
+    measured_at: str
+    acceptance_sha256: str
+    predictions_frozen: RecheckFreeze | None
+
+    def target_matches(self, target: TargetInfo | None) -> bool | None:
+        """Compare exact acceptance digests, leaving missing identity unknown.
+
+        Examples:
+            >>> row = RecheckInfo(RecheckDrift.HOLDS, "now", "", None)
+            >>> row.target_matches(TargetInfo("acceptance.json")) is None
+            True
+        """
+        if target is None or not target.acceptance_sha256 or not self.acceptance_sha256:
+            return None
+        return self.acceptance_sha256 == target.acceptance_sha256
+
+    def describe(self, target: TargetInfo | None) -> str:
+        """Render the measurement while distinguishing a different or unknown locked target.
+
+        Examples:
+            >>> row = RecheckInfo(RecheckDrift.HOLDS, "now", "", None)
+            >>> row.describe(None)
+            'holds on now, cannot compare with the locked target, freeze state not on file'
+        """
+        text = f"{self.drift.value} on {self.measured_at}"
+        matches = self.target_matches(target)
+        if matches is False:
+            text += ", against a different target than the locked one"
+        elif matches is None:
+            text += ", cannot compare with the locked target"
+        freeze_notes = {
+            RecheckFreeze.NOT_FROZEN: ", fresh predictions not frozen",
+            RecheckFreeze.NOT_INDEPENDENT: ", not independent",
+            None: ", freeze state not on file",
+        }
+        return text + freeze_notes.get(self.predictions_frozen, "")
+
+
+def last_recheck(records: list[dict[str, Any]]) -> RecheckInfo | None:
+    """Read the latest successful recheck's structured fields, or return ``None`` when absent.
+
+    Examples:
+        >>> row = {"action": "recheck_measured", "status": "success", "ts": "2026-11-10T10:00:00Z",
+        ...        "drift": "drifted", "acceptance_sha256": "a" * 64, "predictions_frozen": "independent"}
+        >>> last_recheck([row]).drift.value
+        'drifted'
+        >>> last_recheck([row]).predictions_frozen.value
+        'independent'
+        >>> last_recheck([{**row, "drift": None, "notes": "drift=holds"}]).drift.value
+        'unreadable'
+        >>> last_recheck([{**row, "status": "failed"}]) is None
+        True
+    """
+    rows = [row for row in records if row.get("action") == RECHECK_ACTION and row.get("status") == "success"]
+    if not rows:
+        return None
+    latest = rows[-1]
+    try:
+        drift = RecheckDrift(latest.get("drift"))
+    except (TypeError, ValueError):
+        drift = RecheckDrift.UNREADABLE
+    try:
+        frozen = RecheckFreeze(latest.get("predictions_frozen"))
+    except (TypeError, ValueError):
+        frozen = None
+    digest = latest.get("acceptance_sha256")
+    return RecheckInfo(drift, str(latest.get("ts") or ""), digest if isinstance(digest, str) else "", frozen)
+
+
 def _status_warnings(
     ledger: Path,
     records: list[dict[str, Any]],
@@ -1491,7 +1599,11 @@ def _status_warnings(
                 "may already have started that work, so its cost may already be spent."
             )
     warnings.extend(_unknown_brief_warnings(briefs))
-    warnings.extend(_upstream_search_warnings(records, locked_target(files) is not None))
+    target = locked_target(files)
+    warnings.extend(_upstream_search_warnings(records, target is not None))
+    recheck = last_recheck(records)
+    if recheck and recheck.target_matches(target) is True and recheck.drift in _RECHECK_WARNINGS:
+        warnings.append(_RECHECK_WARNINGS[recheck.drift])
     return tuple(warnings)
 
 
@@ -1537,7 +1649,9 @@ def project_status(ledger: Path, now: datetime | None = None, tools: dict[str, A
     step = delivery_step(milestones, measurement, matches)
     briefs = brief_states(records, policy_tools, moment)
     session, session_source = resume_session(files, records)
+    recheck = last_recheck(records)
     return ProjectStatus(
+        recheck=recheck.describe(target) if recheck else "",
         ledger=str(ledger),
         ledger_rows=len(records),
         session=session,
@@ -1625,6 +1739,8 @@ def status_lines(status: ProjectStatus) -> list[str]:
         f"Target:       {_target_line(status.target)}",
         f"Last result:  {_result_line(status.measurement, status.target_matches, status.target is not None)}",
     ]
+    if status.recheck:
+        lines.append(f"Last recheck: {status.recheck}")
     open_briefs = status.open_briefs()
     unknown = [brief for brief in status.briefs if brief.state == BriefState.UNKNOWN]
     earlier = [brief for brief in status.briefs if brief.state not in (BriefState.OPEN, BriefState.UNKNOWN)]

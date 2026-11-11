@@ -24,4 +24,6 @@ Switch to deliver mode when any of these is true:
 
 Deliver mode adds the full proof chain: `freeze_acceptance.py` JSON with `acceptance_sha256`, scorer evidence with `--acceptance` and `--evidence-out`, digest-bound ledger rows, artifact smoke, and the delivery handoff validators in `artifact-contract.md`. Carry the explore target forward unchanged as the first frozen revision. Changing it creates a new revision.
 
+To learn whether a delivery passes its checks, run `resources/scripts/check_delivery.py --project-root <project>` and report its whole plain line: `DELIVERY CHECKS PASSED for acceptance <acceptance_id>.` with its limits and caveats, or `DELIVERY CHECKS FAILED: <step>: <reason>`. Never shorten a passed line to "proven": the line says what the checks do not show. It reads files only, runs the checks in chain order, and stops at the first failure; `artifact-contract.md` lists its inputs. `threat-model.md` says which step defends against what, and what no step can defend against.
+
 Tell the user once when the mode changes and why, in one sentence. The digests are for auditors and validators. The user still gets plain-language results.

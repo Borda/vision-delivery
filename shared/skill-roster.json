@@ -107,7 +107,7 @@
     {
       "kind": "preview",
       "name": "read-text",
-      "scorer": null,
+      "scorer": "text",
       "surfaces": [
         "capability-contract",
         "issue-form",

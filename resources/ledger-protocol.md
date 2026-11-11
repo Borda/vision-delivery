@@ -57,7 +57,7 @@ Unknown is never success. `attempted` and `unknown` prove only that work was req
 - Write `ts` in UTC as `YYYY-MM-DDTHH:MM:SSZ`. The Claude Code gate ignores a row whose time Node's `Date.parse` cannot read and reads a time without an offset as the machine's local time; `ledger_report.py --status` reads `ts` the same way.
 - For an operation that runs under a call budget, the Claude Code gate appends `action: roboflow_mcp_call_reserved` (status `attempted`) before the call goes ahead. The row holds one unit of the brief's budget and names the brief in `brief_event_id`. It is not evidence that the call ran; only the `roboflow_mcp_call` row is. Skills never write or remove reservation rows.
 - Skills must not manually append hook-covered MCP actions. They may record a distinct completed local artifact or measurement produced after interpreting a call, but must not duplicate the raw upstream operation.
-- Skills own local actions that have no matching MCP call: `eval_definition`, `feasibility_checked`, `labels_recorded`, `predictions_frozen`, `baseline_measured`, `upstream_search_started` (the router hands the candidate search to an upstream search skill; written only after the target is on file and rung 0 is recorded), `artifact_verified`, `delivery_handoff_emitted`, `crossover_delivered`, and `decision_report_emitted`.
+- Skills own local actions that have no matching MCP call: `eval_definition`, `feasibility_checked`, `labels_recorded`, `predictions_frozen`, `baseline_measured`, `recheck_measured`, `upstream_search_started` (the router hands the candidate search to an upstream search skill; written only after the target is on file and rung 0 is recorded), `artifact_verified`, `delivery_handoff_emitted`, `crossover_delivered`, and `decision_report_emitted`.
 - If hooks are untrusted or unavailable, do not fabricate a successful MCP event. State that MCP provenance is incomplete, direct the user to the host's hook trust/diagnostic flow, and retain tool-result evidence in the session output.
 - A local action is `success` only after its file, measurement, or report exists. Record a failed/timeout/cancelled result only when preserving that outcome helps diagnosis.
 
@@ -78,6 +78,16 @@ A successful `predictions_frozen` row freezes a rung 0 prediction file before it
 
 - `ledger_append.py` requires `--gold` and `--label-entry` (`interactive-terminal` for answers typed at a terminal, `record-option` for labels recorded with `--record`). It computes `gold_sha256`, `label_set`, and `label_digests` from the file itself. The row carries counts in `notes` and never a label value.
 - A label file written by hand has no `labels_recorded` row; a later freeze records its `label_entry` as `unrecorded`, and the scorer says the label file was not written by the labeling helper.
+
+## Rechecks
+
+`resources/scripts/recheck.py` scores a fresh labeled sample against the frozen acceptance after delivery and appends one successful `recheck_measured` row through `scripts/ledger_append.py`; never write one by hand.
+
+- The helper anchors on the frozen acceptance file, not on what the baseline evidence says about itself. It refuses unless the baseline evidence is a passing scorer record for this acceptance whose label file is the acceptance's dataset, the task matches, and the fresh label file is not that dataset. When it can find the baseline label file (`--baseline-gold`, or a file with the dataset digest in the ledger's folder), it also refuses a fresh file with the same labels in other bytes or with any image name the baseline used. It then runs the scorer and writes a new evidence file with a `recheck` block.
+- `ledger_append.py` requires `--acceptance` and `--evidence` for a successful row. It reads the evidence file itself, refuses one bound to another acceptance, and writes `evidence_sha256`, `evidence_measured_at`, `predictions_frozen` (`independent`, `not-independent`, or `not-frozen`), `drift` (`holds`, `drifted`, or `uncertain`), and `shifted` (`worse`, `better`, `no`, or `unknown`: where the fresh 95% interval lies relative to the baseline's single value; it is not a test of change). Readers use these fields and never the `notes`.
+- Event ID: `manual:<session>:recheck_measured:` followed by the first 12 hex characters of the acceptance, baseline evidence, prediction, and label file digests, joined with `-`, so a rerun on the same files adds no row and a new acceptance adds its own.
+- Save the recheck evidence where you like; the status reader never treats it as the project's last baseline result.
+- Limits: when the baseline label file is not on disk, overlap with the baseline images is not checked, and the evidence and the printed line say so. Renamed image files defeat the overlap check. Without `--frozen-ledger` the fresh predictions were not frozen before scoring, and the line says so. A recheck is one sample; `uncertain` means label more images.
 
 ## Safe Manual Writes
 
@@ -111,6 +121,7 @@ Additional rules:
 - Append only; never overwrite or delete prior outcomes.
 - Never log API keys, bearer tokens, image contents, personal data, or raw tool responses.
 - Every new manual write must supply a non-empty event ID. The helper rejects a conflicting reuse and silently ignores an exact duplicate.
-- Successful `baseline_measured`, `artifact_verified`, `delivery_handoff_emitted`, `crossover_delivered`, and `decision_report_emitted` rows require `--acceptance`; the helper validates the frozen artifact and computes its ID/digest. Artifact and delivery rows additionally require `--artifact-dir`. A successful `decision_report_emitted` row requires `--report`; the helper computes `report_sha256`. Caller-supplied digest strings and free-form notes are never accepted as proof bindings.
+- Successful `baseline_measured`, `recheck_measured`, `artifact_verified`, `delivery_handoff_emitted`, `crossover_delivered`, and `decision_report_emitted` rows require `--acceptance`; the helper validates the frozen artifact and computes its ID/digest. Artifact and delivery rows additionally require `--artifact-dir`. A successful `decision_report_emitted` row requires `--report`; the helper computes `report_sha256`. Caller-supplied digest strings and free-form notes are never accepted as proof bindings.
+- For a proof action, pass `--acceptance` (and `--artifact-dir` for artifact actions) on a failed, timeout, or cancelled row too. The helper then binds the row to its target and artifact. The delivery check counts a failed proof row that names no target against every target, until a later success row for that action.
 - Keep failed and later-successful retries as separate event IDs unless they are duplicate deliveries of the same host event.
 - Present records as YAML only for people; the stored source of truth remains JSON Lines.

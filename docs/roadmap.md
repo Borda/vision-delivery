@@ -18,6 +18,10 @@ This page lists direction, not dates. It separates three things that are easy to
 - A `status` skill that says where a project stands, and a `report-outcome` skill that drafts a redacted outcome report for you to post.
 - A hand-off of the candidate search to the official `workflow-from-eval` skill, inside Sentinel's locked target and held-out labels.
 - One skill roster, a route template, and a rule that a published number needs a committed, masked run folder.
+- A scorer task for one text value per image (exact match and character error rate), with labeling and freezing, and a converter from detections to counts or flags for the higher rungs.
+- A recheck that scores fresh labeled images against the frozen target after delivery and says whether the result holds, drifted, or is uncertain.
+- Economics for a batch of images per day, and an optional value at stake from your own error cost and error rates.
+- A written threat model for the proof chain, and one read-only command that says whether a delivery passes its checks and what those checks do not show.
 
 ## Needs a live run to prove
 
@@ -33,13 +37,14 @@ These need a real account, real images, or paid model calls, so a maintainer run
 | A first-session study with people new to computer vision                             | The entry-barrier claim has no evidence                                             |
 | Rung 0 predictions by a separate subagent, recorded on a live host                   | The isolation step is a written procedure; no session shows a subagent following it |
 | The upstream search hand-off, recorded once                                          | Nothing shows the two plugins' skills cooperating in a session                      |
+| A text-reading baseline and a recheck on real images                                 | The text task, the recheck, and the delivery check have run on fixtures only        |
 
 ## Next
 
-- Scorer coverage beyond counts and flags, starting with text fields.
-- A way to re-check a delivered result later, when data drifts.
-- Economics for batch work, and the cost of errors alongside the cost of compute.
-- A written threat model for the proof chain, then a simpler chain where the model shows a step adds no assurance.
+- Scorer coverage for the routes that still have none: box overlap, tracking, masks, and keypoints.
+- Records with several text fields in one label file.
+- A measured capacity table for the economics model, in place of the screening assumption.
+- Fewer deliver-mode steps, where the threat model shows a step can be merged without losing a check.
 
 ## Parked
 

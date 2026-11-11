@@ -238,6 +238,66 @@ def check_prediction_freezes() -> None:
         assert "pred_sha256" not in row and "label_set" not in row, row
 
 
+def _check_text_prediction_freeze() -> None:
+    """Text gold freezes record string digests; mixed label fields and non-string text are refused."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir).resolve()
+        gold, pred = root / "gold.jsonl", root / "pred.jsonl"
+        ledger = root / ".vision-delivery" / "ledger.jsonl"
+        gold.write_text('{"image": "a.jpg", "text": "é😀"}\n{"image": "b.jpg", "text": ""}\n', encoding="utf-8")
+        pred.write_text('{"image": "a.jpg", "text": "é"}\n', encoding="utf-8")
+        files = ("--gold", str(gold), "--pred", str(pred), "--predictor", "isolated-subagent")
+        frozen = run_freeze_row(root, "text", *files)
+        assert frozen.returncode == 0, frozen.stderr
+        original = ledger.read_bytes()
+        row = json.loads(original.splitlines()[-1])
+        assert row["action"] == "predictions_frozen" and row["status"] == "success", row
+        assert row["gold_sha256"] == hashlib.sha256(gold.read_bytes()).hexdigest(), row
+        assert row["label_digests"] == {
+            "a.jpg": hashlib.sha256(f"a.jpg\0{json.dumps('é😀')}".encode()).hexdigest()[:16],
+            "b.jpg": hashlib.sha256(b'b.jpg\0""').hexdigest()[:16],
+        }, row
+        gold.write_text('{"image": "a.jpg", "count": 1, "text": "x"}\n', encoding="utf-8")
+        mixed = run_freeze_row(root, "mixed-text", *files)
+        assert mixed.returncode == 2 and "exactly one of 'count', 'flag', or 'text'" in mixed.stderr, mixed.stderr
+        gold.write_text('{"image": "a.jpg", "text": 1}\n', encoding="utf-8")
+        invalid = run_freeze_row(root, "invalid-text", *files)
+        assert invalid.returncode == 2 and "invalid text" in invalid.stderr, invalid.stderr
+        assert ledger.read_bytes() == original, "refused text freezes must not append a ledger row"
+
+
+def _check_text_freeze_boundaries() -> None:
+    """Freeze bounded Unicode labels without treating JSON string separators as line breaks."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir).resolve()
+        gold, pred = root / "gold.jsonl", root / "pred.jsonl"
+        ledger = root / ".vision-delivery" / "ledger.jsonl"
+        text = "first\u2028second\u2029third\u0085fourth"
+        gold.write_text(
+            json.dumps({"image": "a.jpg", "text": text}, ensure_ascii=False) + "\r\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        pred.write_text('{"image": "a.jpg", "text": "first"}\n', encoding="utf-8", newline="\n")
+        files = ("--gold", str(gold), "--pred", str(pred), "--predictor", "isolated-subagent")
+        done = run_freeze_row(root, "unicode-separators", *files)
+        assert done.returncode == 0, done.stderr
+        row = json.loads(ledger.read_bytes().splitlines()[-1])
+        expected = hashlib.sha256(f"a.jpg\0{json.dumps(text)}".encode()).hexdigest()[:16]
+        assert row["label_digests"] == {"a.jpg": expected}, row
+        gold = root / "boundary-gold.jsonl"
+        gold.write_text(json.dumps({"image": "b.jpg", "text": "x" * 10_000}) + "\n", encoding="utf-8", newline="\n")
+        files = ("--gold", str(gold), "--pred", str(pred), "--predictor", "isolated-subagent")
+        boundary = run_freeze_row(root, "text-limit", *files)
+        assert boundary.returncode == 0, boundary.stderr
+        before = ledger.read_bytes()
+        for event, value in (("text-too-long", "x" * 10_001), ("text-surrogate", "\ud800")):
+            gold.write_text(json.dumps({"image": "a.jpg", "text": value}) + "\n", encoding="utf-8", newline="\n")
+            refused = run_freeze_row(root, event, *files)
+            assert refused.returncode == 2 and "invalid text" in refused.stderr, (event, refused.stderr)
+        assert ledger.read_bytes() == before, "invalid Unicode labels appended a freeze row"
+
+
 def check_policy_operations(module: ModuleType) -> None:
     """Assert report operation names come from the gate policy, not from guesses."""
     policy = json.loads((Path(__file__).parents[2] / "hooks" / "gate-policy.json").read_text(encoding="utf-8"))
@@ -1157,6 +1217,130 @@ def check_upstream_search_order(module: Any) -> None:
                 assert phrase in warning, (name, phrase, warning)
 
 
+def check_recheck_status(module: Any) -> None:
+    """Assert recheck warnings apply only to evidence against the locked target.
+
+    Examples:
+        Run this check through ``python3 evals/ledger/assert_ledger.py``.
+    """
+    stamp = "2026-11-10T10:00:00Z"
+    cases: tuple[tuple[str, list[dict[str, str]], str, str], ...] = (
+        ("no recheck", [], "", ""),
+        ("holds", [_recheck_row("holds", stamp)], f"Last recheck: holds on {stamp}", ""),
+        ("drifted", [_recheck_row("drifted", stamp)], f"Last recheck: drifted on {stamp}", "has drifted"),
+        ("uncertain", [_recheck_row("uncertain", stamp)], f"Last recheck: uncertain on {stamp}", "label more fresh"),
+        (
+            "latest row wins",
+            [_recheck_row("drifted", "2026-11-09T10:00:00Z"), _recheck_row("holds", stamp)],
+            f"Last recheck: holds on {stamp}",
+            "",
+        ),
+        (
+            "failed row does not count",
+            [_recheck_row("holds", stamp), {**_recheck_row("drifted", stamp), "status": "failed"}],
+            f"Last recheck: holds on {stamp}",
+            "",
+        ),
+        (
+            "hand-written notes",
+            [{key: value for key, value in _recheck_row("holds", stamp).items() if key != "drift"}],
+            f"Last recheck: unreadable on {stamp}",
+            "",
+        ),
+        (
+            "different target",
+            [{**_recheck_row("drifted", stamp), "acceptance_sha256": "b" * 64}],
+            f"Last recheck: drifted on {stamp}, against a different target than the locked one",
+            "",
+        ),
+        (
+            "unknown target",
+            [{key: value for key, value in _recheck_row("uncertain", stamp).items() if key != "acceptance_sha256"}],
+            f"Last recheck: uncertain on {stamp}, cannot compare with the locked target",
+            "",
+        ),
+        (
+            "invalid drift",
+            [{**_recheck_row("holds", stamp), "drift": "pass"}],
+            f"Last recheck: unreadable on {stamp}",
+            "",
+        ),
+        (
+            "fresh predictions not frozen",
+            [{**_recheck_row("holds", stamp), "predictions_frozen": "not-frozen"}],
+            f"Last recheck: holds on {stamp}, fresh predictions not frozen",
+            "",
+        ),
+        (
+            "freeze not independent",
+            [{**_recheck_row("drifted", stamp), "predictions_frozen": "not-independent"}],
+            f"Last recheck: drifted on {stamp}, not independent",
+            "has drifted",
+        ),
+        (
+            "freeze state missing",
+            [{key: value for key, value in _recheck_row("holds", stamp).items() if key != "predictions_frozen"}],
+            f"Last recheck: holds on {stamp}, freeze state not on file",
+            "",
+        ),
+    )
+    for name, rows, line, warning in cases:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            folder = Path(temp_dir).resolve() / ".vision-delivery"
+            folder.mkdir()
+            (folder / "acceptance-fixture.json").write_text(
+                json.dumps(_acceptance_fixture()), encoding="utf-8", newline="\n"
+            )
+            ledger = folder / "ledger.jsonl"
+            ledger.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8", newline="\n")
+            status = module.project_status(ledger)
+            shown = [text for text in module.status_lines(status) if text.startswith("Last recheck:")]
+            assert shown == ([line] if line else []), (name, shown)
+            assert status.to_json().get("recheck", "") == line.removeprefix("Last recheck: "), (name, status.recheck)
+            assert bool(line) == ("recheck" in status.to_json()), (name, status.to_json())
+            raised = [text for text in status.warnings if "recheck" in text]
+            assert len(raised) == (1 if warning else 0), (name, raised)
+            assert not warning or warning in raised[0], (name, raised)
+
+
+def _recheck_row(drift: str, stamp: str) -> dict[str, str]:
+    """Build a recheck row bound to the fixture's exact frozen acceptance bytes."""
+    notes = f"drift={drift}; shifted=no; metric=catch_rate; value=0.8; baseline=0.9"
+    return {
+        "action": "recheck_measured",
+        "status": "success",
+        "ts": stamp,
+        "notes": notes,
+        "drift": drift,
+        "acceptance_sha256": hashlib.sha256(json.dumps(_acceptance_fixture()).encode()).hexdigest(),
+        "predictions_frozen": "independent",
+    }
+
+
+def _check_recheck_evidence_is_not_result(module: Any) -> None:
+    """A later recheck evidence file leaves the baseline result and project action intact."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        folder = Path(temp_dir).resolve() / ".vision-delivery"
+        folder.mkdir()
+        ledger = folder / "ledger.jsonl"
+        ledger.write_text("", encoding="utf-8", newline="\n")
+        (folder / "acceptance-fixture.json").write_text(
+            json.dumps(_acceptance_fixture()), encoding="utf-8", newline="\n"
+        )
+        (folder / "evidence-baseline.json").write_text(
+            json.dumps(_evidence_fixture("below-target")), encoding="utf-8", newline="\n"
+        )
+        before = module.project_status(ledger)
+        evidence = _pass_evidence(recheck={"drift": "holds"}, measured_at="2999-01-01T00:00:00Z")
+        (folder / "recheck-evidence.json").write_text(json.dumps(evidence), encoding="utf-8", newline="\n")
+        after = module.project_status(ledger)
+        assert after.measurement == before.measurement, (before.measurement, after.measurement)
+        assert after.step == before.step and after.next_action == before.next_action, (before, after)
+        assert next(line for line in module.status_lines(before) if line.startswith("Last result:")) == next(
+            line for line in module.status_lines(after) if line.startswith("Last result:")
+        )
+
+
 def check_status_cli() -> None:
     """Assert --status text and JSON output, exit codes, and that the default report is unchanged."""
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -1178,6 +1362,7 @@ def check_status_cli() -> None:
         as_json = _status_cli("--status", "--json", "--ledger", str(ledger))
         payload = json.loads(as_json.stdout)
         assert as_json.returncode == 0 and payload["step"] == "scope" and payload["step_number"] == 1, payload
+        assert "recheck" not in payload, payload
         summary = [(b["state"], b["operation"], b["used"], b["limit"], b["remaining"]) for b in payload["briefs"]]
         assert summary == [("open", TRAIN, 0, 1, 1)], summary
         # Without --status the metrics report is printed exactly as before the status reader existed.
@@ -1214,18 +1399,8 @@ def check_status_cli() -> None:
         assert not (root / "none").exists(), "the status reader created a folder"
 
 
-def main() -> int:
-    """Assert failed/unknown events are excluded and stable IDs deduplicate."""
-    module = load_module()
-    check_policy_operations(module)
-    check_action_briefs()
-    check_prediction_freezes()
-    check_status_matches_gate(module)
-    check_naive_timestamp_zone()
-    check_unreadable_ledger(module)
-    check_status_eval_files(module)
-    check_upstream_search_order(module)
-    check_status_cli()
+def _check_event_metrics(module: ModuleType) -> None:
+    """Exclude unsuccessful claims and deduplicate events without hiding conflicting outcomes."""
     records = [
         {
             "session": "ok",
@@ -1320,6 +1495,9 @@ def main() -> int:
     assert conflicting_metrics["integrity_conflicts"] == 1
     assert conflicting_metrics["outcome_breakdown"] == {"unknown": 1}
 
+
+def _check_append_integrity() -> None:
+    """Exercise bound report appends, idempotence, conflicts, and concurrent writes."""
     with tempfile.TemporaryDirectory() as temp_dir:
         acceptance = Path(temp_dir) / "acceptance.json"
         acceptance.write_text(
@@ -1338,9 +1516,10 @@ def main() -> int:
                 }
             ),
             encoding="utf-8",
+            newline="\n",
         )
         report = Path(temp_dir) / "decision-report.md"
-        report.write_text("Decision: fixture\n", encoding="utf-8")
+        report.write_text("Decision: fixture\n", encoding="utf-8", newline="\n")
         proof_args = [
             "--acceptance",
             str(acceptance),
@@ -1463,6 +1642,9 @@ def main() -> int:
             == 1
         )
 
+
+def _check_ledger_symlink_refusal() -> None:
+    """Refuse ledger symlinks while preserving their directory and file targets."""
     if os.name == "posix":
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -1494,7 +1676,7 @@ def main() -> int:
             ledger_dir.unlink()
             ledger_dir.mkdir()
             victim_file = root / "victim.jsonl"
-            victim_file.write_text("victim\n", encoding="utf-8")
+            victim_file.write_text("victim\n", encoding="utf-8", newline="\n")
             (ledger_dir / "ledger.jsonl").symlink_to(victim_file)
             result = subprocess.run(
                 [
@@ -1517,6 +1699,30 @@ def main() -> int:
             assert result.returncode == 2
             assert victim_file.read_text(encoding="utf-8") == "victim\n"
 
+
+def main() -> int:
+    """Run the ledger's reader and writer acceptance checks.
+
+    Examples:
+        Run ``python3 evals/ledger/assert_ledger.py`` to print the passing assertion message.
+    """
+    module = load_module()
+    check_policy_operations(module)
+    check_action_briefs()
+    check_prediction_freezes()
+    _check_text_prediction_freeze()
+    _check_text_freeze_boundaries()
+    check_status_matches_gate(module)
+    check_naive_timestamp_zone()
+    check_unreadable_ledger(module)
+    check_status_eval_files(module)
+    check_upstream_search_order(module)
+    check_recheck_status(module)
+    _check_recheck_evidence_is_not_result(module)
+    check_status_cli()
+    _check_event_metrics(module)
+    _check_append_integrity()
+    _check_ledger_symlink_refusal()
     print("ledger assertions passed")
     return 0
 
